@@ -14,7 +14,7 @@
 # Logs and databases #
 ######################
 *.log
-*.sql
+log.*
 *.sqlite
 
 # OS generated files #
@@ -45,7 +45,6 @@ __pycache__/
 # settings.py
 # settings-*
 # custom-*
-log.*
 # env/
 # extras/
 # testing/
