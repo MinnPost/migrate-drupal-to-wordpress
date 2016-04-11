@@ -38,14 +38,16 @@ __pycache__/
 
 # This may contain sensitive login information
 # and not intended for commits
-custom-*
-settings.yml
-settings.py
-settings-*
-custom-*
+
+# allow our stuff to be committed since it is a private repo
+# custom-*
+# settings.yml
+# settings.py
+# settings-*
+# custom-*
 log.*
-env/
-extras/
-testing/
-sql/
-sql-projects/
+# env/
+# extras/
+# testing/
+# sql/
+# sql-projects/
