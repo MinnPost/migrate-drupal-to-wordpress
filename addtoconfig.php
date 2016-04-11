@@ -8,9 +8,12 @@ SELECT
 FROM
 `" . $wpdb->posts . "`
 WHERE
+`post_status` = 'publish'
+AND (
 `post_type` = 'page'
 OR
 `post_type` = 'post'
+)
 " );
 // Loop through results
 foreach( $posts AS $single )
