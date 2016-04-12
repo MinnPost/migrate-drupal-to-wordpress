@@ -40,3 +40,39 @@ WHERE
 LIMIT 1
 " );
 }
+
+
+$terms = $wpdb->get_results( "
+SELECT
+`term_id`,
+`name`
+FROM
+`" . $wpdb->terms . "`
+" );
+
+
+// Loop through results
+foreach( $terms AS $term )
+{
+// Generate a URL friendly slug from the name
+$slug_base = sanitize_title_with_dashes( $term->name );
+$this_slug = $slug_base;
+$slug_num = 1;
+// Check if the slug already exists, if it does, we add an incremental integer to the end of it
+while (in_array( $this_slug, $slug_done ) )
+{
+$this_slug = $slug_base . '-' . $slug_num;
+$slug_num++;
+}
+$slug_done[] = $this_slug;
+// We are happy with our slug, update the database table
+$wpdb->query( "
+UPDATE
+`" . $wpdb->terms . "`
+SET
+`slug` = '" . $this_slug . "'
+WHERE
+`term_id` = '" . $term->term_id . "'
+LIMIT 1
+" );
+}
