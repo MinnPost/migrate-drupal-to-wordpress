@@ -1,3 +1,9 @@
+// run each group separately or it will crash
+
+
+
+// posts
+
 // We prepare a variable to hold arrays with post titles so we don't accidentally make duplicates, that would be bad
 $slug_done = array();
 // Run a query to grab all the posts, we only want posts/pages though
@@ -40,6 +46,11 @@ WHERE
 LIMIT 1
 " );
 }
+
+
+
+
+// terms
 
 
 $terms = $wpdb->get_results( "

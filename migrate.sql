@@ -29,11 +29,12 @@ DELETE FROM `minnpost.wordpress.underdog`.wp_usermeta WHERE user_id > 1;
 # Tags from Drupal vocabularies
 # Using REPLACE prevents script from breaking if Drupal contains duplicate terms.
 # permalinks are going to break for tags whatever we do, because drupal puts them all into folders (ie https://www.minnpost.com/category/social-tags/architect)
+# we have to determine which tags should instead be (or already are) categories, so we don't have permalinks like books-1
 
 REPLACE INTO `minnpost.wordpress.underdog`.wp_terms
 	(term_id, `name`, slug, term_group)
 	SELECT DISTINCT
-		d.tid, d.name, REPLACE(LOWER(d.name), ' ', '-'), 0
+		d.tid, d.name, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(d.name), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') 0
 	FROM `minnpost.092515`.term_data d
 	INNER JOIN `minnpost.092515`.term_hierarchy h
 		USING(tid)
@@ -81,7 +82,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_posts
 		IF(SUBSTR(a.dst, 11, 1) = '/', SUBSTR(a.dst, 12), a.dst) `post_name`,
 		FROM_UNIXTIME(n.changed) `post_modified`,
 		n.type `post_type`,
-		IF(n.status = 1, 'publish', 'private') `post_status`
+		IF(n.status = 1, 'publish', 'draft') `post_status`
 	FROM `minnpost.092515`.node n
 	INNER JOIN `minnpost.092515`.node_revisions r
 		USING(vid)
@@ -139,7 +140,9 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 ;
 
 # Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
+# in our case, we use this to make the urls absolute, at least for now
 #UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
+UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/');
 
 # Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
 UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wordpress.underdog`.wp_term_taxonomy
@@ -180,7 +183,7 @@ CREATE TABLE `wp_terms_dept` (
 
 # Put all Drupal departments into the temporary table
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_dept (term_id, name, slug)
-	SELECT nid, title, REPLACE(LOWER(title), ' ', '-') FROM `minnpost.092515`.node WHERE type='department';
+	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') FROM `minnpost.092515`.node WHERE type='department';
 
 
 # Put all Drupal departments into terms; store old term ID from Drupal for tracking relationships
@@ -225,7 +228,7 @@ CREATE TABLE `wp_terms_section` (
 
 # Put all Drupal sections into the temporary table
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_section (term_id, name, slug)
-	SELECT nid, title, REPLACE(REPLACE(REPLACE(LOWER(title), ' ', '-'), '&', ''), '--', '-') FROM `minnpost.092515`.node WHERE type='section';
+	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') FROM `minnpost.092515`.node WHERE type='section';
 
 
 # Put all Drupal sections into terms; store old term ID from Drupal for tracking relationships
