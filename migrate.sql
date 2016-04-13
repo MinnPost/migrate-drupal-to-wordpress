@@ -25,8 +25,11 @@ TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_terms;
 DELETE FROM `minnpost.wordpress.underdog`.wp_users WHERE ID > 1;
 DELETE FROM `minnpost.wordpress.underdog`.wp_usermeta WHERE user_id > 1;
 
-# TAGS
+
+# Tags from Drupal vocabularies
 # Using REPLACE prevents script from breaking if Drupal contains duplicate terms.
+# permalinks are going to break for tags whatever we do, because drupal puts them all into folders (ie https://www.minnpost.com/category/social-tags/architect)
+
 REPLACE INTO `minnpost.wordpress.underdog`.wp_terms
 	(term_id, `name`, slug, term_group)
 	SELECT DISTINCT
@@ -42,6 +45,9 @@ REPLACE INTO `minnpost.wordpress.underdog`.wp_terms
 	)
 ;
 
+
+# Taxonomy for tags
+# creates a taxonomy item for each tag
 INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy
 	(term_id, taxonomy, description, parent)
 	SELECT DISTINCT
@@ -60,7 +66,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy
 	)
 ;
 
-# POSTS
+# Posts from Drupal stories
 # Keeps private posts hidden.
 INSERT INTO `minnpost.wordpress.underdog`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
@@ -97,7 +103,7 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 # and the new page INSERT at the end of this script.
 # UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_status = 'pending' WHERE post_type = 'page';
 
-# POST/TAG RELATIONSHIPS
+# Post/Tag relationships
 INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships (object_id, term_taxonomy_id)
 	SELECT DISTINCT nid, tid FROM `minnpost.092515`.term_node
 ;
@@ -111,7 +117,7 @@ UPDATE wp_term_taxonomy tt
 	)
 ;
 
-# COMMENTS
+# Comments
 # Keeps unapproved comments hidden.
 # Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
 INSERT INTO `minnpost.wordpress.underdog`.wp_comments
@@ -152,27 +158,108 @@ UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wor
 #	('Third Category', 'third-category')
 #;
 
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms (term_id, name, slug)
+# this category stuff by default breaks because the term ID has already been used - by the tag instead of the category
+# it fails to add the duplicate IDs because Drupal has them in separate tables
+# we fix this by temporarily using a term_id_old field to track the relationships
+
+
+# add the term_id_old field for tracking Drupal term IDs
+ALTER TABLE wp_terms ADD term_id_old BIGINT(20);
+
+# Temporary table for department terms
+CREATE TABLE `wp_terms_dept` (
+  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `term_group` bigint(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`term_id`),
+  KEY `slug` (`slug`(191)),
+  KEY `name` (`name`(191))
+);
+
+
+# Put all Drupal departments into the temporary table
+INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_dept (term_id, name, slug)
 	SELECT nid, title, REPLACE(LOWER(title), ' ', '-') FROM `minnpost.092515`.node WHERE type='department';
 
-# Set category names to title case (in case term already exists [as a tag] in lowercase).
-#UPDATE `minnpost.wordpress.underdog`.wp_terms SET name = 'First Category' WHERE name = 'first category';
-#UPDATE `minnpost.wordpress.underdog`.wp_terms SET name = 'Second Category' WHERE name = 'second category';
-#UPDATE `minnpost.wordpress.underdog`.wp_terms SET name = 'Third Category' WHERE name = 'third category';
 
-# Add categories to taxonomy.
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy)
-	SELECT term_id, 'category' FROM wp_terms WHERE slug IN (SELECT REPLACE(LOWER(title), ' ', '-') FROM `minnpost.092515`.node WHERE type='department')
+# Put all Drupal departments into terms; store old term ID from Drupal for tracking relationships
+INSERT INTO wp_terms (name, slug, term_group, term_id_old)
+	SELECT name, slug, term_group, term_id
+	FROM wp_terms_dept d
 ;
 
-# Auto-assign posts to category.
-# You'll need to work out your own logic to determine strings/terms to match.
-# This is the logic that works with our Drupal department content type, which most closely mirrors categories.
-# Auto-assign posts to category based on Drupal department field
+
+# Create taxonomy for each department
+INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy)
+	SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
+;
+
+# Create relationships for each story to the deparments it had in Drupal
+# Track this relationship by the term_id_old field
 INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_taxonomy_id)
-	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from `minnpost.wordpress.underdog`.wp_term_taxonomy tax
-	INNER JOIN `minnpost.092515`.content_field_department dept ON tax.term_id = dept.field_department_nid
+	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
+	INNER JOIN wp_terms term ON tax.term_id = term.term_id
+	INNER JOIN `minnpost.092515`.content_field_department dept ON term.term_id_old = dept.field_department_nid
 	WHERE tax.taxonomy = 'category'
+;
+
+# Empty term_id_old values so we can start over with our auto increment and still track for sections
+UPDATE `minnpost.wordpress.underdog`.wp_terms SET term_id_old = NULL;
+
+# get rid of that temporary department table
+DROP TABLE wp_terms_dept;
+
+
+# Temporary table for section terms
+CREATE TABLE `wp_terms_section` (
+  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `term_group` bigint(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`term_id`),
+  KEY `slug` (`slug`(191)),
+  KEY `name` (`name`(191))
+);
+
+
+# Put all Drupal sections into the temporary table
+INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_section (term_id, name, slug)
+	SELECT nid, title, REPLACE(REPLACE(REPLACE(LOWER(title), ' ', '-'), '&', ''), '--', '-') FROM `minnpost.092515`.node WHERE type='section';
+
+
+# Put all Drupal sections into terms; store old term ID from Drupal for tracking relationships
+INSERT INTO wp_terms (name, slug, term_group, term_id_old)
+	SELECT name, slug, term_group, term_id
+	FROM wp_terms_section s
+;
+
+
+# Create taxonomy for each section
+INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy)
+	SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
+;
+
+
+# Create relationships for each story to the section it had in Drupal
+# Track this relationship by the term_id_old field
+INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_taxonomy_id)
+	SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
+	INNER JOIN wp_terms term ON tax.term_id = term.term_id
+	INNER JOIN `minnpost.092515`.content_field_section section ON term.term_id_old = section.field_section_nid
+	WHERE tax.taxonomy = 'category'
+;
+
+
+# Empty term_id_old values so we can start over with our auto increment if applicable
+UPDATE `minnpost.wordpress.underdog`.wp_terms SET term_id_old = NULL;
+
+# get rid of that temporary section table
+DROP TABLE wp_terms_section;
+
+
+# get rid of that term_id_old field if we are done migrating into wp_terms
+ALTER TABLE wp_terms DROP COLUMN term_id_old;
 
 
 # Update category counts.
@@ -184,7 +271,32 @@ UPDATE wp_term_taxonomy tt
 	)
 ;
 
-# AUTHORS
+
+# Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
+UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wordpress.underdog`.wp_term_taxonomy
+	SET `minnpost.wordpress.underdog`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress.underdog`.wp_term_taxonomy.term_taxonomy_id
+	WHERE `minnpost.wordpress.underdog`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress.underdog`.wp_term_taxonomy.term_id
+;
+
+
+# stuff for users:
+# If we change the inner join to left join on the insert into wp_users, we can get all users inserted
+# however, this will break the roles. we need to have the roles at least created in WordPress before doing this
+# and then we will need some joins to do the inserting
+
+
+# example:
+#SELECT DISTINCT u.uid, 'wp_capabilities', 'a:1:{s:6:"author";s:1:"1";}', re.name
+#FROM `minnpost.092515`.users u
+#INNER JOIN `minnpost.092515`.users_roles r USING (uid)
+#INNER JOIN `minnpost.092515`.role re USING (rid)
+#WHERE (1
+	# Uncomment and enter any email addresses you want to exclude below.
+	# AND u.mail NOT IN ('test@example.com')
+#)
+
+
+# USERS
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_users
 	(ID, user_login, user_pass, user_nicename, user_email,
 	user_registered, user_activation_key, user_status, display_name)
