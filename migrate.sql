@@ -381,8 +381,8 @@ UPDATE IGNORE `minnpost.wordpress.underdog`.wp_posts p, `minnpost.092515`.conten
 	SET p.post_content =
 		CONCAT(
 			CONCAT(
-				'<div class="drupal_image_wrapper"><img src="/sites/default/files/',
-				f.filename,
+				'<div class="drupal_image_wrapper"><img src="https://www.minnpost.com/',
+				f.filepath,
 				'" class="drupal_image" /></div>'
 			),
 			p.post_content
