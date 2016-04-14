@@ -315,6 +315,67 @@ INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_users
 	)
 ;
 
+
+# Drupal authors who are not users
+# these get inserted as posts with a type of guest-author, for the plugin
+INSERT INTO `minnpost.wordpress.underdog`.wp_posts
+	(id, post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_modified, post_type, `post_status`)
+	SELECT DISTINCT
+		n.nid `id`,
+		1 `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		n.title `post_title`,
+		'' `post_excerpt`,
+		CONCAT('cap-', REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(n.title), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')) `post_name`,
+		FROM_UNIXTIME(n.changed) `post_modified`,
+		'guest-author' `post_type`,
+		'publish' `post_status`
+	FROM `minnpost.092515`.node n
+	INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+;
+
+# use the title as the user's display name
+# this might be all the info we have about them
+INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'cap-display_name' `meta_key`,
+		n.title `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+;
+
+
+# if the author is linked to a user account, link them
+INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'cap-linked_account' `meta_key`,
+		user.mail `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.092515`.users user ON node.field_author_user_uid = user.uid
+;
+
+# add the email address for the author if we have one
+INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'cap-user_email' `meta_key`,
+		REPLACE(link.field_link_multiple_url, 'mailto:', '') `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.092515`.content_field_link_multiple link USING (nid)
+		WHERE field_link_multiple_title = 'Email the author'
+;
+
+
+
 # Assign author permissions.
 # Sets all authors to "author" by default; next section can selectively promote individual authors
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key, meta_value)
