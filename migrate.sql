@@ -302,20 +302,61 @@ UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wor
 	# AND u.mail NOT IN ('test@example.com')
 #)
 
+# SELECT DISTINCT
+# 	u.uid, u.mail, NULL, u.name, u.mail,
+# 	FROM_UNIXTIME(created), '', 0, u.name
+# FROM `minnpost.092515`.users u
+# INNER JOIN `minnpost.092515`.users_roles r USING (uid)
+# INNER JOIN `minnpost.092515`.role role USING (rid)
+# WHERE (1
+# 	AND role.name IN ('administrator', 'author', 'author two', 'editor', 'super admin')
+	# Uncomment and enter any email addresses you want to exclude below.
+	# AND u.mail NOT IN ('test@example.com')
+# )
 
-# USERS
+
+# INSERT ALL USERS
+# we should put in a spam flag into the Drupal table so we don't have to import all those users
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_users
 	(ID, user_login, user_pass, user_nicename, user_email,
 	user_registered, user_activation_key, user_status, display_name)
 	SELECT DISTINCT
-		u.uid, u.mail, NULL, u.name, u.mail,
-		FROM_UNIXTIME(created), '', 0, u.name
+		u.uid as ID, u.mail as user_login, NULL as user_pass, u.name as user_nicename, u.mail as user_email,
+		FROM_UNIXTIME(created) as user_registered, '' as user_activation_key, 0 as user_status, u.name as display_name
 	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.users_roles r
-		USING (uid)
 	WHERE (1
 		# Uncomment and enter any email addresses you want to exclude below.
 		# AND u.mail NOT IN ('test@example.com')
+		AND u.uid != 0
+	)
+;
+
+
+# Assign author permissions.
+# Sets all authors to "author" by default; next section can selectively promote individual authors
+INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
+	FROM `minnpost.092515`.users u
+	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
+	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('author', 'author two', 'editor', 'user admin', 'administrator')
+	)
+;
+
+INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_user_level' as meta_key, '2' as meta_value
+	FROM `minnpost.092515`.users u
+	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
+	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('author', 'author two', 'editor', 'user admin', 'administrator')
 	)
 ;
 
@@ -340,6 +381,53 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_posts
 	INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
 ;
 
+# add the user_node_id_old field for tracking Drupal node IDs for non-user authors
+ALTER TABLE wp_terms ADD user_node_id_old BIGINT(20);
+
+# Temporary table for user terms
+CREATE TABLE `wp_terms_users` (
+  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `term_group` bigint(10) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`term_id`),
+  KEY `slug` (`slug`(191)),
+  KEY `name` (`name`(191))
+);
+
+INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_users (term_id, name, slug)
+	SELECT DISTINCT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', ''), '`', '')
+	FROM `minnpost.092515`.node WHERE type='author'
+;
+
+# Put all Drupal authors into terms; store old node ID from Drupal for tracking relationships
+INSERT INTO wp_terms (name, slug, term_group, user_node_id_old)
+	SELECT name, slug, term_group, term_id
+	FROM wp_terms_users u
+;
+
+# get rid of that temporary author table
+DROP TABLE wp_terms_users;
+
+# Create taxonomy for each author
+INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy, description)
+	SELECT term_id, 'author', CONCAT(p.post_title, ' ', t.name, ' ', p.ID) as description
+	FROM wp_terms t
+	INNER JOIN wp_posts p ON t.`user_node_id_old` = p.ID
+;
+
+# Create relationships for each story to the author it had in Drupal
+# Track this relationship by the user_node_id_old field
+INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_taxonomy_id)
+	SELECT nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+	FROM `minnpost.092515`.content_field_op_author author
+	INNER JOIN `minnpost.wordpress.underdog`.wp_terms t ON t.user_node_id_old = author.field_op_author_nid
+	INNER JOIN `minnpost.wordpress.underdog`.wp_term_taxonomy tax ON t.term_id = tax.term_id
+	INNER JOIN `minnpost.wordpress.underdog`.wp_posts p ON author.nid = p.Id
+	WHERE field_op_author_nid IS NOT NULL
+	GROUP BY object_id
+;
+
 # use the title as the user's display name
 # this might be all the info we have about them
 INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
@@ -352,18 +440,27 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
 ;
 
-
-# if the author is linked to a user account, link them
+# make a slug for user's login
 INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
-		'cap-linked_account' `meta_key`,
-		user.mail `meta_value`
+		'cap-user_login' `meta_key`,
+		REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(n.title), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') `meta_value`
 		FROM `minnpost.092515`.node n
 		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.092515`.users user ON node.field_author_user_uid = user.uid
 ;
+
+
+# update count for authors
+UPDATE wp_term_taxonomy tt
+	SET `count` = (
+		SELECT COUNT(tr.object_id)
+		FROM wp_term_relationships tr
+		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
+	)
+;
+
 
 # add the email address for the author if we have one
 INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
@@ -379,31 +476,46 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 ;
 
 
+# add the author's twitter account if we have it
+INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'cap-twitter' `meta_key`,
+		CONCAT('https://twitter.com/', REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(link.field_link_multiple_url, 'http://www.twitter.com/', ''), 'http://twitter.com/', ''), '@', ''), 'https://twitter.com/', ''), '#%21', ''), '/', '')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.092515`.content_field_link_multiple link USING (nid)
+		WHERE field_link_multiple_title LIKE '%witter%'
+;
 
-# Assign author permissions.
-# Sets all authors to "author" by default; next section can selectively promote individual authors
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key, meta_value)
+# add the author's job title if we have it
+INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
-		u.uid, 'wp_capabilities', 'a:1:{s:6:"author";s:1:"1";}'
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.users_roles r
-		USING (uid)
-	WHERE (1
-		# Uncomment and enter any email addresses you want to exclude below.
-		# AND u.mail NOT IN ('test@example.com')
-	)
+		n.nid `post_id`,
+		'cap-job-title' `meta_key`,
+		author.field_op_author_jobtitle_value `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.092515`.users user ON author.field_author_user_uid = user.uid
+		WHERE author.field_op_author_jobtitle_value IS NOT NULL
 ;
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key, meta_value)
+
+
+# if the author is linked to a user account, link them
+INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
-		u.uid, 'wp_user_level', '2'
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.users_roles r
-		USING (uid)
-	WHERE (1
-		# Uncomment and enter any email addresses you want to exclude below.
-		# AND u.mail NOT IN ('test@example.com')
-	)
+		n.nid `post_id`,
+		'cap-linked_account' `meta_key`,
+		user.mail `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.092515`.users user ON author.field_author_user_uid = user.uid
 ;
+
+
 
 # Change permissions for admins.
 # Add any specific user IDs to IN list to make them administrators.
