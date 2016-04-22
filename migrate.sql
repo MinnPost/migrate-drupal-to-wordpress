@@ -142,7 +142,8 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 # Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
 # in our case, we use this to make the urls absolute, at least for now
 #UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
-UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/');
+UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
+;
 
 # Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
 UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wordpress.underdog`.wp_term_taxonomy
@@ -183,7 +184,9 @@ CREATE TABLE `wp_terms_dept` (
 
 # Put all Drupal departments into the temporary table
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_dept (term_id, name, slug)
-	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') FROM `minnpost.092515`.node WHERE type='department';
+	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
+	FROM `minnpost.092515`.node WHERE type='department'
+;
 
 
 # Put all Drupal departments into terms; store old term ID from Drupal for tracking relationships
@@ -228,7 +231,8 @@ CREATE TABLE `wp_terms_section` (
 
 # Put all Drupal sections into the temporary table
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_section (term_id, name, slug)
-	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') FROM `minnpost.092515`.node WHERE type='section';
+	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') FROM `minnpost.092515`.node WHERE type='section'
+;
 
 
 # Put all Drupal sections into terms; store old term ID from Drupal for tracking relationships
