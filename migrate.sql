@@ -34,7 +34,7 @@ DELETE FROM `minnpost.wordpress.underdog`.wp_usermeta WHERE user_id > 1;
 REPLACE INTO `minnpost.wordpress.underdog`.wp_terms
 	(term_id, `name`, slug, term_group)
 	SELECT DISTINCT
-		d.tid, d.name, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(d.name), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') 0
+		d.tid, d.name, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(d.name), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', ''), 0
 	FROM `minnpost.092515`.term_data d
 	INNER JOIN `minnpost.092515`.term_hierarchy h
 		USING(tid)
