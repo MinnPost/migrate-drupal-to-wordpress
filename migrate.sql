@@ -535,6 +535,23 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 	WHERE post_author NOT IN (SELECT DISTINCT ID FROM `minnpost.wordpress.underdog`.wp_users)
 ;
 
+# update count for authors again
+UPDATE wp_term_taxonomy tt
+	SET `count` = (
+		SELECT COUNT(tr.object_id)
+		FROM wp_term_relationships tr
+		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
+	)
+;
+
+
+# assign authors from author nodes to stories where applicable
+# not sure this query is useful at all
+# UPDATE `minnpost.wordpress.underdog`.wp_posts AS posts INNER JOIN `minnpost.092515`.content_field_op_author AS authors ON posts.ID = authors.nid SET posts.post_author = authors.field_op_author_nid;
+
+# get rid of that user_node_id_old field if we are done migrating into wp_term_relationships
+ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
+
 # VIDEO - READ BELOW AND COMMENT OUT IF NOT APPLICABLE TO YOUR SITE
 # If your Drupal site uses the content_field_video table to store links to YouTube videos,
 # this query will insert the video URLs at the end of all relevant posts.
@@ -579,10 +596,13 @@ UPDATE IGNORE `minnpost.wordpress.underdog`.wp_posts p, `minnpost.092515`.conten
 # WordPress URLs. If you have mod_rewrite turned on, stripping out the portion before
 # the final slash will allow old site links to work properly, even if the path before
 # the slash is different!
-UPDATE `minnpost.wordpress.underdog`.wp_posts
+
+# this does not seem to be useful for us
+
+/*UPDATE `minnpost.wordpress.underdog`.wp_posts
 	SET post_name =
 	REVERSE(SUBSTRING(REVERSE(post_name),1,LOCATE('/',REVERSE(post_name))-1))
-;
+;*/
 
 # Miscellaneous clean-up.
 # There may be some extraneous blank spaces in your Drupal posts; use these queries
