@@ -632,16 +632,3 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 #	'slug-goes-here', '', '', NOW(), NOW(),
 #	'', 0, 'http://full.url.to.page.goes.here', 1, 'page', '', 0)
 #;
-
-
-
-# bylines seem to throw things off because they don't necessarily correspond to authors or users
-# this should be fixed by Largo
-
-# also permalinks for categories are off
-
-# also try stuff for data projects
-
-# need to figure out why the numbers don't line up somehow
-
-# need user roles and permissions
