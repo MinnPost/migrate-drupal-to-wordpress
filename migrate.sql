@@ -79,7 +79,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_posts
 		r.body `post_content`,
 		n.title `post_title`,
 		r.teaser `post_excerpt`,
-		IF(SUBSTR(a.dst, 11, 1) = '/', SUBSTR(a.dst, 12), a.dst) `post_name`,
+		REPLACE(IF(SUBSTR(a.dst, 11, 1) = '/', SUBSTR(a.dst, 12), a.dst), '%e2%80%99', '-') `post_name`,
 		FROM_UNIXTIME(n.changed) `post_modified`,
 		n.type `post_type`,
 		IF(n.status = 1, 'publish', 'draft') `post_status`
@@ -184,7 +184,7 @@ CREATE TABLE `wp_terms_dept` (
 
 # Put all Drupal departments into the temporary table
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_dept (term_id, name, slug)
-	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
+	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), '-the-', '-'), '-the', ''), 'the-', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
 	FROM `minnpost.092515`.node WHERE type='department'
 ;
 
@@ -231,7 +231,8 @@ CREATE TABLE `wp_terms_section` (
 
 # Put all Drupal sections into the temporary table
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_section (term_id, name, slug)
-	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') FROM `minnpost.092515`.node WHERE type='section'
+	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), '-the-', '-'), '-the', ''), 'the-', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
+	FROM `minnpost.092515`.node WHERE type='section'
 ;
 
 
@@ -396,7 +397,7 @@ CREATE TABLE `wp_terms_users` (
 );
 
 INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_users (term_id, name, slug)
-	SELECT DISTINCT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), 'the', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', ''), '`', '')
+	SELECT DISTINCT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), '-the-', '-'), '-the', ''), 'the-', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
 	FROM `minnpost.092515`.node WHERE type='author'
 ;
 
@@ -631,3 +632,16 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 #	'slug-goes-here', '', '', NOW(), NOW(),
 #	'', 0, 'http://full.url.to.page.goes.here', 1, 'page', '', 0)
 #;
+
+
+
+# bylines seem to throw things off because they don't necessarily correspond to authors or users
+# this should be fixed by Largo
+
+# also permalinks for categories are off
+
+# also try stuff for data projects
+
+# need to figure out why the numbers don't line up somehow
+
+# need user roles and permissions
