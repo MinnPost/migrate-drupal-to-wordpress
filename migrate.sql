@@ -387,12 +387,13 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'' `post_content`,
 		n.title `post_title`,
 		'' `post_excerpt`,
-		CONCAT('cap-', REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(n.title), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')) `post_name`,
+		CONCAT('cap-', substring_index(a.dst, '/', -1)) `post_name`,
 		FROM_UNIXTIME(n.changed) `post_modified`,
 		'guest-author' `post_type`,
 		'publish' `post_status`
 	FROM `minnpost.092515`.node n
 	INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
 ;
 
 # add the user_node_id_old field for tracking Drupal node IDs for non-user authors
@@ -409,10 +410,18 @@ CREATE TABLE `wp_terms_users` (
   KEY `name` (`name`(191))
 );
 
+
+# put the user terms in the temp table
 INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_users (term_id, name, slug)
-	SELECT DISTINCT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), '-the-', '-'), '-the', ''), 'the-', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
-	FROM `minnpost.092515`.node WHERE type='author'
+	SELECT DISTINCT
+	nid `term_id`,
+	title `name`,
+	substring_index(a.dst, '/', -1) `slug`
+	FROM `minnpost.092515`.node n
+	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+	WHERE n.type='author'
 ;
+
 
 # Put all Drupal authors into terms; store old node ID from Drupal for tracking relationships
 INSERT INTO wp_terms (name, slug, term_group, user_node_id_old)
@@ -420,8 +429,10 @@ INSERT INTO wp_terms (name, slug, term_group, user_node_id_old)
 	FROM wp_terms_users u
 ;
 
+
 # get rid of that temporary author table
 DROP TABLE wp_terms_users;
+
 
 # Create taxonomy for each author
 INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
@@ -442,6 +453,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_ta
 	GROUP BY object_id
 ;
 
+
 # use the title as the user's display name
 # this might be all the info we have about them
 INSERT INTO `minnpost.wordpress`.wp_postmeta
@@ -454,15 +466,17 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
 ;
 
+
 # make a slug for user's login
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
 		'cap-user_login' `meta_key`,
-		REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(n.title), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '') `meta_value`
+		substring_index(a.dst, '/', -1) `meta_value`
 		FROM `minnpost.092515`.node n
 		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
 ;
 
 
