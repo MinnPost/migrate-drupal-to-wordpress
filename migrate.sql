@@ -375,6 +375,26 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 ;
 
 
+# save user first and last name, if we have them as users in Drupal
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT u.uid as user_id, 'first_name' as meta_key, pv.`value` as meta_value
+	FROM `minnpost.092515`.users u
+	INNER JOIN `minnpost.092515`.profile_values pv ON u.uid = pv.uid 
+	INNER JOIN `minnpost.092515`.profile_fields pf ON pv.fid = pf.fid
+	INNER JOIN `minnpost.092515`.profile_values pv2 ON u.uid = pv2.uid 
+	INNER JOIN `minnpost.092515`.profile_fields pf2 ON pv2.fid = pf2.fid
+	WHERE pf.fid = 4
+;
+
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT u.uid as user_id, 'last_name' as meta_key, pv2.`value` as meta_value
+	FROM `minnpost.092515`.users u
+	INNER JOIN `minnpost.092515`.profile_values pv2 ON u.uid = pv2.uid 
+	INNER JOIN `minnpost.092515`.profile_fields pf2 ON pv2.fid = pf2.fid
+	WHERE pf2.fid = 5
+;
+
+
 # Drupal authors who are not users
 # these get inserted as posts with a type of guest-author, for the plugin
 INSERT INTO `minnpost.wordpress`.wp_posts
