@@ -17,10 +17,10 @@
 
 ### Notes
 
+- Need to figure out what to do with all custom fields
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
     - this should be fixed by Largo
-- permalinks for categories are off
-- try out data projects
-- why don't the numbers line up
+- try out data projects with the raw html field.
+- why don't the numbers of imported items line up
 - need user roles and permissions
-
+- need to set top images as featured images. this way the thumbnails will be usable where they need to be. need to figure out how best to do this without downloading all the images from the server.

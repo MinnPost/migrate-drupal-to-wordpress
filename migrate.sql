@@ -11,19 +11,19 @@
 # If your database names differ, adjust these accordingly.
 
 # Empty previous content from WordPress database.
-TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_comments;
-TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_links;
-TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_postmeta;
-TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_posts;
-TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_term_relationships;
-TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_term_taxonomy;
-TRUNCATE TABLE `minnpost.wordpress.underdog`.wp_terms;
+TRUNCATE TABLE `minnpost.wordpress`.wp_comments;
+TRUNCATE TABLE `minnpost.wordpress`.wp_links;
+TRUNCATE TABLE `minnpost.wordpress`.wp_postmeta;
+TRUNCATE TABLE `minnpost.wordpress`.wp_posts;
+TRUNCATE TABLE `minnpost.wordpress`.wp_term_relationships;
+TRUNCATE TABLE `minnpost.wordpress`.wp_term_taxonomy;
+TRUNCATE TABLE `minnpost.wordpress`.wp_terms;
 
 # If you're not bringing over multiple Drupal authors, comment out these lines and the other
 # author-related queries near the bottom of the script.
 # This assumes you're keeping the default admin user (user_id = 1) created during installation.
-DELETE FROM `minnpost.wordpress.underdog`.wp_users WHERE ID > 1;
-DELETE FROM `minnpost.wordpress.underdog`.wp_usermeta WHERE user_id > 1;
+DELETE FROM `minnpost.wordpress`.wp_users WHERE ID > 1;
+DELETE FROM `minnpost.wordpress`.wp_usermeta WHERE user_id > 1;
 
 
 # Tags from Drupal vocabularies
@@ -31,15 +31,20 @@ DELETE FROM `minnpost.wordpress.underdog`.wp_usermeta WHERE user_id > 1;
 # permalinks are going to break for tags whatever we do, because drupal puts them all into folders (ie https://www.minnpost.com/category/social-tags/architect)
 # we have to determine which tags should instead be (or already are) categories, so we don't have permalinks like books-1
 
-REPLACE INTO `minnpost.wordpress.underdog`.wp_terms
+REPLACE INTO `minnpost.wordpress`.wp_terms
 	(term_id, `name`, slug, term_group)
 	SELECT DISTINCT
-		d.tid, d.name, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(d.name), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', ''), 0
+		d.tid `term_id`,
+		d.name `name`,
+		substring_index(a.dst, '/', -1) `slug`,
+		0 `term_group`
 	FROM `minnpost.092515`.term_data d
 	INNER JOIN `minnpost.092515`.term_hierarchy h
 		USING(tid)
 	INNER JOIN `minnpost.092515`.term_node n
 		USING(tid)
+	LEFT OUTER JOIN `minnpost.092515`.url_alias a
+		ON a.src = CONCAT('taxonomy/term/', d.tid)
 	WHERE (1
 	 	# This helps eliminate spam tags from import; uncomment if necessary.
 	 	# AND LENGTH(d.name) < 50
@@ -49,7 +54,7 @@ REPLACE INTO `minnpost.wordpress.underdog`.wp_terms
 
 # Taxonomy for tags
 # creates a taxonomy item for each tag
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 	(term_id, taxonomy, description, parent)
 	SELECT DISTINCT
 		d.tid `term_id`,
@@ -69,7 +74,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy
 
 # Posts from Drupal stories
 # Keeps private posts hidden.
-INSERT INTO `minnpost.wordpress.underdog`.wp_posts
+INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_modified, post_type, `post_status`)
 	SELECT DISTINCT
@@ -79,7 +84,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_posts
 		r.body `post_content`,
 		n.title `post_title`,
 		r.teaser `post_excerpt`,
-		REPLACE(IF(SUBSTR(a.dst, 11, 1) = '/', SUBSTR(a.dst, 12), a.dst), '%e2%80%99', '-') `post_name`,
+		substring_index(a.dst, '/', -1) `post_name`,
 		FROM_UNIXTIME(n.changed) `post_modified`,
 		n.type `post_type`,
 		IF(n.status = 1, 'publish', 'draft') `post_status`
@@ -94,7 +99,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_posts
 
 # Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 # Add more Drupal content types below if applicable.
-UPDATE `minnpost.wordpress.underdog`.wp_posts
+UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
 	WHERE post_type IN ('article', 'article_full')
 ;
@@ -102,10 +107,10 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 # Set all pages to "pending".
 # If you're keeping the same page structure from Drupal, comment out this query
 # and the new page INSERT at the end of this script.
-# UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_status = 'pending' WHERE post_type = 'page';
+# UPDATE `minnpost.wordpress`.wp_posts SET post_status = 'pending' WHERE post_type = 'page';
 
 # Post/Tag relationships
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships (object_id, term_taxonomy_id)
+INSERT INTO `minnpost.wordpress`.wp_term_relationships (object_id, term_taxonomy_id)
 	SELECT DISTINCT nid, tid FROM `minnpost.092515`.term_node
 ;
 
@@ -121,7 +126,7 @@ UPDATE wp_term_taxonomy tt
 # Comments
 # Keeps unapproved comments hidden.
 # Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
-INSERT INTO `minnpost.wordpress.underdog`.wp_comments
+INSERT INTO `minnpost.wordpress`.wp_comments
 	(comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
 	comment_author_email, comment_author_url, comment_approved)
 	SELECT DISTINCT
@@ -131,31 +136,31 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_comments
 ;
 
 # Update comments count on wp_posts table.
-UPDATE `minnpost.wordpress.underdog`.wp_posts
+UPDATE `minnpost.wordpress`.wp_posts
 	SET `comment_count` = (
 		SELECT COUNT(`comment_post_id`)
-		FROM `minnpost.wordpress.underdog`.wp_comments
-		WHERE `minnpost.wordpress.underdog`.wp_posts.`id` = `minnpost.wordpress.underdog`.wp_comments.`comment_post_id`
+		FROM `minnpost.wordpress`.wp_comments
+		WHERE `minnpost.wordpress`.wp_posts.`id` = `minnpost.wordpress`.wp_comments.`comment_post_id`
 	)
 ;
 
 # Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
 # in our case, we use this to make the urls absolute, at least for now
-#UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
-UPDATE `minnpost.wordpress.underdog`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
+#UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
+UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
 ;
 
 # Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
-UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wordpress.underdog`.wp_term_taxonomy
-	SET `minnpost.wordpress.underdog`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress.underdog`.wp_term_taxonomy.term_taxonomy_id
-	WHERE `minnpost.wordpress.underdog`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress.underdog`.wp_term_taxonomy.term_id
+UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.wp_term_taxonomy
+	SET `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_taxonomy_id
+	WHERE `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_id
 ;
 
 # OPTIONAL ADDITIONS -- REMOVE ALL BELOW IF NOT APPLICABLE TO YOUR CONFIGURATION
 
 # CATEGORIES
 # These are NEW categories, not in `minnpost.092515`. Add as many sets as needed.
-#INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms (name, slug)
+#INSERT IGNORE INTO `minnpost.wordpress`.wp_terms (name, slug)
 #	VALUES
 #	('First Category', 'first-category'),
 #	('Second Category', 'second-category'),
@@ -183,9 +188,13 @@ CREATE TABLE `wp_terms_dept` (
 
 
 # Put all Drupal departments into the temporary table
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_dept (term_id, name, slug)
-	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), '-the-', '-'), '-the', ''), 'the-', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
-	FROM `minnpost.092515`.node WHERE type='department'
+INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_dept (term_id, name, slug)
+	SELECT nid `term_id`,
+	title `name`,
+	substring_index(a.dst, '/', -1) `slug`
+	FROM `minnpost.092515`.node n
+	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+	WHERE n.type='department'
 ;
 
 
@@ -197,13 +206,13 @@ INSERT INTO wp_terms (name, slug, term_group, term_id_old)
 
 
 # Create taxonomy for each department
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy)
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 	SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
 ;
 
 # Create relationships for each story to the deparments it had in Drupal
 # Track this relationship by the term_id_old field
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_taxonomy_id)
+INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
 	INNER JOIN wp_terms term ON tax.term_id = term.term_id
 	INNER JOIN `minnpost.092515`.content_field_department dept ON term.term_id_old = dept.field_department_nid
@@ -211,7 +220,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_
 ;
 
 # Empty term_id_old values so we can start over with our auto increment and still track for sections
-UPDATE `minnpost.wordpress.underdog`.wp_terms SET term_id_old = NULL;
+UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
 
 # get rid of that temporary department table
 DROP TABLE wp_terms_dept;
@@ -230,9 +239,13 @@ CREATE TABLE `wp_terms_section` (
 
 
 # Put all Drupal sections into the temporary table
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_section (term_id, name, slug)
-	SELECT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), '-the-', '-'), '-the', ''), 'the-', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
-	FROM `minnpost.092515`.node WHERE type='section'
+INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_section (term_id, name, slug)
+	SELECT nid `term_id`,
+	title `name`,
+	substring_index(a.dst, '/', -1) `slug`
+	FROM `minnpost.092515`.node n
+	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+	WHERE n.type='section'
 ;
 
 
@@ -244,14 +257,14 @@ INSERT INTO wp_terms (name, slug, term_group, term_id_old)
 
 
 # Create taxonomy for each section
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy)
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 	SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
 ;
 
 
 # Create relationships for each story to the section it had in Drupal
 # Track this relationship by the term_id_old field
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_taxonomy_id)
+INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
 	INNER JOIN wp_terms term ON tax.term_id = term.term_id
 	INNER JOIN `minnpost.092515`.content_field_section section ON term.term_id_old = section.field_section_nid
@@ -260,7 +273,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_
 
 
 # Empty term_id_old values so we can start over with our auto increment if applicable
-UPDATE `minnpost.wordpress.underdog`.wp_terms SET term_id_old = NULL;
+UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
 
 # get rid of that temporary section table
 DROP TABLE wp_terms_section;
@@ -281,9 +294,9 @@ UPDATE wp_term_taxonomy tt
 
 
 # Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
-UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wordpress.underdog`.wp_term_taxonomy
-	SET `minnpost.wordpress.underdog`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress.underdog`.wp_term_taxonomy.term_taxonomy_id
-	WHERE `minnpost.wordpress.underdog`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress.underdog`.wp_term_taxonomy.term_id
+UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.wp_term_taxonomy
+	SET `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_taxonomy_id
+	WHERE `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_id
 ;
 
 
@@ -318,7 +331,7 @@ UPDATE IGNORE `minnpost.wordpress.underdog`.wp_term_relationships, `minnpost.wor
 
 # INSERT ALL USERS
 # we should put in a spam flag into the Drupal table so we don't have to import all those users
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_users
+INSERT IGNORE INTO `minnpost.wordpress`.wp_users
 	(ID, user_login, user_pass, user_nicename, user_email,
 	user_registered, user_activation_key, user_status, display_name)
 	SELECT DISTINCT
@@ -335,7 +348,7 @@ INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_users
 
 # Assign author permissions.
 # Sets all authors to "author" by default; next section can selectively promote individual authors
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key, meta_value)
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
 	FROM `minnpost.092515`.users u
@@ -348,7 +361,7 @@ INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key,
 	)
 ;
 
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key, meta_value)
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_user_level' as meta_key, '2' as meta_value
 	FROM `minnpost.092515`.users u
@@ -364,7 +377,7 @@ INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_usermeta (user_id, meta_key,
 
 # Drupal authors who are not users
 # these get inserted as posts with a type of guest-author, for the plugin
-INSERT INTO `minnpost.wordpress.underdog`.wp_posts
+INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_modified, post_type, `post_status`)
 	SELECT DISTINCT
@@ -396,7 +409,7 @@ CREATE TABLE `wp_terms_users` (
   KEY `name` (`name`(191))
 );
 
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_terms_users (term_id, name, slug)
+INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_users (term_id, name, slug)
 	SELECT DISTINCT nid, title, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(title), '-the-', '-'), '-the', ''), 'the-', ''), ' ', '-'), '&', ''), '--', '-'), ';', ''), '.', ''), ',', ''), '/', '')
 	FROM `minnpost.092515`.node WHERE type='author'
 ;
@@ -411,7 +424,7 @@ INSERT INTO wp_terms (name, slug, term_group, user_node_id_old)
 DROP TABLE wp_terms_users;
 
 # Create taxonomy for each author
-INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy, description)
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
 	SELECT term_id, 'author', CONCAT(p.post_title, ' ', t.name, ' ', p.ID) as description
 	FROM wp_terms t
 	INNER JOIN wp_posts p ON t.`user_node_id_old` = p.ID
@@ -419,19 +432,19 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_term_taxonomy (term_id, taxonomy, d
 
 # Create relationships for each story to the author it had in Drupal
 # Track this relationship by the user_node_id_old field
-INSERT IGNORE INTO `minnpost.wordpress.underdog`.wp_term_relationships(object_id, term_taxonomy_id)
+INSERT IGNORE INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
 	FROM `minnpost.092515`.content_field_op_author author
-	INNER JOIN `minnpost.wordpress.underdog`.wp_terms t ON t.user_node_id_old = author.field_op_author_nid
-	INNER JOIN `minnpost.wordpress.underdog`.wp_term_taxonomy tax ON t.term_id = tax.term_id
-	INNER JOIN `minnpost.wordpress.underdog`.wp_posts p ON author.nid = p.Id
+	INNER JOIN `minnpost.wordpress`.wp_terms t ON t.user_node_id_old = author.field_op_author_nid
+	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON t.term_id = tax.term_id
+	INNER JOIN `minnpost.wordpress`.wp_posts p ON author.nid = p.Id
 	WHERE field_op_author_nid IS NOT NULL
 	GROUP BY object_id
 ;
 
 # use the title as the user's display name
 # this might be all the info we have about them
-INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
@@ -442,7 +455,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 ;
 
 # make a slug for user's login
-INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
@@ -464,7 +477,7 @@ UPDATE wp_term_taxonomy tt
 
 
 # add the email address for the author if we have one
-INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
@@ -478,7 +491,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 
 
 # add the author's twitter account if we have it
-INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
@@ -491,7 +504,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 ;
 
 # add the author's job title if we have it
-INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
@@ -505,7 +518,7 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 
 
 # if the author is linked to a user account, link them
-INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
+INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
@@ -521,19 +534,19 @@ INSERT INTO `minnpost.wordpress.underdog`.wp_postmeta
 # Change permissions for admins.
 # Add any specific user IDs to IN list to make them administrators.
 # User ID values are carried over from `minnpost.092515`.
-UPDATE `minnpost.wordpress.underdog`.wp_usermeta
+UPDATE `minnpost.wordpress`.wp_usermeta
 	SET meta_value = 'a:1:{s:13:"administrator";s:1:"1";}'
 	WHERE user_id IN (1) AND meta_key = 'wp_capabilities'
 ;
-UPDATE `minnpost.wordpress.underdog`.wp_usermeta
+UPDATE `minnpost.wordpress`.wp_usermeta
 	SET meta_value = '10'
 	WHERE user_id IN (1) AND meta_key = 'wp_user_level'
 ;
 
 # Reassign post authorship.
-UPDATE `minnpost.wordpress.underdog`.wp_posts
+UPDATE `minnpost.wordpress`.wp_posts
 	SET post_author = NULL
-	WHERE post_author NOT IN (SELECT DISTINCT ID FROM `minnpost.wordpress.underdog`.wp_users)
+	WHERE post_author NOT IN (SELECT DISTINCT ID FROM `minnpost.wordpress`.wp_users)
 ;
 
 # update count for authors again
@@ -548,7 +561,7 @@ UPDATE wp_term_taxonomy tt
 
 # assign authors from author nodes to stories where applicable
 # not sure this query is useful at all
-# UPDATE `minnpost.wordpress.underdog`.wp_posts AS posts INNER JOIN `minnpost.092515`.content_field_op_author AS authors ON posts.ID = authors.nid SET posts.post_author = authors.field_op_author_nid;
+# UPDATE `minnpost.wordpress`.wp_posts AS posts INNER JOIN `minnpost.092515`.content_field_op_author AS authors ON posts.ID = authors.nid SET posts.post_author = authors.field_op_author_nid;
 
 # get rid of that user_node_id_old field if we are done migrating into wp_term_relationships
 ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
@@ -557,7 +570,7 @@ ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
 # If your Drupal site uses the content_field_video table to store links to YouTube videos,
 # this query will insert the video URLs at the end of all relevant posts.
 # WordPress will automatically convert the video URLs to YouTube embed code.
-#UPDATE IGNORE `minnpost.wordpress.underdog`.wp_posts p, `minnpost.092515`.content_field_video v
+#UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.092515`.content_field_video v
 #	SET p.post_content = CONCAT_WS('\n',post_content,v.field_video_embed)
 #	WHERE p.ID = v.nid
 #;
@@ -572,7 +585,7 @@ ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
 # Drupal "files" directory into the root level of WordPress, NOT placing it inside the
 # "wp-content/uploads" directory. It also relies on a properly formatted <base href="" /> tag.
 # Make changes as necessary before running this script!
-UPDATE IGNORE `minnpost.wordpress.underdog`.wp_posts p, `minnpost.092515`.content_field_main_image i, `minnpost.092515`.files f
+UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.092515`.content_field_main_image i, `minnpost.092515`.files f
 	SET p.post_content =
 		CONCAT(
 			CONCAT(
@@ -600,7 +613,7 @@ UPDATE IGNORE `minnpost.wordpress.underdog`.wp_posts p, `minnpost.092515`.conten
 
 # this does not seem to be useful for us
 
-/*UPDATE `minnpost.wordpress.underdog`.wp_posts
+/*UPDATE `minnpost.wordpress`.wp_posts
 	SET post_name =
 	REVERSE(SUBSTRING(REVERSE(post_name),1,LOCATE('/',REVERSE(post_name))-1))
 ;*/
@@ -608,10 +621,10 @@ UPDATE IGNORE `minnpost.wordpress.underdog`.wp_posts p, `minnpost.092515`.conten
 # Miscellaneous clean-up.
 # There may be some extraneous blank spaces in your Drupal posts; use these queries
 # or other similar ones to strip out the undesirable tags.
-UPDATE `minnpost.wordpress.underdog`.wp_posts
+UPDATE `minnpost.wordpress`.wp_posts
 	SET post_content = REPLACE(post_content,'<p>&nbsp;</p>','')
 ;
-UPDATE `minnpost.wordpress.underdog`.wp_posts
+UPDATE `minnpost.wordpress`.wp_posts
 	SET post_content = REPLACE(post_content,'<p class="italic">&nbsp;</p>','')
 ;
 
@@ -620,7 +633,7 @@ UPDATE `minnpost.wordpress.underdog`.wp_posts
 # If your site will contain new pages, you can set up the basic structure for them here.
 # Once the import is complete, go into the WordPress admin and copy content from the Drupal
 # pages (which are set to "pending" in a query above) into the appropriate new pages.
-#INSERT INTO `minnpost.wordpress.underdog`.wp_posts
+#INSERT INTO `minnpost.wordpress`.wp_posts
 #	(`post_author`, `post_date`, `post_date_gmt`, `post_content`, `post_title`,
 #	`post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`,
 #	`post_name`, `to_ping`, `pinged`, `post_modified`, `post_modified_gmt`,
