@@ -104,6 +104,41 @@ UPDATE `minnpost.wordpress`.wp_posts
 	WHERE post_type IN ('article', 'article_full')
 ;
 
+
+## Get Raw HTML content from article_full posts
+# requires the Raw HTML plugin in WP to be enabled
+# wrap it in [raw][/raw]
+
+
+# create temporary table for raw html content
+# Temporary table for department terms
+CREATE TABLE `wp_posts_raw` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `post_content_raw` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+);
+
+# store raw values in temp table
+INSERT INTO `minnpost.wordpress`.wp_posts_raw
+	(id, post_content_raw)
+	SELECT a.nid, field_html_value
+	FROM `minnpost.092515`.content_type_article_full a
+	INNER JOIN `minnpost.092515`.node AS n ON a.vid = n.vid
+	WHERE field_html_value IS NOT NULL
+;
+
+
+# append raw data to the post body
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.wordpress`.wp_posts_raw
+	ON wp_posts.ID = wp_posts_raw.ID
+	SET wp_posts.post_content = CONCAT(wp_posts.post_content, '[raw]', wp_posts_raw.post_content_raw, '[/raw]')
+;
+
+# get rid of that temporary raw table
+DROP TABLE wp_posts_raw;
+
+
 # Set all pages to "pending".
 # If you're keeping the same page structure from Drupal, comment out this query
 # and the new page INSERT at the end of this script.
@@ -126,6 +161,7 @@ UPDATE wp_term_taxonomy tt
 # Comments
 # Keeps unapproved comments hidden.
 # Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
+# maybe need to add the ID so we can see which ones are not being migrated
 INSERT INTO `minnpost.wordpress`.wp_comments
 	(comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
 	comment_author_email, comment_author_url, comment_approved)

@@ -24,3 +24,5 @@
 - why don't the numbers of imported items line up
 - need user roles and permissions
 - need to set top images as featured images. this way the thumbnails will be usable where they need to be. need to figure out how best to do this without downloading all the images from the server.
+- user fields are only saved if the user has ever saved their account. otherwise it is somewhere not in the database
+- 
