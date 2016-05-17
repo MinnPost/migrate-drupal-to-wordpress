@@ -655,7 +655,8 @@ ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
 # Drupal "files" directory into the root level of WordPress, NOT placing it inside the
 # "wp-content/uploads" directory. It also relies on a properly formatted <base href="" /> tag.
 # Make changes as necessary before running this script!
-UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.092515`.content_field_main_image i, `minnpost.092515`.files f
+
+/*UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.092515`.content_field_main_image i, `minnpost.092515`.files f
 	SET p.post_content =
 		CONCAT(
 			CONCAT(
@@ -673,7 +674,64 @@ UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.092515`.content_field_m
 		OR f.filename LIKE '%.png'
 		OR f.filename LIKE '%.gif'
 	)
+;*/
+
+# main images as featured images for posts
+# this will be the default if another version is not present
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url' `meta_key`,
+		CONCAT('https://www.minnpost.com/', f.filepath) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
 ;
+
+# use the detail suffix for the single page image
+# this loads the detail image from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_detail' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/articles', '/imagecache/article_detail/images/articles')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
+;
+
+# thumbnail version
+# this is the small thumbnail from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_thumbnail' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/thumbnail/images/thumbnails/articles')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.092515`.files f ON i.field_thumbnail_image_fid = f.fid
+;
+
+
+# feature thumbnail
+# this is the larger thumbnail image from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature/images/thumbnails/articles')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.092515`.files f ON i.field_thumbnail_image_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/articles%'
+;
+
+
+
 
 # Fix post_name to remove paths.
 # If applicable; Drupal allows paths (i.e. slashes) in the dst field, but this breaks
@@ -715,3 +773,41 @@ UPDATE `minnpost.wordpress`.wp_posts
 #	'slug-goes-here', '', '', NOW(), NOW(),
 #	'', 0, 'http://full.url.to.page.goes.here', 1, 'page', '', 0)
 #;
+
+
+# WordPress Settings
+# if there are settings we can set all the time and make life easier, do that here
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 130
+	WHERE option_name = 'thumbnail_size_w'
+;
+
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 85
+	WHERE option_name = 'thumbnail_size_h'
+;
+
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 1
+	WHERE option_name = 'thumbnail_crop'
+;
+
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 190
+	WHERE option_name = 'medium_size_w'
+;
+
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 9999
+	WHERE option_name = 'medium_size_h'
+;
+
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 640
+	WHERE option_name = 'large_size_w'
+;
+
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 500
+	WHERE option_name = 'large_size_h'
+;
