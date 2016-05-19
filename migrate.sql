@@ -170,10 +170,10 @@ UPDATE wp_term_taxonomy tt
 # maybe need to add the ID so we can see which ones are not being migrated
 INSERT INTO `minnpost.wordpress`.wp_comments
 	(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
-	comment_author_email, comment_author_url, comment_approved)
+	comment_author_email, comment_author_url, comment_approved, user_id)
 	SELECT DISTINCT
 		cid, nid, FROM_UNIXTIME(timestamp), comment, thread, name,
-		mail, homepage, status
+		mail, homepage, status, uid
 		FROM `minnpost.092515`.comments
 ;
 
@@ -425,6 +425,37 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 		AND role.name IN ('author', 'author two', 'editor', 'user admin', 'administrator')
 	)
 ;
+
+
+# Assign administrator permissions
+# Set all Drupal super admins to "administrator"
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
+	FROM `minnpost.092515`.users u
+	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
+	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name = 'super admin'
+	)
+;
+
+
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_user_level' as meta_key, '10' as meta_value
+	FROM `minnpost.092515`.users u
+	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
+	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name = 'super admin'
+	)
+;
+
 
 
 # save user first and last name, if we have them as users in Drupal
