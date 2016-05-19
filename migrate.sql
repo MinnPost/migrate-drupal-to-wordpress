@@ -72,6 +72,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 	)
 ;
 
+
 # Posts from Drupal stories
 # Keeps private posts hidden.
 INSERT INTO `minnpost.wordpress`.wp_posts
@@ -97,6 +98,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 	WHERE n.type IN ('article', 'article_full', 'page')
 ;
 
+
 # Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 # Add more Drupal content types below if applicable.
 UPDATE `minnpost.wordpress`.wp_posts
@@ -118,6 +120,7 @@ CREATE TABLE `wp_posts_raw` (
   PRIMARY KEY (`ID`)
 );
 
+
 # store raw values in temp table
 INSERT INTO `minnpost.wordpress`.wp_posts_raw
 	(id, post_content_raw)
@@ -135,6 +138,7 @@ UPDATE `minnpost.wordpress`.wp_posts
 	SET wp_posts.post_content = CONCAT(wp_posts.post_content, '[raw]', wp_posts_raw.post_content_raw, '[/raw]')
 ;
 
+
 # get rid of that temporary raw table
 DROP TABLE wp_posts_raw;
 
@@ -149,6 +153,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships (object_id, term_taxonomy
 	SELECT DISTINCT nid, tid FROM `minnpost.092515`.term_node
 ;
 
+
 # Update tag counts.
 UPDATE wp_term_taxonomy tt
 	SET `count` = (
@@ -158,18 +163,20 @@ UPDATE wp_term_taxonomy tt
 	)
 ;
 
+
 # Comments
 # Keeps unapproved comments hidden.
 # Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
 # maybe need to add the ID so we can see which ones are not being migrated
 INSERT INTO `minnpost.wordpress`.wp_comments
-	(comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
+	(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
 	comment_author_email, comment_author_url, comment_approved)
 	SELECT DISTINCT
-		nid, FROM_UNIXTIME(timestamp), comment, thread, name,
-		mail, homepage, ((status + 1) % 2)
-	FROM `minnpost.092515`.comments
+		cid, nid, FROM_UNIXTIME(timestamp), comment, thread, name,
+		mail, homepage, status
+		FROM `minnpost.092515`.comments
 ;
+
 
 # Update comments count on wp_posts table.
 UPDATE `minnpost.wordpress`.wp_posts
@@ -180,17 +187,20 @@ UPDATE `minnpost.wordpress`.wp_posts
 	)
 ;
 
+
 # Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
 # in our case, we use this to make the urls absolute, at least for now
 #UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
 UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
 ;
 
+
 # Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
 UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.wp_term_taxonomy
 	SET `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_taxonomy_id
 	WHERE `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_id
 ;
+
 
 # OPTIONAL ADDITIONS -- REMOVE ALL BELOW IF NOT APPLICABLE TO YOUR CONFIGURATION
 
@@ -210,6 +220,7 @@ UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.w
 
 # add the term_id_old field for tracking Drupal term IDs
 ALTER TABLE wp_terms ADD term_id_old BIGINT(20);
+
 
 # Temporary table for department terms
 CREATE TABLE `wp_terms_dept` (
@@ -246,6 +257,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 	SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
 ;
 
+
 # Create relationships for each story to the deparments it had in Drupal
 # Track this relationship by the term_id_old field
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
@@ -255,8 +267,10 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_
 	WHERE tax.taxonomy = 'category'
 ;
 
+
 # Empty term_id_old values so we can start over with our auto increment and still track for sections
 UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
+
 
 # get rid of that temporary department table
 DROP TABLE wp_terms_dept;
@@ -310,6 +324,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_
 
 # Empty term_id_old values so we can start over with our auto increment if applicable
 UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
+
 
 # get rid of that temporary section table
 DROP TABLE wp_terms_section;
@@ -397,6 +412,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 	)
 ;
 
+
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_user_level' as meta_key, '2' as meta_value
@@ -452,8 +468,10 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
 ;
 
+
 # add the user_node_id_old field for tracking Drupal node IDs for non-user authors
 ALTER TABLE wp_terms ADD user_node_id_old BIGINT(20);
+
 
 # Temporary table for user terms
 CREATE TABLE `wp_terms_users` (
@@ -496,6 +514,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, descriptio
 	FROM wp_terms t
 	INNER JOIN wp_posts p ON t.`user_node_id_old` = p.ID
 ;
+
 
 # Create relationships for each story to the author it had in Drupal
 # Track this relationship by the user_node_id_old field
@@ -573,6 +592,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		WHERE field_link_multiple_title LIKE '%witter%'
 ;
 
+
 # add the author's job title if we have it
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
@@ -613,11 +633,13 @@ UPDATE `minnpost.wordpress`.wp_usermeta
 	WHERE user_id IN (1) AND meta_key = 'wp_user_level'
 ;
 
+
 # Reassign post authorship.
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_author = NULL
 	WHERE post_author NOT IN (SELECT DISTINCT ID FROM `minnpost.wordpress`.wp_users)
 ;
+
 
 # update count for authors again
 UPDATE wp_term_taxonomy tt
@@ -635,6 +657,7 @@ UPDATE wp_term_taxonomy tt
 
 # get rid of that user_node_id_old field if we are done migrating into wp_term_relationships
 ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
+
 
 # VIDEO - READ BELOW AND COMMENT OUT IF NOT APPLICABLE TO YOUR SITE
 # If your Drupal site uses the content_field_video table to store links to YouTube videos,
@@ -689,6 +712,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
 ;
 
+
 # use the detail suffix for the single page image
 # this loads the detail image from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
@@ -701,6 +725,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.content_field_main_image i using (nid)
 		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
 ;
+
 
 # thumbnail version
 # this is the small thumbnail from cache folder
@@ -755,6 +780,7 @@ UPDATE `minnpost.wordpress`.wp_posts
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_content = REPLACE(post_content,'<p class="italic">&nbsp;</p>','')
 ;
+
 
 # NEW PAGES - READ BELOW AND COMMENT OUT IF NOT APPLICABLE TO YOUR SITE
 # MUST COME LAST IN THE SCRIPT AFTER ALL OTHER QUERIES!
