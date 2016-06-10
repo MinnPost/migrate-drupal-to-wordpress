@@ -167,7 +167,6 @@ UPDATE wp_term_taxonomy tt
 # Comments
 # Keeps unapproved comments hidden.
 # Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
-# maybe need to add the ID so we can see which ones are not being migrated
 INSERT INTO `minnpost.wordpress`.wp_comments
 	(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
 	comment_author_email, comment_author_url, comment_approved, user_id)
@@ -411,8 +410,6 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 		AND role.name IN ('author', 'author two', 'editor', 'user admin', 'administrator')
 	)
 ;
-
-
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_user_level' as meta_key, '2' as meta_value
@@ -429,6 +426,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 
 # Assign administrator permissions
 # Set all Drupal super admins to "administrator"
+# todo: do this with an update instead of insert
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
@@ -441,8 +439,6 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 		AND role.name = 'super admin'
 	)
 ;
-
-
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_user_level' as meta_key, '10' as meta_value
@@ -468,7 +464,6 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 	INNER JOIN `minnpost.092515`.profile_fields pf2 ON pv2.fid = pf2.fid
 	WHERE pf.fid = 4
 ;
-
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT u.uid as user_id, 'last_name' as meta_key, pv2.`value` as meta_value
 	FROM `minnpost.092515`.users u
