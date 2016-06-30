@@ -59,3 +59,77 @@ SELECT
 SELECT DISTINCT `minnpost.092515`.users.uid
 FROM      `minnpost.092515`.users
 WHERE     `minnpost.092515`.users.uid NOT IN(SELECT `minnpost.wordpress`.wp_users.ID FROM `minnpost.wordpress`.wp_users)
+
+
+
+# Get count of authors who are not users
+# as of 5/19/16 this is equal
+
+SELECT
+	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type = 'author') as drupal_author_count, 
+	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'guest-author') as wordpress_author_count
+;
+
+
+# Count how many users we added as terms and term_taxonomy
+# 2001 users for both queries on 6/29/16; this is correct
+SELECT COUNT(*) FROM wp_terms WHERE term_group=1
+SELECT count(*) FROM wp_term_taxonomy WHERE taxonomy='author'
+
+
+# get count of author/story pairs that we think we're adding compared to what is already in drupal
+SELECT
+  (
+	SELECT COUNT(*) AS wordpress_author_story_pairs
+	FROM
+	(
+		SELECT n.nid AS object_id, t.term_id AS term_taxonomy_id
+		FROM `minnpost.092515`.node n
+		LEFT OUTER JOIN `minnpost.092515`.content_field_op_author author ON n.nid = author.nid
+		INNER JOIN `minnpost.wordpress`.wp_terms t ON author.field_op_author_nid = t.user_node_id_old
+		WHERE field_op_author_nid IS NOT NULL
+		) AS author_story_pairs
+	) AS wordpress_story_pairs,
+	(
+  		SELECT COUNT(*) AS drupal_author_story_pairs
+   		FROM
+     	(
+     		SELECT nid, field_op_author_nid
+     		FROM content_field_op_author
+     		GROUP BY nid
+     		) AS author_story_pairs
+     	) AS drupal_story_pairs
+  ;
+
+
+# get count of author/story pairs
+# as of 5/19/16 these are wildly unequal and it's unclear to me why
+
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.092515`.node n
+		LEFT OUTER JOIN `minnpost.092515`.content_field_op_author a ON n.nid = a.nid
+		WHERE field_op_author_nid IS NOT NULL
+	) as drupal_post_author_count, 
+	(
+		SELECT COUNT(*) FROM wp_term_relationships r
+		INNER JOIN wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
+		WHERE tax.taxonomy = 'author'
+	) as wordpress_post_author_count
+;
+
+
+# Get post IDs where the author does not match
+# as of 5/19/16 there are 333 of these or 2793 if we do not use distinct
+
+SELECT DISTINCT `minnpost.wordpress`.p.ID as wordpress_post_id, `minnpost.wordpress`.t.name as wordpress_author_name, n.nid as drupal_id, au.title as drupal_author_name
+FROM `minnpost.wordpress`.wp_posts p
+INNER JOIN `minnpost.wordpress`.wp_term_relationships r ON r.object_id = p.ID
+INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
+INNER JOIN `minnpost.wordpress`.wp_terms t ON t.term_id = tax.term_id
+LEFT OUTER JOIN `minnpost.092515`.node n ON p.ID = n.nid
+LEFT OUTER JOIN `minnpost.092515`.content_field_op_author a ON n.nid = a.nid
+LEFT OUTER JOIN `minnpost.092515`.node au ON a.field_op_author_nid = au.nid
+WHERE tax.taxonomy = 'author'
+AND `minnpost.wordpress`.t.name != au.title
