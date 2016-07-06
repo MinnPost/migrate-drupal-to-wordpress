@@ -520,6 +520,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_users (term_id, name, slug)
 	FROM `minnpost.092515`.node n
 	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
 	WHERE n.type='author'
+	ORDER BY n.nid
 ;
 
 
@@ -527,6 +528,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_users (term_id, name, slug)
 INSERT INTO wp_terms (name, slug, term_group, user_node_id_old)
 	SELECT name, slug, term_group, term_id
 	FROM wp_terms_users u
+	ORDER BY term_id
 ;
 
 
@@ -543,15 +545,13 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, descriptio
 
 
 # Create relationships for each story to the author it had in Drupal
-# Track this relationship by the user_node_id_old field
-INSERT IGNORE INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-	SELECT nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
-	FROM `minnpost.092515`.content_field_op_author author
-	INNER JOIN `minnpost.wordpress`.wp_terms t ON t.user_node_id_old = author.field_op_author_nid
-	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON t.term_id = tax.term_id
-	INNER JOIN `minnpost.wordpress`.wp_posts p ON author.nid = p.Id
-	WHERE field_op_author_nid IS NOT NULL
-	GROUP BY object_id
+INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
+	SELECT ca.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+	FROM `minnpost.092515`.content_field_op_author ca
+	LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON ca.field_op_author_nid = t.user_node_id_old
+	LEFT OUTER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_id)
+	WHERE tax.term_taxonomy_id IS NOT NULL
+	GROUP BY CONCAT(ca.nid, ca.field_op_author_nid)
 ;
 
 
