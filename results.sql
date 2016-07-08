@@ -79,47 +79,59 @@ SELECT count(*) FROM wp_term_taxonomy WHERE taxonomy='author';
 
 
 
-# get count of author/story pairs that we think we're adding compared to what is already in drupal
-SELECT
-  (
-	SELECT COUNT(*) AS wordpress_author_story_pairs
-	FROM
-	(
-		SELECT n.nid AS object_id, t.term_id AS term_taxonomy_id
-		FROM `minnpost.092515`.node n
-		LEFT OUTER JOIN `minnpost.092515`.content_field_op_author author ON n.nid = author.nid
-		INNER JOIN `minnpost.wordpress`.wp_terms t ON author.field_op_author_nid = t.user_node_id_old
-		WHERE field_op_author_nid IS NOT NULL
-		) AS author_story_pairs
-	) AS wordpress_story_pairs,
-	(
-  		SELECT COUNT(*) AS drupal_author_story_pairs
-   		FROM
-     	(
-     		SELECT nid, field_op_author_nid
-     		FROM content_field_op_author
-     		GROUP BY nid
-     		) AS author_story_pairs
-     	) AS drupal_story_pairs
-  ;
 
 
 # get count of author/story pairs
 # as of 5/19/16 these are wildly unequal and it's unclear to me why
-
+# 6/30/16 I thought I fixed it, but nope
+# 7/1/16 it is 52754 (drupal) vs 52436 (wordpress)
+# 7/6/16 it is 52754 (drupal) vs 52961 (wordpress)
+# 7/8/16 is 53316 (drupal) vs 52961 (wordpress)
+# count for the insert from drupal into wordpress is 52961
+# 7/8/16 final is 52961 for drupal, 52961 for wordpress!!!
 SELECT
 	(
 		SELECT COUNT(*)
-		FROM `minnpost.092515`.node n
-		LEFT OUTER JOIN `minnpost.092515`.content_field_op_author a ON n.nid = a.nid
-		WHERE field_op_author_nid IS NOT NULL
+		FROM
+		(
+			Select n.nid
+			FROM `minnpost.092515`.node n
+			INNER JOIN `minnpost.092515`.content_field_op_author a ON n.nid = a.nid
+			INNER JOIN `minnpost.092515`.node auth ON a.field_op_author_nid = auth.nid
+			WHERE field_op_author_nid IS NOT NULL
+			GROUP BY concat(a.nid, a.field_op_author_nid)
+		) as drupal_story_pairs
 	) as drupal_post_author_count, 
 	(
-		SELECT COUNT(*) FROM wp_term_relationships r
-		INNER JOIN wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_relationships r
+		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
 		WHERE tax.taxonomy = 'author'
 	) as wordpress_post_author_count
 ;
+
+
+
+# find the story/author pairs in drupal
+#52961
+Select a.nid, a.field_op_author_nid
+FROM `minnpost.092515`.content_field_op_author a
+INNER JOIN `minnpost.092515`.node n ON a.nid = n.nid
+INNER JOIN `minnpost.092515`.node auth ON a.field_op_author_nid = auth.nid
+WHERE field_op_author_nid IS NOT NULL
+GROUP BY concat(a.nid, a.field_op_author_nid)
+ORDER BY a.nid
+
+
+# find the story/author pairs in wordpress
+#52961
+SELECT r.object_id, t.user_node_id_old
+FROM `minnpost.wordpress`.wp_term_relationships r
+INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
+INNER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
+WHERE tax.taxonomy = 'author'
+ORDER BY r.object_id
+
 
 
 
