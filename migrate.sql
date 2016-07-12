@@ -75,6 +75,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 
 # Posts from Drupal stories
 # Keeps private posts hidden.
+# line 99 contains the Drupal content types that we want to migrate
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_modified, post_type, `post_status`)
@@ -100,7 +101,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 
 
 # Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
-# Add more Drupal content types below if applicable.
+# Add more Drupal content types below if applicable. Must match all types from line 99 that should be imported as 'posts'
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
 	WHERE post_type IN ('article', 'article_full')
