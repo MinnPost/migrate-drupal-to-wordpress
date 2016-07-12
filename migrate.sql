@@ -148,7 +148,7 @@ DROP TABLE wp_posts_raw;
 # Use the Audio format, and the core WordPress handling for audio files
 # this is [audio mp3="source.mp3"]
 
-# create temporary table for raw html content
+# create temporary table for audio content
 CREATE TABLE `wp_posts_audio` (
   `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `post_content_audio` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -180,6 +180,7 @@ DROP TABLE wp_posts_audio;
 
 # add audio format for audio posts
 INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-audio', 'post-format-audio');
+
 
 # add format to taxonomy
 INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
@@ -795,6 +796,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 # for audio posts, there is no main image field in Drupal
+# for video posts, there is no main image field in Drupal
 
 
 # use the detail suffix for the single page image
@@ -812,6 +814,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 
 # for audio posts, there is no single page image field in Drupal
+# for video posts, there is no single page image field in Drupal
 
 
 # thumbnail version
@@ -841,7 +844,22 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
-# might as well use the standard thumbnail meta key with the same value
+
+# thumbnail version for video posts
+# this is the small thumbnail from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_thumbnail' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+;
+
+
+# might as well use the standard thumbnail meta key with the same value for audio
 # wordpress will read this part for us in the admin
 # do we need both?
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
@@ -853,6 +871,21 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		FROM `minnpost.092515`.node n
 		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
 		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+;
+
+
+# might as well use the standard thumbnail meta key with the same value for video
+# wordpress will read this part for us in the admin
+# do we need both?
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
 
 
@@ -883,6 +916,21 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
 		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/audio%'
+;
+
+
+# feature thumbnail for video posts
+# this is the larger thumbnail image from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature/images/thumbnails/video')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/video%'
 ;
 
 
