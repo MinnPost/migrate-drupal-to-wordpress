@@ -96,7 +96,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 	LEFT OUTER JOIN `minnpost.092515`.url_alias a
 		ON a.src = CONCAT('node/', n.nid)
 	# Add more Drupal content types below if applicable.
-	WHERE n.type IN ('article', 'article_full', 'page')
+	WHERE n.type IN ('article', 'article_full', 'audio', 'page')
 ;
 
 
@@ -104,7 +104,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 # Add more Drupal content types below if applicable. Must match all types from line 99 that should be imported as 'posts'
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
-	WHERE post_type IN ('article', 'article_full')
+	WHERE post_type IN ('article', 'article_full', 'audio')
 ;
 
 
@@ -142,6 +142,61 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 # get rid of that temporary raw table
 DROP TABLE wp_posts_raw;
+
+
+## Get audio URLs from audio posts
+# Use the Audio format, and the core WordPress handling for audio files
+# this is [audio mp3="source.mp3"]
+
+# create temporary table for raw html content
+CREATE TABLE `wp_posts_audio` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `post_content_audio` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+);
+
+
+# store audio urls in temp table
+INSERT INTO `minnpost.wordpress`.wp_posts_audio
+	(id, post_content_audio)
+	SELECT a.nid, CONCAT('https://www.minnpost.com/', f.filepath) `post_content_audio`
+		FROM `minnpost.092515`.content_type_audio a
+		INNER JOIN `minnpost.092515`.node AS n ON a.vid = n.vid
+		INNER JOIN `minnpost.092515`.files AS f ON a.field_audio_file_fid = f.fid
+;
+
+
+# append audio file to the post body
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.wordpress`.wp_posts_audio
+	ON wp_posts.ID = wp_posts_audio.ID
+	SET wp_posts.post_content = CONCAT(wp_posts.post_content, '<p>[audio mp3="', wp_posts_audio.post_content_audio, '"]</p>')
+;
+
+
+# get rid of that temporary audio table
+DROP TABLE wp_posts_audio;
+
+
+# add audio format for audio posts
+INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-audio', 'post-format-audio');
+
+# add format to taxonomy
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+	SELECT term_id `term_id`, 'post_format' `taxonomy`
+		FROM wp_terms
+		WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-audio'
+;
+
+
+# use audio format for audio posts
+INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
+	SELECT n.nid, tax.term_taxonomy_id
+		FROM `minnpost.092515`.node n
+		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
+		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
+		WHERE `minnpost.092515`.n.type = 'audio' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-audio'
+;
 
 
 # Set all pages to "pending".
@@ -739,6 +794,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
 ;
 
+# for audio posts, there is no main image field in Drupal
+
 
 # use the detail suffix for the single page image
 # this loads the detail image from cache folder
@@ -754,6 +811,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# for audio posts, there is no single page image field in Drupal
+
+
 # thumbnail version
 # this is the small thumbnail from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
@@ -765,6 +825,34 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		FROM `minnpost.092515`.node n
 		INNER JOIN `minnpost.092515`.content_field_thumbnail_image i using (nid)
 		INNER JOIN `minnpost.092515`.files f ON i.field_thumbnail_image_fid = f.fid
+;
+
+
+# thumbnail version for audio posts
+# this is the small thumbnail from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_thumbnail' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+;
+
+# might as well use the standard thumbnail meta key with the same value
+# wordpress will read this part for us in the admin
+# do we need both?
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
 
@@ -782,6 +870,20 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		WHERE f.filepath LIKE '%images/thumbnails/articles%'
 ;
 
+
+# feature thumbnail for audio posts
+# this is the larger thumbnail image from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature/images/thumbnails/audio')) `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/audio%'
+;
 
 
 
