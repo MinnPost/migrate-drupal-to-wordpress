@@ -96,7 +96,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 	LEFT OUTER JOIN `minnpost.092515`.url_alias a
 		ON a.src = CONCAT('node/', n.nid)
 	# Add more Drupal content types below if applicable.
-	WHERE n.type IN ('article', 'article_full', 'audio', 'page')
+	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video')
 ;
 
 
@@ -104,7 +104,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 # Add more Drupal content types below if applicable. Must match all types from line 99 that should be imported as 'posts'
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
-	WHERE post_type IN ('article', 'article_full', 'audio')
+	WHERE post_type IN ('article', 'article_full', 'audio', 'video')
 ;
 
 
@@ -197,6 +197,90 @@ INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
 		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
 		WHERE `minnpost.092515`.n.type = 'audio' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-audio'
+;
+
+
+## Get video URLs/embeds from video posts
+# Use the Video format, and the core WordPress handling for video display
+# if it is a local file, this uses [video src="video-source.mp4"]
+# can expand to [video width="600" height="480" mp4="source.mp4" ogv="source.ogv" webm="source.webm"]
+# if it is an embed, it uses [embed width="123" height="456"]http://www.youtube.com/watch?v=dQw4w9WgXcQ[/embed]
+# the embeds only work if they have been added to the whitelist
+# width/height are optional on all these
+
+
+# create temporary table for video content
+CREATE TABLE `wp_posts_video` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `post_content_video` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+);
+
+
+# store video urls for local files in temp table
+# for drupal 6, the only way we can do this is to encode FLV files as mp4 files separately, and make sure they 
+# exist at the matching url (whatever.flv needs to be there as whatever.mp4)
+INSERT INTO `minnpost.wordpress`.wp_posts_video
+	(id, post_content_video)
+	SELECT v.nid, REPLACE(CONCAT('[video src="https://www.minnpost.com/', f.filepath, '"]'), '.flv', '.mp4') `post_content_video`
+		FROM `minnpost.092515`.content_type_video v
+		INNER JOIN `minnpost.092515`.node AS n ON v.vid = n.vid
+		INNER JOIN `minnpost.092515`.files AS f ON v.field_flash_file_fid = f.fid
+;
+
+# store video urls for embed videos in temp table
+# drupal 6 (at least our version) only does vimeo and youtube
+
+# vimeo
+INSERT INTO `minnpost.wordpress`.wp_posts_video
+	(id, post_content_video)
+	SELECT v.nid, CONCAT('[embed]https://vimeo.com/', v.field_embedded_video_value, '[/embed]') `post_content_video`
+		FROM `minnpost.092515`.content_field_embedded_video v
+		WHERE v.field_embedded_video_provider = 'vimeo'
+		GROUP BY v.nid
+;
+
+# youtube
+INSERT INTO `minnpost.wordpress`.wp_posts_video
+	(id, post_content_video)
+	SELECT v.nid, CONCAT('[embed]https://www.youtube.com/watch?v=', v.field_embedded_video_value, '[/embed]') `post_content_video`
+		FROM `minnpost.092515`.content_field_embedded_video v
+		WHERE v.field_embedded_video_provider = 'youtube'
+		GROUP BY v.nid
+;
+
+
+# append video file or embed content to the post body
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.wordpress`.wp_posts_video
+	ON wp_posts.ID = wp_posts_video.ID
+	SET wp_posts.post_content = CONCAT(wp_posts.post_content, '<p>', wp_posts_video.post_content_video, '</p>')
+;
+
+
+# get rid of that temporary video table
+DROP TABLE wp_posts_video;
+
+
+# add video format for video posts
+INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-video', 'post-format-video');
+
+
+# add format to taxonomy
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+	SELECT term_id `term_id`, 'post_format' `taxonomy`
+		FROM wp_terms
+		WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-video'
+;
+
+
+# use video format for video posts
+INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
+	SELECT n.nid, tax.term_taxonomy_id
+		FROM `minnpost.092515`.node n
+		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
+		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
+		WHERE `minnpost.092515`.n.type = 'video' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-video'
 ;
 
 
@@ -530,7 +614,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 ;
 
 
-# Drupal authors who are not users
+# Drupal authors who may or may not be users
 # these get inserted as posts with a type of guest-author, for the plugin
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
@@ -552,7 +636,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 ;
 
 
-# add the user_node_id_old field for tracking Drupal node IDs for non-user authors
+# add the user_node_id_old field for tracking Drupal node IDs for authors
 ALTER TABLE wp_terms ADD user_node_id_old BIGINT(20);
 
 

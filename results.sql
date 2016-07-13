@@ -1,7 +1,7 @@
 # Get count of standard story items
 # this one has an identical count as of 5/19/16
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type IN ('article', 'article_full', 'audio')) as drupal_story_count, 
+	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type IN ('article', 'article_full', 'audio', 'video')) as drupal_story_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'post') as wordpress_story_count
 ;
 
@@ -13,6 +13,48 @@ INNER JOIN wp_term_relationships r ON p.ID = r.object_id
 INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
 INNER JOIN wp_terms t ON tax.term_id = t.term_id
 WHERE t.name = 'post-format-audio'
+;
+
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.092515`.node
+		WHERE type IN ('audio')
+	) as drupal_audio_count, 
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_posts p
+		INNER JOIN wp_term_relationships r ON p.ID = r.object_id
+		INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+		INNER JOIN wp_terms t ON tax.term_id = t.term_id
+		WHERE t.name = 'post-format-audio'
+	) as wordpress_audio_count
+;
+
+
+# find the video posts
+SELECT p.ID, p.post_title, r.term_taxonomy_id, tax.taxonomy
+FROM wp_posts p
+INNER JOIN wp_term_relationships r ON p.ID = r.object_id
+INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+INNER JOIN wp_terms t ON tax.term_id = t.term_id
+WHERE t.name = 'post-format-video'
+;
+
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.092515`.node
+		WHERE type IN ('video')
+	) as drupal_video_count, 
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_posts p
+		INNER JOIN wp_term_relationships r ON p.ID = r.object_id
+		INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+		INNER JOIN wp_terms t ON tax.term_id = t.term_id
+		WHERE t.name = 'post-format-video'
+	) as wordpress_video_count
 ;
 
 

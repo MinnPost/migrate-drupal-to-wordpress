@@ -3,8 +3,8 @@
 ## 4/25/16
 
 - Core content items
-    - Drupal (article, article_full, audio): 54901
-    - WordPress (post): 54902 (unsure why this is, but not really worried)
+    - Drupal (article, article_full, audio, video): 55335
+    - WordPress (post): 55335 (there was a one node difference until we added the video content type. unsure why but this isn't concerning at this time)
 - Pages
     - Drupal: 51
     - WordPress: 51
@@ -50,7 +50,6 @@
     - Slideshow
     - Sponsor
     - True/False question (see if we've used this)
-    - Video
 - Author / user information
 - Custom fields on core content
 - Analytics functionality
@@ -67,6 +66,8 @@
 - need user roles and permissions
 - need to set top images as featured images. this is at least partially working
 - user fields are only saved if the user has ever saved their account. otherwise it is somewhere not in the database
+- plugin I wrote to try to handle permalinks when there are multiple categories is broken.
+- are we getting the right alt text for the thumbnails?
 
 
 
