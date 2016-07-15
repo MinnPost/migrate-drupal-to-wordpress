@@ -1,6 +1,6 @@
 # Results
 
-## 4/25/16
+## Number comparisons
 
 - Core content items
     - Drupal (article, article_full, audio, video): 55335
@@ -20,21 +20,28 @@
 - Article / author pairs
     - Drupal: 53317
     - WordPress: 52962 (this is correct because Drupal counts pairs where there is a blank value; ex if there is a byline field)
+- Category
+    - Department/Column + Section (Drupal): 75
+    - Category (WordPress): 75
+- Tags
+    - no idea how to count this in Drupal (also the permalinks will maybe need to be redirects, if they even get traffic)
+- Taxonomy / article pairs
+    - 
 - Images
     - need to think about how to count this properly
-- Taxonomy
-    - Department/Column
-    - Section
+        - Feature
+        - Thumbnail
+        - Detail
+        - Author
+        - make sure we define all the sizes correctly
 - Other content items to investigate
-    - Candidate
+    - Candidate (related to that elections group of modules)
     - Custom Spill
     - Directed Message
-    - Editor's Choice
-    - Election
+    - Election (related to that elections group of modules)
     - Event
     - FAN Club Vote
-    - Long answer (see if we've used this)
-    - Matching (see if we've used this)
+    - Image (has a thumbnail as well as a big image)
     - Multiple choice question
     - Newsletter
     - Package
@@ -44,10 +51,8 @@
     - Partner Offer Instance
     - Quiz
     - Quiz directions (see if we've used this)
-    - Scale question (see if we've used this)
-    - Short answer question (see if we've used this)
-    - Sidebar Item
-    - Slideshow
+    - Sidebar Item (has a thumbnail)
+    - Slideshow (has a thumbnail)
     - Sponsor
     - True/False question (see if we've used this)
 - Author / user information
@@ -61,19 +66,21 @@
 
 - Need to figure out what to do with all custom fields
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
-    - this should be fixed by Largo
-- check all the numbers of imported items between the systems
+    - this should be fixed by Largo as I think it has a byline field
 - need user roles and permissions
-- need to set top images as featured images. this is at least partially working
-- user fields are only saved if the user has ever saved their account. otherwise it is somewhere not in the database
-- plugin I wrote to try to handle permalinks when there are multiple categories is broken.
-- are we getting the right alt text for the thumbnails?
+- user fields were only saved if the user has ever saved their account. otherwise it is somewhere not in the database. need to figure out what i was talking about here.
+- alt text, captions, whatever else for all images are in a serialized row in drupal. there seem to be some differences with the section/department nodes
 
 
 
 ### Content types we don't have to migrate
 
-1. Package (empty)
+1. Editor's Choice (empty)
+2. Long answer question (empty)
+3. Matching question (empty)
+2. Package (empty)
+3. Scale question (empty)
+4. Short answer question (empty)
 2. Resource (empty)
 2. Voting District
 2. Webform
