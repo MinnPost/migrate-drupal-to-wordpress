@@ -244,3 +244,9 @@ LEFT OUTER JOIN `minnpost.092515`.node au ON t.name = au.title
 WHERE tax.taxonomy = 'author'
 AND `minnpost.wordpress`.t.name != au.title
 ;
+
+
+SELECT
+	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type IN ('department', 'section')) as drupal_department_section_count, 
+	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_term_taxonomy WHERE taxonomy = 'category') as wordpress_category_count
+;
