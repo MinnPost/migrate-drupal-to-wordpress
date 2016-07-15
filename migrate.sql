@@ -621,7 +621,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 	post_name, post_modified, post_type, `post_status`)
 	SELECT DISTINCT
 		n.nid `id`,
-		1 `post_author`,
+		n.uid `post_author`,
 		FROM_UNIXTIME(n.created) `post_date`,
 		'' `post_content`,
 		n.title `post_title`,
@@ -802,6 +802,7 @@ UPDATE `minnpost.wordpress`.wp_usermeta
 
 
 # Reassign post authorship.
+# we probably don't need this i think
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_author = NULL
 	WHERE post_author NOT IN (SELECT DISTINCT ID FROM `minnpost.wordpress`.wp_users)
