@@ -916,6 +916,42 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# insert thumbnails as posts
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/thumbnail/images/thumbnails/articles')) `guid`,
+		'attachment' `post_type`,
+		f.filemime `post_mime_type`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.092515`.files f ON i.field_thumbnail_image_fid = f.fid
+;
+
+
+# insert alt text for thumbnails
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+	post_parent `post_id`,
+	'_wp_attachment_metadata' `meta_key`,
+	i.field_thumbnail_image_data `meta_value`
+	FROM `minnpost.wordpress`.wp_posts p
+	LEFT OUTER JOIN `minnpost.092515`.content_field_thumbnail_image i ON p.post_parent = i.nid
+	WHERE post_type = 'attachment' AND i.field_thumbnail_image_data IS NOT NULL
+	GROUP BY post_id
+;
+
+
 # thumbnail version for audio posts
 # this is the small thumbnail from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
@@ -930,6 +966,42 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# insert audio thumbnails as posts
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `guid`,
+		'attachment' `post_type`,
+		f.filemime `post_mime_type`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+;
+
+
+# insert alt text for audio thumbnails
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+	post_parent `post_id`,
+	'_wp_attachment_metadata' `meta_key`,
+	a.field_op_audio_thumbnail_data `meta_value`
+	FROM `minnpost.wordpress`.wp_posts p
+	LEFT OUTER JOIN `minnpost.092515`.content_type_audio a ON p.post_parent = a.nid
+	WHERE post_type = 'attachment' AND a.field_op_audio_thumbnail_data IS NOT NULL
+	GROUP BY post_id
+;
+
+
 # thumbnail version for video posts
 # this is the small thumbnail from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
@@ -941,6 +1013,78 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		FROM `minnpost.092515`.node n
 		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
 		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+;
+
+
+# insert video thumbnails as posts
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `guid`,
+		'attachment' `post_type`,
+		f.filemime `post_mime_type`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+;
+
+
+# insert alt text for video thumbnails
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+	post_parent `post_id`,
+	'_wp_attachment_metadata' `meta_key`,
+	v.field_op_video_thumbnail_data `meta_value`
+	FROM `minnpost.wordpress`.wp_posts p
+	LEFT OUTER JOIN `minnpost.092515`.content_type_video v ON p.post_parent = v.nid
+	WHERE post_type = 'attachment' AND v.field_op_video_thumbnail_data IS NOT NULL
+	GROUP BY post_id
+;
+
+
+# insert metadata for thumbnails
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+	post_parent `post_id`,
+	'_thumbnail_id' `meta_key`,
+	ID `meta_value`
+	FROM wp_posts
+	WHERE post_type = 'attachment'
+;
+
+
+# insert main images as posts
+# we put this after the other image stuff because the above query treats all attachment posts as if they are thumbnails
+# and these are not thumbnails
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/articles', '/imagecache/article_detail/images/articles')) `guid`,
+		'attachment' `post_type`,
+		f.filemime `post_mime_type`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
 ;
 
 
