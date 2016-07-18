@@ -803,10 +803,10 @@ UPDATE `minnpost.wordpress`.wp_usermeta
 
 # Reassign post authorship.
 # we probably don't need this i think
-UPDATE `minnpost.wordpress`.wp_posts
-	SET post_author = NULL
-	WHERE post_author NOT IN (SELECT DISTINCT ID FROM `minnpost.wordpress`.wp_users)
-;
+#UPDATE `minnpost.wordpress`.wp_posts
+#	SET post_author = NULL
+#	WHERE post_author NOT IN (SELECT DISTINCT ID FROM `minnpost.wordpress`.wp_users)
+#;
 
 
 # update count for authors again
@@ -1043,7 +1043,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
 	post_parent `post_id`,
-	'_wp_attachment_metadata' `meta_key`,
+	'_wp_imported_metadata' `meta_key`,
 	v.field_op_video_thumbnail_data `meta_value`
 	FROM `minnpost.wordpress`.wp_posts p
 	LEFT OUTER JOIN `minnpost.092515`.content_type_video v ON p.post_parent = v.nid
