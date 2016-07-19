@@ -938,12 +938,12 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 ;
 
 
-# insert alt text for thumbnails
+# insert metadata for thumbnails - this relates to the image post ID
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
-	post_parent `post_id`,
-	'_wp_attachment_metadata' `meta_key`,
+	ID `post_id`,
+	'_wp_imported_metadata' `meta_key`,
 	i.field_thumbnail_image_data `meta_value`
 	FROM `minnpost.wordpress`.wp_posts p
 	LEFT OUTER JOIN `minnpost.092515`.content_field_thumbnail_image i ON p.post_parent = i.nid
@@ -988,12 +988,12 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 ;
 
 
-# insert alt text for audio thumbnails
+# insert metadata for audio thumbnails - this relates to the image post ID
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
-	post_parent `post_id`,
-	'_wp_attachment_metadata' `meta_key`,
+	ID `post_id`,
+	'_wp_imported_metadata' `meta_key`,
 	a.field_op_audio_thumbnail_data `meta_value`
 	FROM `minnpost.wordpress`.wp_posts p
 	LEFT OUTER JOIN `minnpost.092515`.content_type_audio a ON p.post_parent = a.nid
@@ -1038,11 +1038,11 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 ;
 
 
-# insert alt text for video thumbnails
+# insert metadata for video thumbnails - this relates to the image post ID
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
-	post_parent `post_id`,
+	ID `post_id`,
 	'_wp_imported_metadata' `meta_key`,
 	v.field_op_video_thumbnail_data `meta_value`
 	FROM `minnpost.wordpress`.wp_posts p
@@ -1052,7 +1052,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
-# insert metadata for thumbnails
+# insert metadata for thumbnails - this relates to the content post ID
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
