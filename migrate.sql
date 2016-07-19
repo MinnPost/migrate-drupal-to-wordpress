@@ -731,6 +731,8 @@ UPDATE wp_term_taxonomy tt
 	)
 ;
 
+# add a temporary constraint for email addresses so we don't add duplicates
+ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(64));
 
 # add the email address for the author if we have one
 INSERT INTO `minnpost.wordpress`.wp_postmeta
@@ -786,6 +788,21 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.users user ON author.field_author_user_uid = user.uid
 ;
 
+
+# if the linked user has an email address, add it
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'cap-user_email' `meta_key`,
+		user.mail `meta_value`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.092515`.users user ON author.field_author_user_uid = user.uid
+;
+
+# drop that temporary constraint
+ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
 
 
 # Change permissions for admins.
