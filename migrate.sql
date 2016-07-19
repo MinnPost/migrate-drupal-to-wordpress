@@ -827,13 +827,14 @@ UPDATE `minnpost.wordpress`.wp_usermeta
 
 
 # update count for authors again
-UPDATE wp_term_taxonomy tt
-	SET `count` = (
-		SELECT COUNT(tr.object_id)
-		FROM wp_term_relationships tr
-		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
-	)
-;
+# we probably don't need this anymore since we commented out the one above
+#UPDATE wp_term_taxonomy tt
+#	SET `count` = (
+#		SELECT COUNT(tr.object_id)
+#		FROM wp_term_relationships tr
+#		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
+#	)
+#;
 
 
 # assign authors from author nodes to stories where applicable
@@ -1120,6 +1121,30 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# insert local audio files as posts so they show in media library
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		CONCAT('https://www.minnpost.com/', f.filepath) `guid`,
+		'attachment' `post_type`,
+		f.filemime `post_mime_type`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_audio a using (nid)
+		INNER JOIN `minnpost.092515`.files f ON a.field_audio_file_fid = f.fid
+;
+
+# there is no alt or caption info for audio files stored in drupal
+
+
 # might as well use the standard thumbnail meta key with the same value for video
 # wordpress will read this part for us in the admin
 # do we need both?
@@ -1133,6 +1158,30 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
 		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
+
+
+# insert local video files as posts so they show in media library
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		REPLACE(CONCAT('https://www.minnpost.com/', f.filepath), '.flv', '.mp4') `guid`,
+		'attachment' `post_type`,
+		'video/mp4' `post_mime_type`
+		FROM `minnpost.092515`.node n
+		INNER JOIN `minnpost.092515`.content_type_video v using (nid)
+		INNER JOIN `minnpost.092515`.files f ON v.field_flash_file_fid = f.fid
+;
+
+# there is no alt or caption info for video files stored in drupal
 
 
 # feature thumbnail
