@@ -64,6 +64,7 @@
 
 ### Notes
 
+- Wrote a plugin that splits the Drupal image metadata into alt, caption, etc. It can be used for as many types as necessary, but is currently only being used for thumbnail images. It's likely we won't need it for inline images, but maybe will need it for detail ones.
 - Need to figure out what to do with all custom fields
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
     - this should be fixed by Largo as I think it has a byline field
@@ -71,6 +72,19 @@
 - user fields were only saved if the user has ever saved their account. otherwise it is somewhere not in the database. need to figure out what i was talking about here.
 - alt text, captions, whatever else for all images are in a serialized row in drupal. there seem to be some differences with the section/department nodes
 
+
+### Content fields we don't have to migrate
+
+1. field_center_intro
+2. field_center_main_image (if we can fix the sponsor)
+2. field_center_related
+3. field_center_title
+4. field_download
+5. field_ec_featured_nodes
+6. field_left_intro
+7. field_right_intro
+8. field_right_related
+9. Also a bunch of election fields: field_elecitons_date, field_elections_2012_primary_per, field_elections_2012_primary_won, field_elections_amount_raised, field_elections_boundary_id, field_elections_c_address, field_elections_candidate_image, field_elections_candidates, field_elections_cash_on_hand, field_elections_caucus_date, field_elections_district, field_elections_email, field_elections_expenditures, field_elections_f_candidates, field_elections_facebook_profile, field_elections_finance_board_id, field_elections_financials_upd, field_elections_first_name, field_elections_incumbents, field_elections_last_name, field_elections_os_legislator, field_elections_outside_news, field_elections_phone, field_elections_primary_date, field_elections_pvi, field_elections_r_address, field_elections_seats_available, field_elections_twitter_username, cfield_elections_watchable, field_elections_website
 
 
 ### Content types we don't have to migrate
