@@ -66,6 +66,24 @@ SELECT
 ;
 
 
+# get count of post/tag / node/term combinations
+# this filters wp into tags only
+# identical count as of 7/22/16
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_relationships r
+		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
+		INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
+		WHERE tax.taxonomy NOT IN('category', 'author', 'post_format')
+	) as wordpress_tag_count,
+	(
+		SELECT COUNT(DISTINCT nid, tid)
+		FROM `minnpost.092515`.term_node
+	) as drupal_term_count
+;
+
+
 # Get count of comments
 # this one has an identical count as of 5/19/16
 
