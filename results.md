@@ -24,9 +24,10 @@
     - Department/Column + Section (Drupal): 75
     - Category (WordPress): 75
 - Tags
-    - no idea how to count this in Drupal (also the permalinks will maybe need to be redirects, if they even get traffic)
-- Taxonomy / article pairs
-    - 
+    - no idea how to count this in Drupal because the term table is just one big thing
+- post/tag / node/term combinations
+    - Drupal: 127070
+    - WordPress: 127070
 - Images
     - need to think about how to count this properly
         - Feature
@@ -37,30 +38,18 @@
 - Other content items to investigate
     - Candidate (related to that elections group of modules)
     - Custom Spill
-    - Directed Message
     - Election (related to that elections group of modules)
-    - Event
-    - FAN Club Vote
     - Image (has a thumbnail as well as a big image)
     - Multiple choice question
-    - Newsletter
-    - Package
-    - Panel
-    - Partner
-    - Partner Offer
-    - Partner Offer Instance
     - Quiz
     - Quiz directions (see if we've used this)
-    - Sidebar Item (has a thumbnail)
     - Slideshow (has a thumbnail)
-    - Sponsor
     - True/False question (see if we've used this)
 - Author / user information
 - Custom fields on core content
 - Analytics functionality
 - Modals
 - Sidebar items
-    - Sidebar item
 
 ### Notes
 
@@ -98,3 +87,38 @@
 2. Resource (empty)
 2. Voting District
 2. Webform
+
+
+### Other things to create
+
+- Directed Message
+- Event
+- FAN Club Vote
+- Newsletter
+- Panel
+    - Node template
+        - Author page (makes it a single column; gives it a css id; tells it to get 10 nodes from the author)
+        - Section page (minnpost listing like homepage; lets you feature 1 node then load 20; plus a 'section listing' column, 'node being viewed', 'sidebar items homepage' blocks on the side - these presumably handle most commented, recent stories, featured columns, in case you missed it, etc)
+        - Department/Column page (minnpost listing like homepage; lets you feature 3 nodes then load 10; plus a 'section listing' column, 'node being viewed', 'sidebar items homepage' blocks on the side - these presumably handle most commented, recent stories, featured columns, in case you missed it, etc)
+    - Home page (makes all the columns)
+        - Has regions for left side and right side
+        - Left
+            - Top banner (hidden)
+            - Holiday break
+            - Nodequeue top
+            - Nodequeue middle
+            - Ad Middle3
+            - Nodequeue bottom
+        - Right
+            - HP Columns Featured
+            - Under Glean sidebar
+            - Nodequeue HP Columns
+            - Sidebar items
+- Partner
+- Partner Offer
+- Partner Offer Instance
+- Sidebar Item (has a thumbnail)
+- Sponsor
+- Webform
+    - The Letter to the Editor form is here
+    - There's also a Late in life heatlh care questionnaire from 2014
