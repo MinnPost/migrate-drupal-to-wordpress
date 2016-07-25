@@ -74,6 +74,7 @@
 7. field_right_intro
 8. field_right_related
 9. Also a bunch of election fields: field_elecitons_date, field_elections_2012_primary_per, field_elections_2012_primary_won, field_elections_amount_raised, field_elections_boundary_id, field_elections_c_address, field_elections_candidate_image, field_elections_candidates, field_elections_cash_on_hand, field_elections_caucus_date, field_elections_district, field_elections_email, field_elections_expenditures, field_elections_f_candidates, field_elections_facebook_profile, field_elections_finance_board_id, field_elections_financials_upd, field_elections_first_name, field_elections_incumbents, field_elections_last_name, field_elections_os_legislator, field_elections_outside_news, field_elections_phone, field_elections_primary_date, field_elections_pvi, field_elections_r_address, field_elections_seats_available, field_elections_twitter_username, cfield_elections_watchable, field_elections_website
+10. There's a sidebar field (field_sidebar_value) - 3200+ nodes (does include revisions) have a value here. need to figure out what to do with it. article, department, event, page are the node types. Grouping it by vid reduces it to 698 rows
 
 
 ### Content types we don't have to migrate
@@ -91,10 +92,28 @@
 
 ### Other things to create
 
+- Department
+    - Title/body fields
+    - main image, thumbnail
+    - sponsorship
+    - teaser
+    - section
+    - deck
 - Directed Message
+    - includes a body that has to have html in it
+    - also a type field (popover, viewport bottom, article blocker)
+    - what pages to show it on
+    - what pages to omit it from (backend keeps it off support pages)
+    - rules for showing it
+    - css
 - Event
+    - needs standard fields - title, teaser, thumbnail, main image/caption, body, categorization
+    - also needs start/end date and has a "sidebar" field
 - FAN Club Vote
+    - interface is a form that integrates with the propublica api to make an autocomplete form
+    - but then it has to save each vote with info from the api, as well as the logged in user and timestamp info
 - Newsletter
+    - going to need a plugin for this, I think
 - Panel
     - Node template
         - Author page (makes it a single column; gives it a css id; tells it to get 10 nodes from the author)
@@ -115,10 +134,26 @@
             - Nodequeue HP Columns
             - Sidebar items
 - Partner
+    - these get listed - image, alt text, link to website - on the /support/partner-offers page
+    - other than that they have no user-facing presence
 - Partner Offer
+    - the partner offer claim page lists all of these. it joins with the partners and the instances.
 - Partner Offer Instance
+    - this allows an offer to be claimed x amount of times. it has no user facing presence, but it does affect how the partner offer list renders (dropdown, button only, etc.)
+- Section
+    - Title/body fields
+    - main image, thumbnail
+    - sponsorship
+    - teaser
+    - intro (html field)
+    - in case you missed it nodes
+    - deck
 - Sidebar Item (has a thumbnail)
+    - this will map directly to widgets, i think. just has a box with html in it
+    - it does have a thumbnail image, but none of the items have one
+    - also has a page visibility that indicates where it is visible
 - Sponsor
+    - this can map to widgets, if we use a media widget plugin. all it has is a line of text for homepage (can include a link) and a thumbnail image
 - Webform
     - The Letter to the Editor form is here
     - There's also a Late in life heatlh care questionnaire from 2014
