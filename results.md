@@ -53,6 +53,7 @@
 
 ### Notes
 
+- salesforce is a cluster. too much depends on it.
 - Wrote a plugin that splits the Drupal image metadata into alt, caption, etc. It can be used for as many types as necessary, but is currently only being used for thumbnail images. It's likely we won't need it for inline images, but maybe will need it for detail ones.
 - Need to figure out what to do with all custom fields
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
