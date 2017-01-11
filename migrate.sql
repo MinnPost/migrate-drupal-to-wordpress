@@ -38,12 +38,12 @@ REPLACE INTO `minnpost.wordpress`.wp_terms
 		d.name `name`,
 		substring_index(a.dst, '/', -1) `slug`,
 		0 `term_group`
-	FROM `minnpost.092515`.term_data d
-	INNER JOIN `minnpost.092515`.term_hierarchy h
+	FROM `minnpost.drupal`.term_data d
+	INNER JOIN `minnpost.drupal`.term_hierarchy h
 		USING(tid)
-	INNER JOIN `minnpost.092515`.term_node n
+	INNER JOIN `minnpost.drupal`.term_node n
 		USING(tid)
-	LEFT OUTER JOIN `minnpost.092515`.url_alias a
+	LEFT OUTER JOIN `minnpost.drupal`.url_alias a
 		ON a.src = CONCAT('taxonomy/term/', d.tid)
 	WHERE (1
 	 	# This helps eliminate spam tags from import; uncomment if necessary.
@@ -61,11 +61,11 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 		'post_tag' `taxonomy`,
 		d.description `description`,
 		h.parent `parent`
-	FROM `minnpost.092515`.term_data d
-	INNER JOIN `minnpost.092515`.term_hierarchy h
+	FROM `minnpost.drupal`.term_data d
+	INNER JOIN `minnpost.drupal`.term_hierarchy h
 		USING(tid)
-	INNER JOIN `minnpost.092515`.term_node n
-		USING(tid)
+	INNER JOIN `minnpost.drupal`.term_node n
+		USING(tid) #- I think we don't need this join
 	WHERE (1
 	 	# This helps eliminate spam tags from import; uncomment if necessary.
 	 	# AND LENGTH(d.name) < 50
@@ -90,10 +90,10 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		FROM_UNIXTIME(n.changed) `post_modified`,
 		n.type `post_type`,
 		IF(n.status = 1, 'publish', 'draft') `post_status`
-	FROM `minnpost.092515`.node n
-	INNER JOIN `minnpost.092515`.node_revisions r
+	FROM `minnpost.drupal`.node n
+	INNER JOIN `minnpost.drupal`.node_revisions r
 		USING(vid)
-	LEFT OUTER JOIN `minnpost.092515`.url_alias a
+	LEFT OUTER JOIN `minnpost.drupal`.url_alias a
 		ON a.src = CONCAT('node/', n.nid)
 	# Add more Drupal content types below if applicable.
 	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video')
@@ -126,8 +126,8 @@ CREATE TABLE `wp_posts_raw` (
 INSERT INTO `minnpost.wordpress`.wp_posts_raw
 	(id, post_content_raw)
 	SELECT a.nid, field_html_value
-	FROM `minnpost.092515`.content_type_article_full a
-	INNER JOIN `minnpost.092515`.node AS n ON a.vid = n.vid
+	FROM `minnpost.drupal`.content_type_article_full a
+	INNER JOIN `minnpost.drupal`.node AS n ON a.vid = n.vid
 	WHERE field_html_value IS NOT NULL
 ;
 
@@ -160,9 +160,9 @@ CREATE TABLE `wp_posts_audio` (
 INSERT INTO `minnpost.wordpress`.wp_posts_audio
 	(id, post_content_audio)
 	SELECT a.nid, CONCAT('https://www.minnpost.com/', f.filepath) `post_content_audio`
-		FROM `minnpost.092515`.content_type_audio a
-		INNER JOIN `minnpost.092515`.node AS n ON a.vid = n.vid
-		INNER JOIN `minnpost.092515`.files AS f ON a.field_audio_file_fid = f.fid
+		FROM `minnpost.drupal`.content_type_audio a
+		INNER JOIN `minnpost.drupal`.node AS n ON a.vid = n.vid
+		INNER JOIN `minnpost.drupal`.files AS f ON a.field_audio_file_fid = f.fid
 ;
 
 
@@ -193,10 +193,10 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 # use audio format for audio posts
 INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 	SELECT n.nid, tax.term_taxonomy_id
-		FROM `minnpost.092515`.node n
+		FROM `minnpost.drupal`.node n
 		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
 		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
-		WHERE `minnpost.092515`.n.type = 'audio' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-audio'
+		WHERE `minnpost.drupal`.n.type = 'audio' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-audio'
 ;
 
 
@@ -223,9 +223,9 @@ CREATE TABLE `wp_posts_video` (
 INSERT INTO `minnpost.wordpress`.wp_posts_video
 	(id, post_content_video)
 	SELECT v.nid, REPLACE(CONCAT('[video src="https://www.minnpost.com/', f.filepath, '"]'), '.flv', '.mp4') `post_content_video`
-		FROM `minnpost.092515`.content_type_video v
-		INNER JOIN `minnpost.092515`.node AS n ON v.vid = n.vid
-		INNER JOIN `minnpost.092515`.files AS f ON v.field_flash_file_fid = f.fid
+		FROM `minnpost.drupal`.content_type_video v
+		INNER JOIN `minnpost.drupal`.node AS n ON v.vid = n.vid
+		INNER JOIN `minnpost.drupal`.files AS f ON v.field_flash_file_fid = f.fid
 ;
 
 # store video urls for embed videos in temp table
@@ -235,7 +235,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts_video
 INSERT INTO `minnpost.wordpress`.wp_posts_video
 	(id, post_content_video)
 	SELECT v.nid, CONCAT('[embed]https://vimeo.com/', v.field_embedded_video_value, '[/embed]') `post_content_video`
-		FROM `minnpost.092515`.content_field_embedded_video v
+		FROM `minnpost.drupal`.content_field_embedded_video v
 		WHERE v.field_embedded_video_provider = 'vimeo'
 		GROUP BY v.nid
 ;
@@ -244,7 +244,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts_video
 INSERT INTO `minnpost.wordpress`.wp_posts_video
 	(id, post_content_video)
 	SELECT v.nid, CONCAT('[embed]https://www.youtube.com/watch?v=', v.field_embedded_video_value, '[/embed]') `post_content_video`
-		FROM `minnpost.092515`.content_field_embedded_video v
+		FROM `minnpost.drupal`.content_field_embedded_video v
 		WHERE v.field_embedded_video_provider = 'youtube'
 		GROUP BY v.nid
 ;
@@ -277,10 +277,10 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 # use video format for video posts
 INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 	SELECT n.nid, tax.term_taxonomy_id
-		FROM `minnpost.092515`.node n
+		FROM `minnpost.drupal`.node n
 		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
 		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
-		WHERE `minnpost.092515`.n.type = 'video' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-video'
+		WHERE `minnpost.drupal`.n.type = 'video' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-video'
 ;
 
 
@@ -314,7 +314,7 @@ INSERT INTO `minnpost.wordpress`.wp_comments
 	SELECT DISTINCT
 		cid, nid, FROM_UNIXTIME(timestamp), comment, thread, name,
 		mail, homepage, status, uid
-		FROM `minnpost.092515`.comments
+		FROM `minnpost.drupal`.comments
 ;
 
 
@@ -345,7 +345,7 @@ UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.w
 # OPTIONAL ADDITIONS -- REMOVE ALL BELOW IF NOT APPLICABLE TO YOUR CONFIGURATION
 
 # CATEGORIES
-# These are NEW categories, not in `minnpost.092515`. Add as many sets as needed.
+# These are NEW categories, not in `minnpost.drupal`. Add as many sets as needed.
 #INSERT IGNORE INTO `minnpost.wordpress`.wp_terms (name, slug)
 #	VALUES
 #	('First Category', 'first-category'),
@@ -379,8 +379,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_dept (term_id, name, slug)
 	SELECT nid `term_id`,
 	title `name`,
 	substring_index(a.dst, '/', -1) `slug`
-	FROM `minnpost.092515`.node n
-	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+	FROM `minnpost.drupal`.node n
+	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 	WHERE n.type='department'
 ;
 
@@ -403,7 +403,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
 	INNER JOIN wp_terms term ON tax.term_id = term.term_id
-	INNER JOIN `minnpost.092515`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+	INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
 	WHERE tax.taxonomy = 'category'
 ;
 
@@ -433,8 +433,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_section (term_id, name, slug)
 	SELECT nid `term_id`,
 	title `name`,
 	substring_index(a.dst, '/', -1) `slug`
-	FROM `minnpost.092515`.node n
-	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+	FROM `minnpost.drupal`.node n
+	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 	WHERE n.type='section'
 ;
 
@@ -457,7 +457,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
 	INNER JOIN wp_terms term ON tax.term_id = term.term_id
-	INNER JOIN `minnpost.092515`.content_field_section section ON term.term_id_old = section.field_section_nid
+	INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
 	WHERE tax.taxonomy = 'category'
 ;
 
@@ -499,9 +499,9 @@ UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.w
 
 # example:
 #SELECT DISTINCT u.uid, 'wp_capabilities', 'a:1:{s:6:"author";s:1:"1";}', re.name
-#FROM `minnpost.092515`.users u
-#INNER JOIN `minnpost.092515`.users_roles r USING (uid)
-#INNER JOIN `minnpost.092515`.role re USING (rid)
+#FROM `minnpost.drupal`.users u
+#INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+#INNER JOIN `minnpost.drupal`.role re USING (rid)
 #WHERE (1
 	# Uncomment and enter any email addresses you want to exclude below.
 	# AND u.mail NOT IN ('test@example.com')
@@ -510,9 +510,9 @@ UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.w
 # SELECT DISTINCT
 # 	u.uid, u.mail, NULL, u.name, u.mail,
 # 	FROM_UNIXTIME(created), '', 0, u.name
-# FROM `minnpost.092515`.users u
-# INNER JOIN `minnpost.092515`.users_roles r USING (uid)
-# INNER JOIN `minnpost.092515`.role role USING (rid)
+# FROM `minnpost.drupal`.users u
+# INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+# INNER JOIN `minnpost.drupal`.role role USING (rid)
 # WHERE (1
 # 	AND role.name IN ('administrator', 'author', 'author two', 'editor', 'super admin')
 	# Uncomment and enter any email addresses you want to exclude below.
@@ -528,7 +528,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_users
 	SELECT DISTINCT
 		u.uid as ID, u.mail as user_login, NULL as user_pass, u.name as user_nicename, u.mail as user_email,
 		FROM_UNIXTIME(created) as user_registered, '' as user_activation_key, 0 as user_status, u.name as display_name
-	FROM `minnpost.092515`.users u
+	FROM `minnpost.drupal`.users u
 	WHERE (1
 		# Uncomment and enter any email addresses you want to exclude below.
 		# AND u.mail NOT IN ('test@example.com')
@@ -542,9 +542,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_users
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
-	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
 	WHERE (1
 		# Uncomment and enter any email addresses you want to exclude below.
 		# AND u.mail NOT IN ('test@example.com')
@@ -554,9 +554,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_user_level' as meta_key, '2' as meta_value
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
-	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
 	WHERE (1
 		# Uncomment and enter any email addresses you want to exclude below.
 		# AND u.mail NOT IN ('test@example.com')
@@ -571,9 +571,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
-	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
 	WHERE (1
 		# Uncomment and enter any email addresses you want to exclude below.
 		# AND u.mail NOT IN ('test@example.com')
@@ -583,9 +583,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_user_level' as meta_key, '10' as meta_value
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.users_roles r USING (uid)
-	INNER JOIN `minnpost.092515`.role role ON r.rid = role.rid
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
 	WHERE (1
 		# Uncomment and enter any email addresses you want to exclude below.
 		# AND u.mail NOT IN ('test@example.com')
@@ -598,18 +598,18 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 # save user first and last name, if we have them as users in Drupal
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT u.uid as user_id, 'first_name' as meta_key, pv.`value` as meta_value
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.profile_values pv ON u.uid = pv.uid 
-	INNER JOIN `minnpost.092515`.profile_fields pf ON pv.fid = pf.fid
-	INNER JOIN `minnpost.092515`.profile_values pv2 ON u.uid = pv2.uid 
-	INNER JOIN `minnpost.092515`.profile_fields pf2 ON pv2.fid = pf2.fid
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.profile_values pv ON u.uid = pv.uid 
+	INNER JOIN `minnpost.drupal`.profile_fields pf ON pv.fid = pf.fid
+	INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+	INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
 	WHERE pf.fid = 4
 ;
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT u.uid as user_id, 'last_name' as meta_key, pv2.`value` as meta_value
-	FROM `minnpost.092515`.users u
-	INNER JOIN `minnpost.092515`.profile_values pv2 ON u.uid = pv2.uid 
-	INNER JOIN `minnpost.092515`.profile_fields pf2 ON pv2.fid = pf2.fid
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+	INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
 	WHERE pf2.fid = 5
 ;
 
@@ -630,9 +630,9 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		FROM_UNIXTIME(n.changed) `post_modified`,
 		'guest-author' `post_type`,
 		'publish' `post_status`
-	FROM `minnpost.092515`.node n
-	INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+	FROM `minnpost.drupal`.node n
+	INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 ;
 
 
@@ -658,8 +658,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_users (term_id, name, slug)
 	nid `term_id`,
 	title `name`,
 	substring_index(a.dst, '/', -1) `slug`
-	FROM `minnpost.092515`.node n
-	LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+	FROM `minnpost.drupal`.node n
+	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 	WHERE n.type='author'
 	ORDER BY n.nid
 ;
@@ -688,7 +688,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, descriptio
 # Create relationships for each story to the author it had in Drupal
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT ca.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
-	FROM `minnpost.092515`.content_field_op_author ca
+	FROM `minnpost.drupal`.content_field_op_author ca
 	LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON ca.field_op_author_nid = t.user_node_id_old
 	LEFT OUTER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_id)
 	WHERE tax.term_taxonomy_id IS NOT NULL
@@ -704,8 +704,8 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'cap-display_name' `meta_key`,
 		n.title `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
 ;
 
 
@@ -716,9 +716,9 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'cap-user_login' `meta_key`,
 		substring_index(a.dst, '/', -1) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-		LEFT OUTER JOIN `minnpost.092515`.url_alias a ON a.src = CONCAT('node/', n.nid)
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 ;
 
 
@@ -741,9 +741,9 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'cap-user_email' `meta_key`,
 		REPLACE(link.field_link_multiple_url, 'mailto:', '') `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.092515`.content_field_link_multiple link USING (nid)
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.content_field_link_multiple link USING (nid)
 		WHERE field_link_multiple_title = 'Email the author'
 ;
 
@@ -755,9 +755,9 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'cap-twitter' `meta_key`,
 		CONCAT('https://twitter.com/', REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(link.field_link_multiple_url, 'http://www.twitter.com/', ''), 'http://twitter.com/', ''), '@', ''), 'https://twitter.com/', ''), '#%21', ''), '/', '')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.092515`.content_field_link_multiple link USING (nid)
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.content_field_link_multiple link USING (nid)
 		WHERE field_link_multiple_title LIKE '%witter%'
 ;
 
@@ -769,9 +769,9 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'cap-job-title' `meta_key`,
 		author.field_op_author_jobtitle_value `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.092515`.users user ON author.field_author_user_uid = user.uid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 		WHERE author.field_op_author_jobtitle_value IS NOT NULL
 ;
 
@@ -783,9 +783,9 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'cap-linked_account' `meta_key`,
 		user.mail `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.092515`.users user ON author.field_author_user_uid = user.uid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 ;
 
 
@@ -796,9 +796,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'cap-user_email' `meta_key`,
 		user.mail `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.092515`.users user ON author.field_author_user_uid = user.uid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 ;
 
 # drop that temporary constraint
@@ -807,7 +807,7 @@ ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
 
 # Change permissions for admins.
 # Add any specific user IDs to IN list to make them administrators.
-# User ID values are carried over from `minnpost.092515`.
+# User ID values are carried over from `minnpost.drupal`.
 UPDATE `minnpost.wordpress`.wp_usermeta
 	SET meta_value = 'a:1:{s:13:"administrator";s:1:"1";}'
 	WHERE user_id IN (1) AND meta_key = 'wp_capabilities'
@@ -839,7 +839,7 @@ UPDATE `minnpost.wordpress`.wp_usermeta
 
 # assign authors from author nodes to stories where applicable
 # not sure this query is useful at all
-# UPDATE `minnpost.wordpress`.wp_posts AS posts INNER JOIN `minnpost.092515`.content_field_op_author AS authors ON posts.ID = authors.nid SET posts.post_author = authors.field_op_author_nid;
+# UPDATE `minnpost.wordpress`.wp_posts AS posts INNER JOIN `minnpost.drupal`.content_field_op_author AS authors ON posts.ID = authors.nid SET posts.post_author = authors.field_op_author_nid;
 
 # get rid of that user_node_id_old field if we are done migrating into wp_term_relationships
 ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
@@ -849,7 +849,7 @@ ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
 # If your Drupal site uses the content_field_video table to store links to YouTube videos,
 # this query will insert the video URLs at the end of all relevant posts.
 # WordPress will automatically convert the video URLs to YouTube embed code.
-#UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.092515`.content_field_video v
+#UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.drupal`.content_field_video v
 #	SET p.post_content = CONCAT_WS('\n',post_content,v.field_video_embed)
 #	WHERE p.ID = v.nid
 #;
@@ -865,7 +865,7 @@ ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
 # "wp-content/uploads" directory. It also relies on a properly formatted <base href="" /> tag.
 # Make changes as necessary before running this script!
 
-/*UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.092515`.content_field_main_image i, `minnpost.092515`.files f
+/*UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.drupal`.content_field_main_image i, `minnpost.drupal`.files f
 	SET p.post_content =
 		CONCAT(
 			CONCAT(
@@ -893,9 +893,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url' `meta_key`,
 		CONCAT('https://www.minnpost.com/', f.filepath) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_field_main_image i using (nid)
-		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 ;
 
 # for audio posts, there is no main image field in Drupal
@@ -910,9 +910,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url_detail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/articles', '/imagecache/article_detail/images/articles')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_field_main_image i using (nid)
-		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 ;
 
 
@@ -928,9 +928,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url_thumbnail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/thumbnail/images/thumbnails/articles')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_field_thumbnail_image i using (nid)
-		INNER JOIN `minnpost.092515`.files f ON i.field_thumbnail_image_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 ;
 
 
@@ -950,9 +950,9 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/thumbnail/images/thumbnails/articles')) `guid`,
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_field_thumbnail_image i using (nid)
-		INNER JOIN `minnpost.092515`.files f ON i.field_thumbnail_image_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 ;
 
 
@@ -964,7 +964,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 	'_wp_imported_metadata' `meta_key`,
 	i.field_thumbnail_image_data `meta_value`
 	FROM `minnpost.wordpress`.wp_posts p
-	LEFT OUTER JOIN `minnpost.092515`.content_field_thumbnail_image i ON p.post_parent = i.nid
+	LEFT OUTER JOIN `minnpost.drupal`.content_field_thumbnail_image i ON p.post_parent = i.nid
 	WHERE post_type = 'attachment' AND i.field_thumbnail_image_data IS NOT NULL
 	GROUP BY post_id
 ;
@@ -978,9 +978,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url_thumbnail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
 
@@ -1000,9 +1000,9 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `guid`,
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
 
@@ -1014,7 +1014,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 	'_wp_imported_metadata' `meta_key`,
 	a.field_op_audio_thumbnail_data `meta_value`
 	FROM `minnpost.wordpress`.wp_posts p
-	LEFT OUTER JOIN `minnpost.092515`.content_type_audio a ON p.post_parent = a.nid
+	LEFT OUTER JOIN `minnpost.drupal`.content_type_audio a ON p.post_parent = a.nid
 	WHERE post_type = 'attachment' AND a.field_op_audio_thumbnail_data IS NOT NULL
 	GROUP BY post_id
 ;
@@ -1028,9 +1028,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url_thumbnail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
 
 
@@ -1050,9 +1050,9 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `guid`,
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
 
 
@@ -1064,7 +1064,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 	'_wp_imported_metadata' `meta_key`,
 	v.field_op_video_thumbnail_data `meta_value`
 	FROM `minnpost.wordpress`.wp_posts p
-	LEFT OUTER JOIN `minnpost.092515`.content_type_video v ON p.post_parent = v.nid
+	LEFT OUTER JOIN `minnpost.drupal`.content_type_video v ON p.post_parent = v.nid
 	WHERE post_type = 'attachment' AND v.field_op_video_thumbnail_data IS NOT NULL
 	GROUP BY post_id
 ;
@@ -1100,9 +1100,9 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/articles', '/imagecache/article_detail/images/articles')) `guid`,
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_field_main_image i using (nid)
-		INNER JOIN `minnpost.092515`.files f ON i.field_main_image_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 ;
 
 
@@ -1115,9 +1115,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
 
@@ -1137,9 +1137,9 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		CONCAT('https://www.minnpost.com/', f.filepath) `guid`,
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_audio a using (nid)
-		INNER JOIN `minnpost.092515`.files f ON a.field_audio_file_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_audio a using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_audio_file_fid = f.fid
 ;
 
 # there is no alt or caption info for audio files stored in drupal
@@ -1154,9 +1154,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
 
 
@@ -1176,9 +1176,9 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		REPLACE(CONCAT('https://www.minnpost.com/', f.filepath), '.flv', '.mp4') `guid`,
 		'attachment' `post_type`,
 		'video/mp4' `post_mime_type`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_video v using (nid)
-		INNER JOIN `minnpost.092515`.files f ON v.field_flash_file_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_video v using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON v.field_flash_file_fid = f.fid
 ;
 
 # there is no alt or caption info for video files stored in drupal
@@ -1192,9 +1192,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url_feature' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature/images/thumbnails/articles')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_field_thumbnail_image i using (nid)
-		INNER JOIN `minnpost.092515`.files f ON i.field_thumbnail_image_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/articles%'
 ;
 
@@ -1207,9 +1207,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url_feature' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature/images/thumbnails/audio')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_audio a USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/audio%'
 ;
 
@@ -1222,9 +1222,9 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		n.nid `post_id`,
 		'_thumbnail_ext_url_feature' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature/images/thumbnails/video')) `meta_value`
-		FROM `minnpost.092515`.node n
-		INNER JOIN `minnpost.092515`.content_type_video v USING (nid)
-		INNER JOIN `minnpost.092515`.files f ON v.field_op_video_thumbnail_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/video%'
 ;
 
