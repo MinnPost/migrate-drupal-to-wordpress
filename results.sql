@@ -85,6 +85,30 @@ SELECT
 	) as drupal_term_count
 ;
 
+# get name, term id, and count for tag / post pairs
+# 1/11/17 - this is broken because the names are wrong
+
+# drupal
+SELECT DISTINCT d.tid, d.name, (
+		SELECT COUNT(DISTINCT nid, tid)
+		FROM `minnpost.092515`.term_node
+		WHERE tid = d.tid
+	) as drupal_term_count
+FROM `minnpost.092515`.term_data d
+ORDER BY drupal_term_count DESC
+
+# wordpress
+SELECT t.term_id as tid, t.name as name, 
+(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_relationships r
+		WHERE term_taxonomy_id = tax.term_taxonomy_id
+	) as wordpress_tag_count
+FROM wp_terms t
+INNER JOIN wp_term_taxonomy tax ON t.term_id = tax.term_id
+WHERE tax.taxonomy = 'post_tag'
+ORDER BY wordpress_tag_count DESC
+
 
 # Get count of comments
 # this one has an identical count as of 5/19/16
