@@ -69,6 +69,8 @@ SELECT
 # get count of post/tag / node/term combinations
 # this filters wp into tags only
 # identical count as of 7/22/16
+# 1/11/17 - until today this was incorrect with example of 8,508 posts for tag id 6712.
+# it seems to be correct now though (only one item for that pair) after re-running the SQL for creating the terms and term_relationships
 SELECT
 	(
 		SELECT COUNT(*)
