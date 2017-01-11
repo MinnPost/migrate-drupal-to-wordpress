@@ -28,6 +28,7 @@
 - post/tag / node/term combinations
     - Drupal: 127070
     - WordPress: 127070
+    - However these are wrong. For example the tag 1994 World Series has 8,508 posts. I think this is because the ID 6712 is supposed to be spread among many different tags. This means the import of the tags themselves is wrong; maybe also the post/tag combination but that is unclear.
 - Images
     - need to think about how to count this properly
         - Feature
