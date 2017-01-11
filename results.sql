@@ -1,7 +1,7 @@
 # Get count of standard story items
 # this one has an identical count as of 5/19/16
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type IN ('article', 'article_full', 'audio', 'video')) as drupal_story_count, 
+	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type IN ('article', 'article_full', 'audio', 'video')) as drupal_story_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'post') as wordpress_story_count
 ;
 
@@ -18,7 +18,7 @@ WHERE t.name = 'post-format-audio'
 SELECT
 	(
 		SELECT COUNT(*)
-		FROM `minnpost.092515`.node
+		FROM `minnpost.drupal`.node
 		WHERE type IN ('audio')
 	) as drupal_audio_count, 
 	(
@@ -44,7 +44,7 @@ WHERE t.name = 'post-format-video'
 SELECT
 	(
 		SELECT COUNT(*)
-		FROM `minnpost.092515`.node
+		FROM `minnpost.drupal`.node
 		WHERE type IN ('video')
 	) as drupal_video_count, 
 	(
@@ -61,7 +61,7 @@ SELECT
 # Get count of standard page items
 # this one has an identical count as of 5/19/16
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type IN ('page')) as drupal_page_count, 
+	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type IN ('page')) as drupal_page_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'page') as wordpress_page_count
 ;
 
@@ -81,7 +81,7 @@ SELECT
 	) as wordpress_tag_count,
 	(
 		SELECT COUNT(DISTINCT nid, tid)
-		FROM `minnpost.092515`.term_node
+		FROM `minnpost.drupal`.term_node
 	) as drupal_term_count
 ;
 
@@ -91,10 +91,10 @@ SELECT
 # drupal
 SELECT DISTINCT d.tid, d.name, (
 		SELECT COUNT(DISTINCT nid, tid)
-		FROM `minnpost.092515`.term_node
+		FROM `minnpost.drupal`.term_node
 		WHERE tid = d.tid
 	) as drupal_term_count
-FROM `minnpost.092515`.term_data d
+FROM `minnpost.drupal`.term_data d
 ORDER BY drupal_term_count DESC
 
 # wordpress
@@ -114,7 +114,7 @@ ORDER BY wordpress_tag_count DESC
 # this one has an identical count as of 5/19/16
 
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.092515`.comments) as drupal_comment_count, 
+	(SELECT COUNT(*) FROM `minnpost.drupal`.comments) as drupal_comment_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_comments) as wordpress_comment_count
 ;
 
@@ -122,9 +122,9 @@ SELECT
 # Get comments that are in Drupal but not in WordPress
 # 0 Ids as of 5/19/16
 
-SELECT DISTINCT `minnpost.092515`.comments.cid
-FROM      `minnpost.092515`.comments
-WHERE     `minnpost.092515`.comments.cid NOT IN(SELECT `minnpost.wordpress`.wp_comments.comment_ID FROM `minnpost.wordpress`.wp_comments)
+SELECT DISTINCT `minnpost.drupal`.comments.cid
+FROM      `minnpost.drupal`.comments
+WHERE     `minnpost.drupal`.comments.cid NOT IN(SELECT `minnpost.wordpress`.wp_comments.comment_ID FROM `minnpost.wordpress`.wp_comments)
 ;
 
 
@@ -132,10 +132,10 @@ WHERE     `minnpost.092515`.comments.cid NOT IN(SELECT `minnpost.wordpress`.wp_c
 # as of 5/19/16 there are no results for this query, which is as it should be
 # the number changes if we revise a post, as it should
 
-SELECT p.ID as wordpress_id, p.comment_count as wordpress_comment_count, n.nid as drupal_id, (SELECT count(cid) FROM `minnpost.092515`.comments c WHERE c.nid = n.nid) as drupal_comment_count
+SELECT p.ID as wordpress_id, p.comment_count as wordpress_comment_count, n.nid as drupal_id, (SELECT count(cid) FROM `minnpost.drupal`.comments c WHERE c.nid = n.nid) as drupal_comment_count
 FROM `minnpost.wordpress`.wp_posts p
-LEFT OUTER JOIN `minnpost.092515`.node n ON p.ID = n.nid
-WHERE p.comment_count != (SELECT count(cid) FROM `minnpost.092515`.comments c WHERE c.nid = n.nid)
+LEFT OUTER JOIN `minnpost.drupal`.node n ON p.ID = n.nid
+WHERE p.comment_count != (SELECT count(cid) FROM `minnpost.drupal`.comments c WHERE c.nid = n.nid)
 ;
 
 
@@ -144,7 +144,7 @@ WHERE p.comment_count != (SELECT count(cid) FROM `minnpost.092515`.comments c WH
 # this is as it should be
 
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.092515`.users) as drupal_user_count, 
+	(SELECT COUNT(*) FROM `minnpost.drupal`.users) as drupal_user_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_users) as wordpress_user_count
 ;
 
@@ -152,9 +152,9 @@ SELECT
 # Get users that are in Drupal but not in WordPress
 # 1 user on 5/19/16; and it is the 0 ID from drupal. we don't need this one.
 
-SELECT DISTINCT `minnpost.092515`.users.uid
-FROM      `minnpost.092515`.users
-WHERE     `minnpost.092515`.users.uid NOT IN(SELECT `minnpost.wordpress`.wp_users.ID FROM `minnpost.wordpress`.wp_users)
+SELECT DISTINCT `minnpost.drupal`.users.uid
+FROM      `minnpost.drupal`.users
+WHERE     `minnpost.drupal`.users.uid NOT IN(SELECT `minnpost.wordpress`.wp_users.ID FROM `minnpost.wordpress`.wp_users)
 
 
 
@@ -162,7 +162,7 @@ WHERE     `minnpost.092515`.users.uid NOT IN(SELECT `minnpost.wordpress`.wp_user
 # as of 5/19/16 this is equal
 
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type = 'author') as drupal_author_count, 
+	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type = 'author') as drupal_author_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'guest-author') as wordpress_author_count
 ;
 
@@ -191,9 +191,9 @@ SELECT
 		FROM
 		(
 			Select n.nid
-			FROM `minnpost.092515`.node n
-			INNER JOIN `minnpost.092515`.content_field_op_author a ON n.nid = a.nid
-			INNER JOIN `minnpost.092515`.node auth ON a.field_op_author_nid = auth.nid
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
+			INNER JOIN `minnpost.drupal`.node auth ON a.field_op_author_nid = auth.nid
 			WHERE field_op_author_nid IS NOT NULL
 			GROUP BY concat(a.nid, a.field_op_author_nid)
 		) as drupal_story_pairs
@@ -211,9 +211,9 @@ SELECT
 # find the story/author pairs in drupal
 #52961
 Select a.nid, a.field_op_author_nid
-FROM `minnpost.092515`.content_field_op_author a
-INNER JOIN `minnpost.092515`.node n ON a.nid = n.nid
-INNER JOIN `minnpost.092515`.node auth ON a.field_op_author_nid = auth.nid
+FROM `minnpost.drupal`.content_field_op_author a
+INNER JOIN `minnpost.drupal`.node n ON a.nid = n.nid
+INNER JOIN `minnpost.drupal`.node auth ON a.field_op_author_nid = auth.nid
 WHERE field_op_author_nid IS NOT NULL
 GROUP BY concat(a.nid, a.field_op_author_nid)
 ORDER BY a.nid
@@ -234,7 +234,7 @@ ORDER BY r.object_id
 # this should show us the count of authors per story that are in drupal but not in wordpress
 # 7/8/16 zero results
 SELECT count(*), au.nid
-FROM `minnpost.092515`.content_field_op_author au
+FROM `minnpost.drupal`.content_field_op_author au
 WHERE au.field_op_author_nid IS NOT NULL AND NOT EXISTS
 (
 	SELECT count(*), r.object_id
@@ -257,7 +257,7 @@ INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
 WHERE tax.taxonomy = 'author' AND NOT EXISTS
 (
 	SELECT COUNT(*), au.nid
-	FROM `minnpost.092515`.content_field_op_author au
+	FROM `minnpost.drupal`.content_field_op_author au
 	WHERE au.field_op_author_nid IS NOT NULL AND au.nid = r.object_id
 	GROUP BY au.nid
 )
@@ -282,15 +282,15 @@ FROM `minnpost.wordpress`.wp_posts p
 INNER JOIN `minnpost.wordpress`.wp_term_relationships r ON r.object_id = p.ID
 INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
 INNER JOIN `minnpost.wordpress`.wp_terms t ON t.term_id = tax.term_id
-LEFT OUTER JOIN `minnpost.092515`.node n ON p.ID = n.nid
-LEFT OUTER JOIN `minnpost.092515`.content_field_op_author a ON n.nid = a.nid
-LEFT OUTER JOIN `minnpost.092515`.node au ON t.name = au.title
+LEFT OUTER JOIN `minnpost.drupal`.node n ON p.ID = n.nid
+LEFT OUTER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
+LEFT OUTER JOIN `minnpost.drupal`.node au ON t.name = au.title
 WHERE tax.taxonomy = 'author'
 AND `minnpost.wordpress`.t.name != au.title
 ;
 
 
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.092515`.node WHERE type IN ('department', 'section')) as drupal_department_section_count, 
+	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type IN ('department', 'section')) as drupal_department_section_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_term_taxonomy WHERE taxonomy = 'category') as wordpress_category_count
 ;
