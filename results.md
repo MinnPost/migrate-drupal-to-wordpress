@@ -3,33 +3,33 @@
 ## Number comparisons
 
 - Core content items
-    - Drupal (article, article_full, audio, video): 55335
-    - WordPress (post): 55335 (there was a one node difference until we added the video content type. unsure why but this isn't concerning at this time)
+    - Drupal (article, article_full, audio, video): 57455
+    - WordPress (post): 57455 (there was a one node difference until we added the video content type. unsure why but this isn't concerning at this time)
 - Pages
-    - Drupal: 51
-    - WordPress: 51
+    - Drupal: 55
+    - WordPress: 55
 - Comments
-    - Drupal: 187623
-    - WordPress: 187623
+    - Drupal: 198659
+    - WordPress: 198659
 - Users (skips user with ID of 0; results correct)
-    - Drupal: 52976
-    - WordPress: 52975
+    - Drupal: 54544
+    - WordPress: 54543
 - Authors
-    - Drupal: 2001
-    - WordPress: 2001
+    - Drupal: 2018
+    - WordPress: 2018
 - Article / author pairs
-    - Drupal: 53317
-    - WordPress: 52962 (this is correct because Drupal counts pairs where there is a blank value; ex if there is a byline field)
+    - Drupal: 54901
+    - WordPress: 54901
 - Category
     - Department/Column + Section (Drupal): 75
     - Category (WordPress): 75
 - Tags
     - no idea how to count this in Drupal because the term table is just one big thing
 - post/tag / node/term combinations
-    - Drupal: 127070
-    - WordPress: 127070
+    - Drupal: 133512
+    - WordPress: 133512
     - these were wrong. For example the tag 1994 World Series has 8,508 posts. I think this is because the ID 6712 is supposed to be spread among many different tags. This means the import of the tags themselves is wrong; maybe also the post/tag combination but that is unclear.
-    - This seems to have been corrected by running the SQL again. Maybe got diluted by all the development.
+    - This seems to have been corrected. The term_id was being stored in the relationship table instad of the term_taxonomy_id.
 - Images
     - need to think about how to count this properly
         - Feature
