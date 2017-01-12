@@ -185,8 +185,11 @@ SELECT
 # 1 user on 5/19/16; and it is the 0 ID from drupal. we don't need this one.
 
 SELECT DISTINCT `minnpost.drupal`.users.uid
-FROM      `minnpost.drupal`.users
-WHERE     `minnpost.drupal`.users.uid NOT IN(SELECT `minnpost.wordpress`.wp_users.ID FROM `minnpost.wordpress`.wp_users)
+FROM `minnpost.drupal`.users
+WHERE `minnpost.drupal`.users.uid NOT IN(
+	SELECT `minnpost.wordpress`.wp_users.ID FROM `minnpost.wordpress`.wp_users
+)
+;
 
 
 
@@ -201,6 +204,7 @@ SELECT
 
 # Count how many users we added as terms and term_taxonomy
 # 2001 users for these queries on 6/29/16; this is correct
+# 2018 users for these queries on 1/12/17; this is correct
 SELECT COUNT(*) FROM wp_terms WHERE term_group=1;
 # also could use this
 SELECT count(*) FROM wp_term_taxonomy WHERE taxonomy='author';
@@ -217,6 +221,7 @@ SELECT count(*) FROM wp_term_taxonomy WHERE taxonomy='author';
 # 7/8/16 is 53316 (drupal) vs 52961 (wordpress)
 # count for the insert from drupal into wordpress is 52961
 # 7/8/16 final is 52961 for drupal, 52961 for wordpress!!!
+# 1/12/17 54901 for drupal, 54901 for wordpress
 SELECT
 	(
 		SELECT COUNT(*)
@@ -242,6 +247,7 @@ SELECT
 
 # find the story/author pairs in drupal
 #52961
+# 1/12/17: 54901 rows
 Select a.nid, a.field_op_author_nid
 FROM `minnpost.drupal`.content_field_op_author a
 INNER JOIN `minnpost.drupal`.node n ON a.nid = n.nid
@@ -253,6 +259,7 @@ ORDER BY a.nid
 
 # find the story/author pairs in wordpress
 #52961
+# can only run this before deleting the user_node_id_old from migrate.sql
 SELECT r.object_id, t.user_node_id_old
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
