@@ -64,12 +64,6 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 	FROM `minnpost.drupal`.term_data d
 	INNER JOIN `minnpost.drupal`.term_hierarchy h
 		USING(tid)
-	INNER JOIN `minnpost.drupal`.term_node n
-		USING(tid) #- I think we don't need this join
-	WHERE (1
-	 	# This helps eliminate spam tags from import; uncomment if necessary.
-	 	# AND LENGTH(d.name) < 50
-	)
 ;
 
 
