@@ -70,7 +70,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 # Posts from Drupal stories
 # Keeps private posts hidden.
 # line 99 contains the Drupal content types that we want to migrate
-INSERT INTO `minnpost.wordpress`.wp_posts
+INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_modified, post_type, `post_status`)
 	SELECT DISTINCT
