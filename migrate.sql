@@ -332,12 +332,14 @@ DROP TABLE wp_term_relationships_posts;
 # Comments
 # Keeps unapproved comments hidden.
 # Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
+# mp change: uses the pid field from Drupal for the comment_parent field
+# mp change: keep the value 200 characters or less
 INSERT INTO `minnpost.wordpress`.wp_comments
 	(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
 	comment_author_email, comment_author_url, comment_approved, user_id)
 	SELECT DISTINCT
-		cid, nid, FROM_UNIXTIME(timestamp), comment, thread, name,
-		mail, homepage, status, uid
+		cid, nid, FROM_UNIXTIME(timestamp), comment, pid, name,
+		mail, SUBSTRING(homepage, 1, 200), status, uid
 		FROM `minnpost.drupal`.comments
 ;
 
@@ -356,13 +358,6 @@ UPDATE `minnpost.wordpress`.wp_posts
 # in our case, we use this to make the urls absolute, at least for now
 #UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
 UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
-;
-
-
-# Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
-UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.wp_term_taxonomy
-	SET `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_taxonomy_id
-	WHERE `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_id
 ;
 
 
@@ -505,13 +500,6 @@ UPDATE wp_term_taxonomy tt
 		FROM wp_term_relationships tr
 		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
 	)
-;
-
-
-# Fix taxonomy; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-27140
-UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships, `minnpost.wordpress`.wp_term_taxonomy
-	SET `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_taxonomy_id
-	WHERE `minnpost.wordpress`.wp_term_relationships.term_taxonomy_id = `minnpost.wordpress`.wp_term_taxonomy.term_id
 ;
 
 
