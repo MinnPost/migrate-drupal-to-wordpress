@@ -329,7 +329,20 @@ AND `minnpost.wordpress`.t.name != au.title
 ;
 
 
+# Get count of categories for both systems
+# 1/12/17: 75 for each
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type IN ('department', 'section')) as drupal_department_section_count, 
-	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_term_taxonomy WHERE taxonomy = 'category') as wordpress_category_count
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.drupal`.node
+		WHERE type IN ('department', 'section')
+	) as drupal_department_section_count, 
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_taxonomy
+		WHERE taxonomy = 'category'
+	) as wordpress_category_count
 ;
+
+# need to get a count of tags?
+# although we already know the post/tag count
