@@ -88,26 +88,58 @@ SELECT
 # get name, term id, and count for tag / post pairs
 # 1/11/17 - this is broken because the names are wrong
 
+# Temporary table for the pairs
+CREATE TABLE `drupal_pairs` (
+  `tid` bigint(20) unsigned NOT NULL,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
+);
+CREATE TABLE `wordpress_pairs` (
+  `tid` bigint(20) unsigned NOT NULL,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
+);
+
 # drupal
-SELECT DISTINCT d.tid, d.name, (
-		SELECT COUNT(DISTINCT nid, tid)
-		FROM `minnpost.drupal`.term_node
-		WHERE tid = d.tid
-	) as drupal_term_count
-FROM `minnpost.drupal`.term_data d
-ORDER BY drupal_term_count DESC
+INSERT INTO `drupal_pairs` (tid, name, count)
+	SELECT DISTINCT d.tid, d.name, (
+			SELECT COUNT(DISTINCT nid, tid)
+			FROM `minnpost.drupal`.term_node
+			WHERE tid = d.tid
+		) as drupal_term_count
+	FROM `minnpost.drupal`.term_data d
+	ORDER BY drupal_term_count DESC
+;
 
 # wordpress
-SELECT t.term_id as tid, t.name as name, 
-(
-		SELECT COUNT(*)
-		FROM `minnpost.wordpress`.wp_term_relationships r
-		WHERE term_taxonomy_id = tax.term_taxonomy_id
-	) as wordpress_tag_count
-FROM wp_terms t
-INNER JOIN wp_term_taxonomy tax ON t.term_id = tax.term_id
-WHERE tax.taxonomy = 'post_tag'
-ORDER BY wordpress_tag_count DESC
+INSERT INTO `wordpress_pairs` (tid, name, count)
+	SELECT t.term_id as tid, t.name as name, 
+	(
+			SELECT COUNT(*)
+			FROM `minnpost.wordpress`.wp_term_relationships r
+			WHERE term_taxonomy_id = tax.term_taxonomy_id
+		) as wordpress_tag_count
+	FROM wp_terms t
+	INNER JOIN wp_term_taxonomy tax ON t.term_id = tax.term_id
+	WHERE tax.taxonomy = 'post_tag'
+	ORDER BY wordpress_tag_count DESC
+;
+
+# compare
+SELECT DISTINCT tid, name, count
+FROM drupal_pairs
+WHERE tid NOT IN(SELECT tid FROM wordpress_pairs)
+AND count > 0
+;
+SELECT DISTINCT tid, name, count
+FROM wordpress_pairs
+WHERE tid NOT IN(SELECT tid FROM drupal_pairs)
+;
+# 1/12/17: zero results; drupal does save items even if there are no stories associated with them; we don't need to do that for now
+
+# get rid of those temporary tables
+DROP TABLE drupal_pairs;
+DROP TABLE wordpress_pairs;
 
 
 # Get count of comments

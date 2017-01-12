@@ -284,9 +284,35 @@ INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 # and the new page INSERT at the end of this script.
 # UPDATE `minnpost.wordpress`.wp_posts SET post_status = 'pending' WHERE post_type = 'page';
 
+
 # Post/Tag relationships
+
+# Temporary table for post relationships with tags
+CREATE TABLE `wp_term_relationships_posts` (
+	`object_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+	`term_taxonomy_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+	`term_order` int(11) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`object_id`,`term_taxonomy_id`),
+	KEY `term_taxonomy_id` (`term_taxonomy_id`)
+);
+
+# store with the term_id from drupal
+INSERT INTO `minnpost.wordpress`.wp_term_relationships_posts (object_id, term_taxonomy_id)
+	SELECT DISTINCT nid, tid FROM `minnpost.drupal`.term_node
+;
+
+# get the term_taxonomy_id for each term and put it in the table
+UPDATE `minnpost.wordpress`.wp_term_relationships_posts r
+	SET `term_taxonomy_id` = (
+		SELECT term_taxonomy_id
+		FROM `minnpost.wordpress`.wp_term_taxonomy tax
+		WHERE tax.term_id = r.term_taxonomy_id
+	)
+;
+
+# put the post/tag relationships into the correct table
 INSERT INTO `minnpost.wordpress`.wp_term_relationships (object_id, term_taxonomy_id)
-	SELECT DISTINCT nid, tid FROM `minnpost.092515`.term_node
+	SELECT object_id, term_taxonomy_id FROM wp_term_relationships_posts p
 ;
 
 
@@ -298,6 +324,9 @@ UPDATE wp_term_taxonomy tt
 		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
 	)
 ;
+
+# get rid of that temporary tag relationship table
+DROP TABLE wp_term_relationships_posts;
 
 
 # Comments
