@@ -167,8 +167,8 @@ WHERE tid NOT IN(SELECT tid FROM drupal_term_pairs)
 # 1/12/17: zero results; drupal does save items even if there are no stories associated with them; we don't need to do that for now
 
 # get rid of those temporary tables
-DROP TABLE drupal_pairs;
-DROP TABLE wordpress_pairs;
+DROP TABLE drupal_term_pairs;
+DROP TABLE wordpress_tag_pairs;
 
 
 # Get count of comments
