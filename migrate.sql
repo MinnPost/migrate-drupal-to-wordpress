@@ -563,11 +563,37 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 		AND role.name IN ('member - bronze')
 	)
 ;
+# custom member level field
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'member_level' as meta_key, 'MinnPost Bronze' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - bronze')
+	)
+;
 
 # Sets silver member level capabilities for members
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_silver";s:1:"1";}' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - silver')
+	)
+;
+# custom member level field
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'member_level' as meta_key, 'MinnPost Silver' as meta_value
 	FROM `minnpost.drupal`.users u
 	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
 	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
@@ -591,11 +617,37 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 		AND role.name IN ('member - gold')
 	)
 ;
+# custom member level field
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'member_level' as meta_key, 'MinnPost Gold' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - gold')
+	)
+;
 
 # Sets platinum member level capabilities for members
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_platinum";s:1:"1";}' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - platinum')
+	)
+;
+# custom member level field
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'member_level' as meta_key, 'MinnPost Platinum' as meta_value
 	FROM `minnpost.drupal`.users u
 	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
 	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
