@@ -28,7 +28,7 @@
 - post/tag / node/term combinations
     - Drupal: 133512
     - WordPress: 133512
-    - these were wrong. For example the tag 1994 World Series has 8,508 posts. I think this is because the ID 6712 is supposed to be spread among many different tags. This means the import of the tags themselves is wrong; maybe also the post/tag combination but that is unclear.
+    - These were wrong. For example the tag 1994 World Series had 8,508 posts.
     - This seems to have been corrected. The term_id was being stored in the relationship table instad of the term_taxonomy_id.
 - Images
     - need to think about how to count this properly
@@ -42,11 +42,7 @@
     - Custom Spill
     - Election (related to that elections group of modules)
     - Image (has a thumbnail as well as a big image)
-    - Multiple choice question
-    - Quiz
-    - Quiz directions (see if we've used this)
     - Slideshow (has a thumbnail)
-    - True/False question (see if we've used this)
 - Author / user information
 - Custom fields on core content
 - Analytics functionality
@@ -69,15 +65,15 @@
 
 1. field_center_intro
 2. field_center_main_image (if we can fix the sponsor)
-2. field_center_related
-3. field_center_title
-4. field_download
-5. field_ec_featured_nodes
-6. field_left_intro
-7. field_right_intro
-8. field_right_related
-9. Also a bunch of election fields: field_elecitons_date, field_elections_2012_primary_per, field_elections_2012_primary_won, field_elections_amount_raised, field_elections_boundary_id, field_elections_c_address, field_elections_candidate_image, field_elections_candidates, field_elections_cash_on_hand, field_elections_caucus_date, field_elections_district, field_elections_email, field_elections_expenditures, field_elections_f_candidates, field_elections_facebook_profile, field_elections_finance_board_id, field_elections_financials_upd, field_elections_first_name, field_elections_incumbents, field_elections_last_name, field_elections_os_legislator, field_elections_outside_news, field_elections_phone, field_elections_primary_date, field_elections_pvi, field_elections_r_address, field_elections_seats_available, field_elections_twitter_username, cfield_elections_watchable, field_elections_website
-10. There's a sidebar field (field_sidebar_value) - 3200+ nodes (does include revisions) have a value here. need to figure out what to do with it. article, department, event, page are the node types. Grouping it by vid reduces it to 698 rows
+3. field_center_related
+4. field_center_title
+5. field_download
+6. field_ec_featured_nodes
+7. field_left_intro
+8. field_right_intro
+9. field_right_related
+10. Also a bunch of election fields: field_elecitons_date, field_elections_2012_primary_per, field_elections_2012_primary_won, field_elections_amount_raised, field_elections_boundary_id, field_elections_c_address, field_elections_candidate_image, field_elections_candidates, field_elections_cash_on_hand, field_elections_caucus_date, field_elections_district, field_elections_email, field_elections_expenditures, field_elections_f_candidates, field_elections_facebook_profile, field_elections_finance_board_id, field_elections_financials_upd, field_elections_first_name, field_elections_incumbents, field_elections_last_name, field_elections_os_legislator, field_elections_outside_news, field_elections_phone, field_elections_primary_date, field_elections_pvi, field_elections_r_address, field_elections_seats_available, field_elections_twitter_username, cfield_elections_watchable, field_elections_website
+11. There's a sidebar field (field_sidebar_value) - 3200+ nodes (does include revisions) have a value here. need to figure out what to do with it. article, department, event, page are the node types. Grouping it by vid reduces it to 698 rows
 
 
 ### Content types we don't have to migrate
@@ -85,12 +81,16 @@
 1. Editor's Choice (empty)
 2. Long answer question (empty)
 3. Matching question (empty)
-2. Package (empty)
-3. Scale question (empty)
-4. Short answer question (empty)
-2. Resource (empty)
-2. Voting District
-2. Webform
+4. Package (empty)
+5. Scale question (empty)
+6. Short answer question (empty)
+7. Resource (empty)
+8. Voting District
+9. Webform
+10. Multiple choice question
+11. Quiz
+12. Quiz directions (see if we've used this)
+13. True/False question (see if we've used this)
 
 
 ### Other things to create
