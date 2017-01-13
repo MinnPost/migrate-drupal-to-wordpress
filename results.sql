@@ -130,7 +130,7 @@ CREATE TABLE `wordpress_tag_pairs` (
 );
 
 # drupal
-INSERT INTO `drupal_pairs` (tid, name, count)
+INSERT INTO `drupal_term_pairs` (tid, name, count)
 	SELECT DISTINCT d.tid, d.name, (
 			SELECT COUNT(DISTINCT nid, tid)
 			FROM `minnpost.drupal`.term_node
@@ -141,7 +141,7 @@ INSERT INTO `drupal_pairs` (tid, name, count)
 ;
 
 # wordpress
-INSERT INTO `wordpress_pairs` (tid, name, count)
+INSERT INTO `wordpress_tag_pairs` (tid, name, count)
 	SELECT t.term_id as tid, t.name as name, 
 	(
 			SELECT COUNT(*)
@@ -156,13 +156,13 @@ INSERT INTO `wordpress_pairs` (tid, name, count)
 
 # compare
 SELECT DISTINCT tid, name, count
-FROM drupal_pairs
-WHERE tid NOT IN(SELECT tid FROM wordpress_pairs)
+FROM drupal_term_pairs
+WHERE tid NOT IN(SELECT tid FROM wordpress_tag_pairs)
 AND count > 0
 ;
 SELECT DISTINCT tid, name, count
-FROM wordpress_pairs
-WHERE tid NOT IN(SELECT tid FROM drupal_pairs)
+FROM wordpress_tag_pairs
+WHERE tid NOT IN(SELECT tid FROM drupal_term_pairs)
 ;
 # 1/12/17: zero results; drupal does save items even if there are no stories associated with them; we don't need to do that for now
 
