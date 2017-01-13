@@ -548,6 +548,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_users
 	)
 ;
 
+# when we add multiple permissions per user, it is fixed by the Merge Serialized Fields plugin.
+
 
 # Assign author permissions.
 # Sets all authors to "author" by default; next section can selectively promote individual authors
@@ -966,6 +968,8 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 ;
+
+# this _wp_imported_metadata field is fixed by the Deserialize Metadata plugin: https://wordpress.org/extend/plugins/deserialize-metadata/
 
 
 # insert metadata for thumbnails - this relates to the image post ID
