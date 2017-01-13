@@ -550,6 +550,62 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_users
 
 # when we add multiple permissions per user, it is fixed by the Merge Serialized Fields plugin.
 
+# Sets bronze member level capabilities for members
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_bronze";s:1:"1";}' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - bronze')
+	)
+;
+
+# Sets silver member level capabilities for members
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_silver";s:1:"1";}' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - silver')
+	)
+;
+
+# Sets gold member level capabilities for members
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_gold";s:1:"1";}' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - gold')
+	)
+;
+
+# Sets platinum member level capabilities for members
+INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+	SELECT DISTINCT
+		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_platinum";s:1:"1";}' as meta_value
+	FROM `minnpost.drupal`.users u
+	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+	WHERE (1
+		# Uncomment and enter any email addresses you want to exclude below.
+		# AND u.mail NOT IN ('test@example.com')
+		AND role.name IN ('member - platinum')
+	)
+;
+
 
 # Assign author permissions.
 # Sets all authors to "author" by default; next section can selectively promote individual authors
