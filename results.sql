@@ -65,19 +65,47 @@ SELECT
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'page') as wordpress_page_count
 ;
 
-
-# get count of post/tag / node/term combinations
-# this filters wp into tags only
-# identical count as of 7/22/16
-# 1/11/17 - until today this was incorrect with example of 8,508 posts for tag id 6712.
-# it seems to be correct now though (only one item for that pair) after re-running the SQL for creating the terms and term_relationships
+# get count of post/category / node/section or node/department combinations
+# 1/12/17: this does not match yet
 SELECT
 	(
 		SELECT COUNT(*)
 		FROM `minnpost.wordpress`.wp_term_relationships r
 		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
 		INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
-		WHERE tax.taxonomy NOT IN('category', 'author', 'post_format')
+		WHERE tax.taxonomy = 'category'
+	) as wordpress_category_count,
+	(
+		SELECT
+			(SELECT COUNT(DISTINCT nid, field_department_nid)
+			FROM `minnpost.drupal`.content_field_department)
+			+
+			(SELECT COUNT(DISTINCT nid, field_section_nid)
+			FROM `minnpost.drupal`.content_field_section)
+	) as drupal_combined_count,
+	(
+		SELECT COUNT(DISTINCT nid, field_department_nid)
+		FROM `minnpost.drupal`.content_field_department
+	) as drupal_department_count,
+	(
+		SELECT COUNT(DISTINCT nid, field_section_nid)
+		FROM `minnpost.drupal`.content_field_section
+	) as drupal_section_count
+;
+
+
+# get count of post/tag / node/term combinations
+# this filters wp into tags only
+# identical count as of 7/22/16
+# 1/11/17 - until today this was incorrect with example of 8,508 posts for tag id 6712.
+# it seems to be correct now after fixing the taxonomy id
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_relationships r
+		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
+		INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
+		WHERE tax.taxonomy = 'post_tag'
 	) as wordpress_tag_count,
 	(
 		SELECT COUNT(DISTINCT nid, tid)

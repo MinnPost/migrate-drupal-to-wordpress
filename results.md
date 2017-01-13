@@ -2,34 +2,34 @@
 
 ## Number comparisons
 
-- Core content items
+- Core content items :white_check_mark:
     - Drupal (article, article_full, audio, video): 57455
     - WordPress (post): 57455 (there was a one node difference until we added the video content type. unsure why but this isn't concerning at this time)
-- Pages
+- Pages :white_check_mark:
     - Drupal: 55
     - WordPress: 55
-- Comments
+- Comments :white_check_mark:
     - Drupal: 198659
     - WordPress: 198659
-- Users (skips user with ID of 0; results correct)
+- Users (skips user with ID of 0; results correct) :white_check_mark:
     - Drupal: 54544
     - WordPress: 54543
-- Authors
+- Authors :white_check_mark:
     - Drupal: 2018
     - WordPress: 2018
-- Article / author pairs
+- Article / author pairs :white_check_mark:
     - Drupal: 54901
     - WordPress: 54901
-- Category
+- Category :white_check_mark:
     - Department/Column + Section (Drupal): 75
     - Category (WordPress): 75
 - Tags
     - no idea how to count this in Drupal because the term table is just one big thing
-- post/tag / node/term combinations
+- post/tag / node/term combinations :white_check_mark:
     - Drupal: 133512
     - WordPress: 133512
     - These were wrong. For example the tag 1994 World Series had 8,508 posts.
-    - This seems to have been corrected. The term_id was being stored in the relationship table instad of the term_taxonomy_id.
+    - This seems to have been corrected. The term_id was being stored in the relationship table instead of the term_taxonomy_id.
 - Images
     - need to think about how to count this properly
         - Feature
@@ -39,15 +39,18 @@
         - make sure we define all the sizes correctly
 - Other content items to investigate
     - Candidate (related to that elections group of modules)
-    - Custom Spill
+    - Custom Spill (remember: this one has a field_departments field that lists relevant departments)
     - Election (related to that elections group of modules)
     - Image (has a thumbnail as well as a big image)
     - Slideshow (has a thumbnail)
 - Author / user information
+    - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should).
+    - We need to figure out how to map the Drupal roles to WordPress capabilities - which ones we can map directly vs which ones we have to create, and how we can create them (probably with a plugin)
 - Custom fields on core content
 - Analytics functionality
 - Modals
 - Sidebar items
+- Access to items based on user info
 
 ### Notes
 
