@@ -565,18 +565,6 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 		AND role.name IN ('author', 'author two', 'editor', 'user admin', 'administrator')
 	)
 ;
-INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-	SELECT DISTINCT
-		u.uid as user_id, 'wp_user_level' as meta_key, '2' as meta_value
-	FROM `minnpost.drupal`.users u
-	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-	WHERE (1
-		# Uncomment and enter any email addresses you want to exclude below.
-		# AND u.mail NOT IN ('test@example.com')
-		AND role.name IN ('author', 'author two', 'editor', 'user admin', 'administrator')
-	)
-;
 
 
 # Assign administrator permissions
@@ -585,18 +573,6 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
-	FROM `minnpost.drupal`.users u
-	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-	WHERE (1
-		# Uncomment and enter any email addresses you want to exclude below.
-		# AND u.mail NOT IN ('test@example.com')
-		AND role.name = 'super admin'
-	)
-;
-INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-	SELECT DISTINCT
-		u.uid as user_id, 'wp_user_level' as meta_key, '10' as meta_value
 	FROM `minnpost.drupal`.users u
 	INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
 	INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
@@ -822,13 +798,10 @@ ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
 # Change permissions for admins.
 # Add any specific user IDs to IN list to make them administrators.
 # User ID values are carried over from `minnpost.drupal`.
+# we shouldn't ever need to use this
 UPDATE `minnpost.wordpress`.wp_usermeta
 	SET meta_value = 'a:1:{s:13:"administrator";s:1:"1";}'
 	WHERE user_id IN (1) AND meta_key = 'wp_capabilities'
-;
-UPDATE `minnpost.wordpress`.wp_usermeta
-	SET meta_value = '10'
-	WHERE user_id IN (1) AND meta_key = 'wp_user_level'
 ;
 
 
