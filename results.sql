@@ -115,14 +115,15 @@ SELECT
 
 # get name, term id, and count for tag / post pairs
 # 1/11/17 - this is broken because the names are wrong
+# 1/11/17 - these match now; remember drupal has rows even if there are no posts that have the combination
 
 # Temporary table for the pairs
-CREATE TABLE `drupal_pairs` (
+CREATE TABLE `drupal_term_pairs` (
   `tid` bigint(20) unsigned NOT NULL,
   `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
 );
-CREATE TABLE `wordpress_pairs` (
+CREATE TABLE `wordpress_tag_pairs` (
   `tid` bigint(20) unsigned NOT NULL,
   `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
@@ -147,8 +148,8 @@ INSERT INTO `wordpress_pairs` (tid, name, count)
 			FROM `minnpost.wordpress`.wp_term_relationships r
 			WHERE term_taxonomy_id = tax.term_taxonomy_id
 		) as wordpress_tag_count
-	FROM wp_terms t
-	INNER JOIN wp_term_taxonomy tax ON t.term_id = tax.term_id
+	FROM `minnpost.wordpress`.wp_terms t
+	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON t.term_id = tax.term_id
 	WHERE tax.taxonomy = 'post_tag'
 	ORDER BY wordpress_tag_count DESC
 ;
