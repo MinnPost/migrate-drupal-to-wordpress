@@ -23,8 +23,9 @@
 - Category :white_check_mark:
     - Department/Column + Section (Drupal): 75
     - Category (WordPress): 75
-- Tags
-    - no idea how to count this in Drupal because the term table is just one big thing
+- Tags :white_check_mark:
+    - Drupal: 7810
+    - WordPress: 7810
 - post/tag / node/term combinations :white_check_mark:
     - Drupal: 133512
     - WordPress: 133512

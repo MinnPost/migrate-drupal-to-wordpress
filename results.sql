@@ -65,6 +65,23 @@ SELECT
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'page') as wordpress_page_count
 ;
 
+
+# Get count of categories for both systems
+# 1/12/17: 75 for each
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.drupal`.node
+		WHERE type IN ('department', 'section')
+	) as drupal_department_section_count, 
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_taxonomy
+		WHERE taxonomy = 'category'
+	) as wordpress_category_count
+;
+
+
 # get count of post/category / node/section or node/department combinations
 # 1/12/17: this does not match yet
 SELECT
@@ -91,6 +108,23 @@ SELECT
 		SELECT COUNT(DISTINCT nid, field_section_nid)
 		FROM `minnpost.drupal`.content_field_section
 	) as drupal_section_count
+;
+
+
+
+# Get count of tags (wp) and terms (drupal)
+# 1/12/17: 7810 for each
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.drupal`.term_data
+		#WHERE type IN ('department', 'section')
+	) as drupal_term_count, 
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_taxonomy
+		WHERE taxonomy = 'post_tag'
+	) as wordpress_tag_count
 ;
 
 
@@ -356,22 +390,3 @@ LEFT OUTER JOIN `minnpost.drupal`.node au ON t.name = au.title
 WHERE tax.taxonomy = 'author'
 AND `minnpost.wordpress`.t.name != au.title
 ;
-
-
-# Get count of categories for both systems
-# 1/12/17: 75 for each
-SELECT
-	(
-		SELECT COUNT(*)
-		FROM `minnpost.drupal`.node
-		WHERE type IN ('department', 'section')
-	) as drupal_department_section_count, 
-	(
-		SELECT COUNT(*)
-		FROM `minnpost.wordpress`.wp_term_taxonomy
-		WHERE taxonomy = 'category'
-	) as wordpress_category_count
-;
-
-# need to get a count of tags?
-# although we already know the post/tag count
