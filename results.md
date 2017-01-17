@@ -23,6 +23,12 @@
 - Category :white_check_mark:
     - Department/Column + Section (Drupal): 75
     - Category (WordPress): 75
+- post/category / node/section/department combinations:
+    - Drupal:
+    - WordPress:
+- post/category / node/section/department combinations by name:
+    - Drupal:
+    - WordPress:
 - Tags :white_check_mark:
     - Drupal: 7810
     - WordPress: 7810
@@ -60,7 +66,6 @@
 
 - salesforce is a cluster. too much depends on it.
 - Wrote a plugin that splits the Drupal image metadata into alt, caption, etc. It can be used for as many types as necessary, but is currently only being used for thumbnail images. It's likely we won't need it for inline images, but maybe will need it for detail ones.
-- Need to figure out what to do with all custom fields
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
     - this should be fixed by Largo as I think it has a byline field
 - need user roles and permissions
@@ -98,72 +103,3 @@
 11. Quiz
 12. Quiz directions (see if we've used this)
 13. True/False question (see if we've used this)
-
-
-### Other things to create
-
-- Department
-    - Title/body fields
-    - main image, thumbnail
-    - sponsorship
-    - teaser
-    - section
-    - deck
-- Directed Message
-    - includes a body that has to have html in it
-    - also a type field (popover, viewport bottom, article blocker)
-    - what pages to show it on
-    - what pages to omit it from (backend keeps it off support pages)
-    - rules for showing it
-    - css
-- Event
-    - needs standard fields - title, teaser, thumbnail, main image/caption, body, categorization
-    - also needs start/end date and has a "sidebar" field
-- FAN Club Vote
-    - interface is a form that integrates with the propublica api to make an autocomplete form
-    - but then it has to save each vote with info from the api, as well as the logged in user and timestamp info
-- Newsletter
-    - going to need a plugin for this, I think
-- Panel
-    - Node template
-        - Author page (makes it a single column; gives it a css id; tells it to get 10 nodes from the author)
-        - Section page (minnpost listing like homepage; lets you feature 1 node then load 20; plus a 'section listing' column, 'node being viewed', 'sidebar items homepage' blocks on the side - these presumably handle most commented, recent stories, featured columns, in case you missed it, etc)
-        - Department/Column page (minnpost listing like homepage; lets you feature 3 nodes then load 10; plus a 'section listing' column, 'node being viewed', 'sidebar items homepage' blocks on the side - these presumably handle most commented, recent stories, featured columns, in case you missed it, etc)
-    - Home page (makes all the columns)
-        - Has regions for left side and right side
-        - Left
-            - Top banner (hidden)
-            - Holiday break
-            - Nodequeue top
-            - Nodequeue middle
-            - Ad Middle3
-            - Nodequeue bottom
-        - Right
-            - HP Columns Featured
-            - Under Glean sidebar
-            - Nodequeue HP Columns
-            - Sidebar items
-- Partner
-    - these get listed - image, alt text, link to website - on the /support/partner-offers page
-    - other than that they have no user-facing presence
-- Partner Offer
-    - the partner offer claim page lists all of these. it joins with the partners and the instances.
-- Partner Offer Instance
-    - this allows an offer to be claimed x amount of times. it has no user facing presence, but it does affect how the partner offer list renders (dropdown, button only, etc.)
-- Section
-    - Title/body fields
-    - main image, thumbnail
-    - sponsorship
-    - teaser
-    - intro (html field)
-    - in case you missed it nodes
-    - deck
-- Sidebar Item (has a thumbnail)
-    - this will map directly to widgets, i think. just has a box with html in it
-    - it does have a thumbnail image, but none of the items have one
-    - also has a page visibility that indicates where it is visible
-- Sponsor
-    - this can map to widgets, if we use a media widget plugin. all it has is a line of text for homepage (can include a link) and a thumbnail image
-- Webform
-    - The Letter to the Editor form is here
-    - There's also a Late in life heatlh care questionnaire from 2014
