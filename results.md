@@ -47,6 +47,9 @@
         - Detail
         - Author
         - make sure we define all the sizes correctly
+- Redirects :white_check_mark:
+    - Drupal: 51390
+    - WordPress: 51390
 - Other content items to investigate
     - Candidate (related to that elections group of modules)
     - Custom Spill (remember: this one has a field_departments field that lists relevant departments)

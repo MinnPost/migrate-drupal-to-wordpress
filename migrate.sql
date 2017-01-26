@@ -1428,9 +1428,9 @@ INSERT INTO `minnpost.wordpress`.wp_redirection_items
 			WHERE option_name = 'siteurl'
 			),
 			'/',
-			a.dst) `action_data`,
+			IFNULL(a.dst, p.redirect)) `action_data`,
 		'url' `match_type`,
 		'' `title`
 		FROM `minnpost.drupal`.path_redirect p
-		INNER JOIN `minnpost.drupal`.url_alias a ON p.redirect = a.src
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON p.redirect = a.src
 ;

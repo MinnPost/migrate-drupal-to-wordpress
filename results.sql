@@ -390,3 +390,12 @@ LEFT OUTER JOIN `minnpost.drupal`.node au ON t.name = au.title
 WHERE tax.taxonomy = 'author'
 AND `minnpost.wordpress`.t.name != au.title
 ;
+
+
+# Get count of url redirects
+# as of 1/26/17 this is equal
+
+SELECT
+	(SELECT COUNT(*) FROM `minnpost.drupal`.path_redirect) as drupal_redirect_count, 
+	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_redirection_items) as wordpress_redirect_count
+;
