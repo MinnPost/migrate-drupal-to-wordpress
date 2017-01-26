@@ -1406,3 +1406,31 @@ UPDATE `minnpost.wordpress`.wp_options
 	SET option_value = 500
 	WHERE option_name = 'large_size_h'
 ;
+
+# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
+INSERT INTO `minnpost.wordpress`.wp_redirection_items
+	(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+	SELECT DISTINCT
+		p.rid `id`,
+		CONCAT('/', p.source) `url`,
+		0 `regex`,
+		0 `position`,
+		1 `last_count`,
+		FROM_UNIXTIME(p.last_used) `last_access`,
+		1 `group_id`,
+		'enabled' `status`,
+		'url' `action_type`,
+		301 `action_code`,
+		CONCAT(
+			(
+			SELECT option_value
+			FROM `minnpost.wordpress`.wp_options
+			WHERE option_name = 'siteurl'
+			),
+			'/',
+			a.dst) `action_data`,
+		'url' `match_type`,
+		'' `title`
+		FROM `minnpost.drupal`.path_redirect p
+		INNER JOIN `minnpost.drupal`.url_alias a ON p.redirect = a.src
+;
