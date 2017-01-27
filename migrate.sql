@@ -18,6 +18,7 @@ TRUNCATE TABLE `minnpost.wordpress`.wp_posts;
 TRUNCATE TABLE `minnpost.wordpress`.wp_term_relationships;
 TRUNCATE TABLE `minnpost.wordpress`.wp_term_taxonomy;
 TRUNCATE TABLE `minnpost.wordpress`.wp_terms;
+TRUNCATE TABLE `minnpost.wordpress`.wp_redirection_items;
 
 # If you're not bringing over multiple Drupal authors, comment out these lines and the other
 # author-related queries near the bottom of the script.
