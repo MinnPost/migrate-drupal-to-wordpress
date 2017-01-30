@@ -70,7 +70,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 
 # Posts from Drupal stories
 # Keeps private posts hidden.
-# line 99 contains the Drupal content types that we want to migrate
+# line 94 contains the Drupal content types that we want to migrate
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_modified, post_type, `post_status`)
@@ -418,7 +418,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 ;
 
 
-# Create relationships for each story to the deparments it had in Drupal
+# Create relationships for each story to the departments it had in Drupal
 # Track this relationship by the term_id_old field
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
@@ -908,10 +908,10 @@ ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
 # Add any specific user IDs to IN list to make them administrators.
 # User ID values are carried over from `minnpost.drupal`.
 # we shouldn't ever need to use this
-UPDATE `minnpost.wordpress`.wp_usermeta
-	SET meta_value = 'a:1:{s:13:"administrator";s:1:"1";}'
-	WHERE user_id IN (1) AND meta_key = 'wp_capabilities'
-;
+#UPDATE `minnpost.wordpress`.wp_usermeta
+#	SET meta_value = 'a:1:{s:13:"administrator";s:1:"1";}'
+#	WHERE user_id IN (1) AND meta_key = 'wp_capabilities'
+#;
 
 
 # Reassign post authorship.
