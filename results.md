@@ -53,7 +53,7 @@
 - Other content items to investigate
     - Candidate (related to that elections group of modules)
     - Custom Spill (remember: this one has a field_departments field that lists relevant departments)
-    - Election (related to that elections group of modules)
+    
     - Image (has a thumbnail as well as a big image)
     - Slideshow (has a thumbnail)
 - Author / user information
@@ -104,5 +104,12 @@
 9. Webform
 10. Multiple choice question
 11. Quiz
-12. Quiz directions (see if we've used this)
-13. True/False question (see if we've used this)
+12. Quiz directions
+13. True/False question
+14. Election (related to that elections group of modules)
+
+
+### Special Drupal things that will break
+
+1. https://www.minnpost.com/data/2012/09/interactive-who-will-control-2013-minnesota-legislature
+2. http://minnpost-wordpress.dev/data/2012/10/my-elections-explore-2012-races-your-address/
