@@ -121,10 +121,11 @@ CREATE TABLE `wp_posts_raw` (
 # 1/12/17: this was broken and had to rename the table in the join. unclear why it ever worked before though.
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_raw
 	(id, post_content_raw)
-	SELECT a.nid, field_html_value
+	SELECT a.nid, h.field_html_value
 	FROM `minnpost.drupal`.content_type_article_full a
+	INNER JOIN `minnpost.drupal`.node AS n ON a.vid = n.vid
 	INNER JOIN `minnpost.drupal`.content_field_html AS h ON a.vid = h.vid
-	WHERE field_html_value IS NOT NULL
+	WHERE h.field_html_value IS NOT NULL
 ;
 
 
