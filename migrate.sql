@@ -437,6 +437,18 @@ UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
 DROP TABLE wp_terms_dept;
 
 
+# set the department as the primary category for the post, because that is how drupal handles urls
+# in wordpress, this depends on the WP Category Permalink plugin
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT object_id as post_id, '_category_permalink' as meta_key, CONCAT('a:1:{s:8:"category";s:4:"', t.term_id, '";}') as meta_value
+		FROM wp_term_relationships r
+		INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+		INNER JOIN wp_terms t ON tax.term_id = t.term_id
+		WHERE tax.taxonomy = 'category'
+;
+
+
 # Temporary table for section terms
 CREATE TABLE `wp_terms_section` (
   `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
