@@ -27,8 +27,8 @@
     - Drupal:
     - WordPress:
 - post/category / node/section/department combinations by name:
-    - Drupal:
-    - WordPress:
+    - Drupal: 75 pairs, skipping the department pairs because the section pairs are already counted
+    - WordPress: 75 pairs
 - Tags :white_check_mark:
     - Drupal: 7810
     - WordPress: 7810
