@@ -26,7 +26,7 @@
 - post/category / node/section/department combinations:
     - Drupal:
     - WordPress:
-- post/category / node/section/department combinations by name:
+- post/category / node/section/department combinations by name: :white_check_mark:
     - Drupal: 75 pairs, skipping the department pairs because the section pairs are already counted
     - WordPress: 75 pairs
 - Tags :white_check_mark:
@@ -35,8 +35,6 @@
 - post/tag / node/term combinations :white_check_mark:
     - Drupal: 133512
     - WordPress: 133512
-    - These were wrong. For example the tag 1994 World Series had 8,508 posts.
-    - This seems to have been corrected. The term_id was being stored in the relationship table instead of the term_taxonomy_id.
 - post/tag / node/term combinations by name: :white_check_mark:
     - Drupal: 7810 pairs, including 853 that have 0 results
     - WordPress: 6957 pairs. Adding 853 (WordPress does not create relationships where there are no posts) makes 7810.

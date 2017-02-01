@@ -66,7 +66,7 @@ SELECT
 ;
 
 
-# Get count of categories for both systems
+# Get count of categories (wp) and department/section nodes (drupal)
 # 1/12/17: 75 for each
 SELECT
 	(
@@ -83,6 +83,7 @@ SELECT
 
 
 # get count of post/category / node/section or node/department combinations
+# get name, term id, and count for category / post pairs compared to section/department / node pairs
 # 2/1/17: these match
 
 # Temporary table for the story/category pairs
