@@ -83,32 +83,98 @@ SELECT
 
 
 # get count of post/category / node/section or node/department combinations
-# 1/12/17: this does not match yet
-SELECT
-	(
-		SELECT COUNT(*)
-		FROM `minnpost.wordpress`.wp_term_relationships r
-		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
-		INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
-		WHERE tax.taxonomy = 'category'
-	) as wordpress_category_count,
-	(
-		SELECT
-			(SELECT COUNT(DISTINCT nid, field_department_nid)
-			FROM `minnpost.drupal`.content_field_department)
-			+
-			(SELECT COUNT(DISTINCT nid, field_section_nid)
-			FROM `minnpost.drupal`.content_field_section)
-	) as drupal_combined_count,
-	(
-		SELECT COUNT(DISTINCT nid, field_department_nid)
-		FROM `minnpost.drupal`.content_field_department
-	) as drupal_department_count,
-	(
-		SELECT COUNT(DISTINCT nid, field_section_nid)
-		FROM `minnpost.drupal`.content_field_section
-	) as drupal_section_count
+# 2/1/17: these match
+
+# Temporary table for the story/category pairs
+CREATE TABLE `drupal_section_department_pairs` (
+  `tid` bigint(20) unsigned NOT NULL,
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `count` bigint(20) NOT NULL,
+  UNIQUE KEY `tid` (`tid`,`name`)
+);
+CREATE TABLE `wordpress_category_pairs` (
+  `tid` bigint(20) unsigned NOT NULL,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
+);
+
+# save how many stories exist in each drupal department and section
+
+# section
+INSERT IGNORE INTO drupal_section_department_pairs (tid, name, count)
+	SELECT nid as tid, title as name, count(1) as count
+	FROM (
+	    SELECT DISTINCT 'Sect' as DeptOrSect, sect.nid, sect.title, link.nid as article_nid
+	    FROM `minnpost.drupal`.node sect
+	    JOIN `minnpost.drupal`.content_field_section link ON link.field_section_nid = sect.nid
+	    UNION ALL
+	    SELECT DISTINCT
+	        'Dept' as DeptOrSect,
+	        dept.nid,
+	        dept.title,
+	        link.nid as article_nid
+	    FROM `minnpost.drupal`.node dept
+	    JOIN `minnpost.drupal`.content_field_department link ON link.field_department_nid = dept.nid
+	    WHERE NOT EXISTS (
+	        SELECT DISTINCT 1
+	        FROM `minnpost.drupal`.content_field_section sect
+	        WHERE sect.nid = link.nid
+	    )
+	) as x
+	WHERE DeptOrSect = 'Sect'
+	GROUP BY DeptOrSect, nid, title
+	ORDER BY count DESC
 ;
+
+# department
+INSERT IGNORE INTO drupal_section_department_pairs (tid, name, count)
+	SELECT nid as tid, title as name, count(1) as count
+	FROM (
+	    SELECT DISTINCT 'DEPT' as DeptOrSect, dept.nid, dept.title, link.nid as article_nid
+	    FROM `minnpost.drupal`.node dept
+	    JOIN `minnpost.drupal`.content_field_department link ON link.field_department_nid = dept.nid
+	    UNION ALL
+	    SELECT DISTINCT 'SECT' as DeptOrSect, sect.nid, sect.title, link.nid as article_nid
+	    FROM `minnpost.drupal`.node sect
+	    JOIN `minnpost.drupal`.content_field_section link ON link.field_section_nid = sect.nid
+	    WHERE NOT EXISTS (
+	        SELECT DISTINCT 1
+	        FROM `minnpost.drupal`.content_field_department dept
+	        WHERE dept.nid = link.nid
+	    )
+	) as x
+	WHERE DeptOrSect = 'Dept'
+	GROUP BY DeptOrSect, nid, title
+	ORDER BY count DESC
+;
+
+
+# save how many posts exist in each wordpress category
+INSERT IGNORE INTO wordpress_category_pairs (tid, name, count)
+	SELECT t.term_id as tid, t.name as name, 
+	(
+			SELECT COUNT(*)
+			FROM `minnpost.wordpress`.wp_term_relationships r
+			WHERE term_taxonomy_id = tax.term_taxonomy_id
+		) as wordpress_category_count
+	FROM `minnpost.wordpress`.wp_terms t
+	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON t.term_id = tax.term_id
+	WHERE tax.taxonomy = 'category'
+	ORDER BY wordpress_category_count DESC
+;
+
+
+# compare
+SELECT DISTINCT tid, name, count
+FROM drupal_section_department_pairs
+WHERE name NOT IN(SELECT name FROM wordpress_category_pairs)
+AND count > 0
+;
+SELECT DISTINCT tid, name, count
+FROM wordpress_category_pairs
+WHERE name NOT IN(SELECT name FROM drupal_section_department_pairs)
+;
+# 2/1/17: zero results
 
 
 
@@ -118,7 +184,6 @@ SELECT
 	(
 		SELECT COUNT(*)
 		FROM `minnpost.drupal`.term_data
-		#WHERE type IN ('department', 'section')
 	) as drupal_term_count, 
 	(
 		SELECT COUNT(*)
