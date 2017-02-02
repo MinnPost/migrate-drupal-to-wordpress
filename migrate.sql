@@ -298,6 +298,7 @@ CREATE TABLE `wp_term_relationships_posts` (
 	KEY `term_taxonomy_id` (`term_taxonomy_id`)
 );
 
+
 # store with the term_id from drupal
 INSERT INTO `minnpost.wordpress`.wp_term_relationships_posts (object_id, term_taxonomy_id)
 	SELECT DISTINCT nid, tid FROM `minnpost.drupal`.term_node
@@ -305,9 +306,10 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships_posts (object_id, term_ta
 
 
 # get the term_taxonomy_id for each term and put it in the table
-UPDATE `minnpost.wordpress`wp_term_relationships_posts r
-INNER JOIN `minnpost.wordpress`wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_id
-SET r.term_taxonomy_id = tax.term_taxonomy_id
+UPDATE `minnpost.wordpress`.wp_term_relationships_posts r
+	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_id
+	SET r.term_taxonomy_id = tax.term_taxonomy_id
+;
 
 
 # put the post/tag relationships into the correct table
