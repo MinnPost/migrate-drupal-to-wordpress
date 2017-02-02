@@ -147,9 +147,9 @@ DROP TABLE wp_posts_raw;
 
 # create temporary table for audio content
 CREATE TABLE `wp_posts_audio` (
-  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `post_content_audio` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`ID`)
+	`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`post_content_audio` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+	PRIMARY KEY (`ID`)
 );
 
 
@@ -208,9 +208,9 @@ INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 
 # create temporary table for video content
 CREATE TABLE `wp_posts_video` (
-  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `post_content_video` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`ID`)
+	`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`post_content_video` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+	PRIMARY KEY (`ID`)
 );
 
 
@@ -326,6 +326,7 @@ UPDATE wp_term_taxonomy tt
 		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
 	)
 ;
+
 
 # get rid of that temporary tag relationship table
 DROP TABLE wp_term_relationships_posts;
