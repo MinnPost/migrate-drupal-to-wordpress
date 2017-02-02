@@ -81,22 +81,110 @@ SELECT
 	) as wordpress_category_count
 ;
 
+# get all the pairs between articles and section/department nodes in drupal
+# 2/2/17: 108724
+SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
+FROM `minnpost.drupal`.content_field_department d
+INNER JOIN node a ON d.nid = a.nid
+INNER JOIN node d2 ON d.field_department_nid = d2.nid
+WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+UNION
+SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
+FROM `minnpost.drupal`.content_field_section s
+INNER JOIN node a ON s.nid = a.nid
+INNER JOIN node s2 ON s.field_section_nid = s2.nid
+WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+ORDER BY nid, category_title
+;
+
+
+# get all the pairs between posts and categories in wordpress
+# 2/2/17: 108438
+SELECT p.ID, t.term_id, p.post_title, t.name
+FROM `minnpost.wordpress`.wp_term_relationships r
+INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
+INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
+INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
+WHERE tax.taxonomy = 'category'
+ORDER BY p.ID, name
+;
+
+
+# get the pairs from drupal that are not in wordpress
+# 2/2/17: 0 results
+SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
+FROM `minnpost.drupal`.content_field_department d
+INNER JOIN node a ON d.nid = a.nid
+INNER JOIN node d2 ON d.field_department_nid = d2.nid
+WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+AND NOT EXISTS (
+	SELECT p.ID, t.term_id, p.post_title, t.name
+	FROM `minnpost.wordpress`.wp_term_relationships r
+	INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
+	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
+	INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
+	WHERE tax.taxonomy = 'category'
+	ORDER BY p.ID, name
+)
+UNION
+SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
+FROM `minnpost.drupal`.content_field_section s
+INNER JOIN node a ON s.nid = a.nid
+INNER JOIN node s2 ON s.field_section_nid = s2.nid
+WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+AND NOT EXISTS (
+	SELECT p.ID, t.term_id, p.post_title, t.name
+	FROM `minnpost.wordpress`.wp_term_relationships r
+	INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
+	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
+	INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
+	WHERE tax.taxonomy = 'category'
+	ORDER BY p.ID, name
+)
+ORDER BY nid, category_title
+;
+
 
 # get count of post/category / node/section or node/department combinations
+# this filters wp into categories only
+# 2/1/17: not working; 108775 for wordpress, 106914 for drupal
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_term_relationships r
+		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
+		INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
+		WHERE tax.taxonomy = 'category'
+	) as wordpress_category_count,
+	(
+		SELECT COUNT(*) FROM (
+			SELECT DISTINCT d.nid as nid, d.field_department_nid as category
+				FROM `minnpost.drupal`.content_field_department d
+				WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL
+				UNION
+				SELECT DISTINCT s.nid as nid, s.field_section_nid as category
+				FROM `minnpost.drupal`.content_field_section s
+				WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL
+				ORDER BY nid
+		) pairs
+	) as drupal_category_count
+;
+
+
 # get name, term id, and count for category / post pairs compared to section/department / node pairs
 # 2/1/17: these match
 
 # Temporary table for the story/category pairs
 CREATE TABLE `drupal_section_department_pairs` (
-  `tid` bigint(20) unsigned NOT NULL,
-  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `count` bigint(20) NOT NULL,
-  UNIQUE KEY `tid` (`tid`,`name`)
+	`tid` bigint(20) unsigned NOT NULL,
+	`name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`count` bigint(20) NOT NULL,
+	UNIQUE KEY `tid` (`tid`,`name`)
 );
 CREATE TABLE `wordpress_category_pairs` (
-  `tid` bigint(20) unsigned NOT NULL,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
+	`tid` bigint(20) unsigned NOT NULL,
+	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
 );
 
 # save how many stories exist in each drupal department and section
@@ -178,6 +266,11 @@ WHERE name NOT IN(SELECT name FROM drupal_section_department_pairs)
 # 2/1/17: zero results
 
 
+# get rid of those temporary tables
+DROP TABLE drupal_section_department_pairs;
+DROP TABLE wordpress_category_pairs;
+
+
 
 # Get count of tags (wp) and terms (drupal)
 # 1/12/17: 7810 for each
@@ -219,14 +312,14 @@ SELECT
 
 # Temporary table for the pairs
 CREATE TABLE `drupal_term_pairs` (
-  `tid` bigint(20) unsigned NOT NULL,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
+	`tid` bigint(20) unsigned NOT NULL,
+	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
 );
 CREATE TABLE `wordpress_tag_pairs` (
-  `tid` bigint(20) unsigned NOT NULL,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
+	`tid` bigint(20) unsigned NOT NULL,
+	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
 );
 
 # drupal
