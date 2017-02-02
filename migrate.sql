@@ -86,7 +86,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		n.type `post_type`,
 		IF(n.status = 1, 'publish', 'draft') `post_status`
 	FROM `minnpost.drupal`.node n
-	INNER JOIN `minnpost.drupal`.node_revisions r
+	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r
 		USING(vid)
 	LEFT OUTER JOIN `minnpost.drupal`.url_alias a
 		ON a.src = CONCAT('node/', n.nid)
