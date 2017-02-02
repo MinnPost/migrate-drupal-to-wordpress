@@ -386,13 +386,13 @@ ALTER TABLE wp_terms ADD term_id_old BIGINT(20);
 
 # Temporary table for department terms
 CREATE TABLE `wp_terms_dept` (
-  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `term_group` bigint(10) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`term_id`),
-  KEY `slug` (`slug`(191)),
-  KEY `name` (`name`(191))
+	`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`term_group` bigint(10) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`term_id`),
+	KEY `slug` (`slug`(191)),
+	KEY `name` (`name`(191))
 );
 
 
@@ -452,13 +452,13 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 # Temporary table for section terms
 CREATE TABLE `wp_terms_section` (
-  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `term_group` bigint(10) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`term_id`),
-  KEY `slug` (`slug`(191)),
-  KEY `name` (`name`(191))
+	`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`term_group` bigint(10) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`term_id`),
+	KEY `slug` (`slug`(191)),
+	KEY `name` (`name`(191))
 );
 
 
@@ -755,13 +755,13 @@ ALTER TABLE wp_terms ADD user_node_id_old BIGINT(20);
 
 # Temporary table for user terms
 CREATE TABLE `wp_terms_users` (
-  `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `term_group` bigint(10) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`term_id`),
-  KEY `slug` (`slug`(191)),
-  KEY `name` (`name`(191))
+	`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`term_group` bigint(10) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`term_id`),
+	KEY `slug` (`slug`(191)),
+	KEY `name` (`name`(191))
 );
 
 
@@ -844,8 +844,10 @@ UPDATE wp_term_taxonomy tt
 	)
 ;
 
+
 # add a temporary constraint for email addresses so we don't add duplicates
 ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(64));
+
 
 # add the email address for the author if we have one
 INSERT INTO `minnpost.wordpress`.wp_postmeta
