@@ -83,35 +83,43 @@ SELECT
 
 # get all the pairs between articles and section/department nodes in drupal
 # 2/2/17: 108724
+# 2/7/17: 108983
+# 2/7/17: 107980 with group by title/category
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
 FROM `minnpost.drupal`.content_field_department d
 INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
 INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
 WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+GROUP BY title, category_title
 UNION
 SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
 FROM `minnpost.drupal`.content_field_section s
 INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
 INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
 WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
-ORDER BY nid, category_title
+GROUP BY title, category_title
+ORDER BY title, category_title
 ;
 
 
 # get all the pairs between posts and categories in wordpress
 # 2/2/17: 108438
+# 2/7/17: 108711
+# 2/7/17: 107703 with group by title/category
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
 INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
 INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
 WHERE tax.taxonomy = 'category'
-ORDER BY p.ID, name
+GROUP BY post_title, name
+ORDER BY post_title, name
 ;
 
 
 # get the pairs from drupal that are not in wordpress
 # 2/2/17: 0 results
+# 2/6/17: this is confusing because the above queries result in a difference of 272
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
 FROM `minnpost.drupal`.content_field_department d
 INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
@@ -142,6 +150,32 @@ AND NOT EXISTS (
 	ORDER BY p.ID, name
 )
 ORDER BY nid, category_title
+;
+
+
+# get the pairs from wordpress that are not in drupal
+# 2/3/17: 0 results
+SELECT p.ID, t.term_id, p.post_title, t.name
+FROM `minnpost.wordpress`.wp_term_relationships r
+INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
+INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
+INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
+WHERE tax.taxonomy = 'category'
+AND NOT EXISTS(
+	SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
+	FROM `minnpost.drupal`.content_field_department d
+	INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
+	INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
+	WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+	UNION
+	SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
+	FROM `minnpost.drupal`.content_field_section s
+	INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
+	INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
+	WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+	ORDER BY nid, category_title
+)
+ORDER BY p.ID, name
 ;
 
 
