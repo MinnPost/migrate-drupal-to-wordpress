@@ -85,14 +85,14 @@ SELECT
 # 2/2/17: 108724
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
 FROM `minnpost.drupal`.content_field_department d
-INNER JOIN node a ON d.nid = a.nid
-INNER JOIN node d2 ON d.field_department_nid = d2.nid
+INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
+INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
 WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
 UNION
 SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
 FROM `minnpost.drupal`.content_field_section s
-INNER JOIN node a ON s.nid = a.nid
-INNER JOIN node s2 ON s.field_section_nid = s2.nid
+INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
+INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
 WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
 ORDER BY nid, category_title
 ;
@@ -114,8 +114,8 @@ ORDER BY p.ID, name
 # 2/2/17: 0 results
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
 FROM `minnpost.drupal`.content_field_department d
-INNER JOIN node a ON d.nid = a.nid
-INNER JOIN node d2 ON d.field_department_nid = d2.nid
+INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
+INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
 WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
 AND NOT EXISTS (
 	SELECT p.ID, t.term_id, p.post_title, t.name
@@ -129,8 +129,8 @@ AND NOT EXISTS (
 UNION
 SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
 FROM `minnpost.drupal`.content_field_section s
-INNER JOIN node a ON s.nid = a.nid
-INNER JOIN node s2 ON s.field_section_nid = s2.nid
+INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
+INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
 WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
 AND NOT EXISTS (
 	SELECT p.ID, t.term_id, p.post_title, t.name
