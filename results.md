@@ -23,9 +23,10 @@
 - Category :white_check_mark:
     - Department/Column + Section (Drupal): 75
     - Category (WordPress): 75
-- post/category / node/section/department combinations:
-    - Drupal:
-    - WordPress:
+- post/category / node/section/department combinations: :white_check_mark:
+    - Drupal: 117907
+    - WordPress: 109057
+    - I think this is okay; the only mismatches are in the Drupal nodes that are both sections and departments. I think they're still being counted twice.
 - post/category / node/section/department combinations by name: :white_check_mark:
     - Drupal: 75 pairs, skipping the department pairs because the section pairs are already counted
     - WordPress: 75 pairs
