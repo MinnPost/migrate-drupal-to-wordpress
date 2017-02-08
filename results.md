@@ -3,8 +3,8 @@
 ## Number comparisons
 
 - Core content items :white_check_mark:
-    - Drupal (article, article_full, audio, video): 57455
-    - WordPress (post): 57455 (there was a one node difference until we added the video content type. unsure why but this isn't concerning at this time)
+    - Drupal (article, article_full, audio, video, slideshow): 57868
+    - WordPress (post; audio, video, and gallery are formats): 57868 (there was a one node difference until we added the video content type. unsure why but this isn't concerning at this time)
 - Pages :white_check_mark:
     - Drupal: 55
     - WordPress: 55
@@ -52,7 +52,7 @@
 - Other content items to investigate
     - Custom Spill (remember: this one has a field_departments field that lists relevant departments)
     - Image (has a thumbnail as well as a big image)
-    - Slideshow (has a thumbnail)
+    - Slideshow (need to check the metadata on the gallery images)
 - Author / user information
     - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should).
     - We need to figure out how to map the Drupal roles to WordPress capabilities - which ones we can map directly vs which ones we have to create, and how we can create them (probably with a plugin)
