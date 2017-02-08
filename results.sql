@@ -1,7 +1,7 @@
 # Get count of standard story items
 # this one has an identical count as of 5/19/16
 SELECT
-	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type IN ('article', 'article_full', 'audio', 'video')) as drupal_story_count, 
+	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type IN ('article', 'article_full', 'audio', 'video', 'slideshow')) as drupal_story_count, 
 	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'post') as wordpress_story_count
 ;
 
@@ -58,6 +58,35 @@ SELECT
 ;
 
 
+# find the gallery posts
+SELECT p.ID, p.post_title, r.term_taxonomy_id, tax.taxonomy
+FROM wp_posts p
+INNER JOIN wp_term_relationships r ON p.ID = r.object_id
+INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+INNER JOIN wp_terms t ON tax.term_id = t.term_id
+WHERE t.name = 'post-format-gallery'
+;
+
+
+# count the slideshow and gallery posts between wordpress and drupal
+# 2/8/17: these numbers match
+SELECT
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.drupal`.node
+		WHERE type IN ('slideshow')
+	) as drupal_gallery_count, 
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_posts p
+		INNER JOIN wp_term_relationships r ON p.ID = r.object_id
+		INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+		INNER JOIN wp_terms t ON tax.term_id = t.term_id
+		WHERE t.name = 'post-format-gallery'
+	) as wordpress_gallery_count
+;
+
+
 # Get count of standard page items
 # this one has an identical count as of 5/19/16
 SELECT
@@ -89,14 +118,14 @@ SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as tit
 FROM `minnpost.drupal`.content_field_department d
 INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
 INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
-WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 GROUP BY title, category_title
 UNION
 SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
 FROM `minnpost.drupal`.content_field_section s
 INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
 INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
-WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 GROUP BY title, category_title
 ORDER BY title, category_title
 ;
@@ -124,7 +153,7 @@ SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as tit
 FROM `minnpost.drupal`.content_field_department d
 INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
 INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
-WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 AND NOT EXISTS (
 	SELECT p.ID, t.term_id, p.post_title, t.name
 	FROM `minnpost.wordpress`.wp_term_relationships r
@@ -139,7 +168,7 @@ SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title,
 FROM `minnpost.drupal`.content_field_section s
 INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
 INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
-WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 AND NOT EXISTS (
 	SELECT p.ID, t.term_id, p.post_title, t.name
 	FROM `minnpost.wordpress`.wp_term_relationships r
@@ -166,13 +195,13 @@ AND NOT EXISTS(
 	FROM `minnpost.drupal`.content_field_department d
 	INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
 	INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
-	WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+	WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 	UNION
 	SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
 	FROM `minnpost.drupal`.content_field_section s
 	INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
 	INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
-	WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video')
+	WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 	ORDER BY nid, category_title
 )
 ORDER BY p.ID, name

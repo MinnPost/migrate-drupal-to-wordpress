@@ -91,7 +91,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 	LEFT OUTER JOIN `minnpost.drupal`.url_alias a
 		ON a.src = CONCAT('node/', n.nid)
 	# Add more Drupal content types below if applicable.
-	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video')
+	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video', 'slideshow')
 ;
 
 
@@ -99,7 +99,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 # Add more Drupal content types below if applicable. Must match all types from line 99 that should be imported as 'posts'
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
-	WHERE post_type IN ('article', 'article_full', 'audio', 'video')
+	WHERE post_type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 ;
 
 
@@ -278,6 +278,62 @@ INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
 		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
 		WHERE `minnpost.drupal`.n.type = 'video' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-video'
+;
+
+
+## Get gallery images from slideshow posts
+# Use the Gallery format, and the core WordPress handling for image galleries
+# this is [gallery ids="729,732,731,720"]
+
+# create temporary table for gallery content
+CREATE TABLE `wp_posts_gallery` (
+	`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`post_content_gallery` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+	PRIMARY KEY (`ID`)
+);
+
+
+# store gallery ids in temp table
+INSERT INTO `minnpost.wordpress`.wp_posts_gallery
+	(id, post_content_gallery)
+	SELECT s.nid, GROUP_CONCAT(DISTINCT n2.nid) `post_content_gallery`
+		FROM `minnpost.drupal`.content_field_op_slideshow_images s
+		INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
+		GROUP BY s.nid
+;
+
+
+# append gallery to the post body
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.wordpress`.wp_posts_gallery
+	ON wp_posts.ID = wp_posts_gallery.ID
+	SET wp_posts.post_content = CONCAT(wp_posts.post_content, '<div id="image-gallery-slideshow">[gallery link="file" ids="', wp_posts_gallery.post_content_gallery, '"]</div>')
+;
+
+
+# get rid of that temporary gallery table
+DROP TABLE wp_posts_gallery;
+
+
+# add gallery format for gallery posts
+INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-gallery', 'post-format-gallery');
+
+
+# add format to taxonomy
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+	SELECT term_id `term_id`, 'post_format' `taxonomy`
+		FROM wp_terms
+		WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-gallery'
+;
+
+
+# use gallery format for gallery posts
+INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
+	SELECT n.nid, tax.term_taxonomy_id
+		FROM `minnpost.drupal`.node n
+		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
+		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
+		WHERE `minnpost.drupal`.n.type = 'slideshow' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-gallery'
 ;
 
 
@@ -1012,6 +1068,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # for audio posts, there is no main image field in Drupal
 # for video posts, there is no main image field in Drupal
+# for slideshow posts, there is no main image field in Drupal
 
 
 # use the detail suffix for the single page image
@@ -1030,6 +1087,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # for audio posts, there is no single page image field in Drupal
 # for video posts, there is no single page image field in Drupal
+# for slideshow posts, there is no single page image field in Drupal
 
 
 # thumbnail version
@@ -1184,6 +1242,56 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# thumbnail version for gallery posts
+# this is the small thumbnail from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_thumbnail' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/slideshow', '/imagecache/thumbnail/images/thumbnails/slideshow')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
+;
+
+
+# insert gallery thumbnails as posts
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/slideshow', '/imagecache/thumbnail/images/thumbnails/slideshow')) `guid`,
+		'attachment' `post_type`,
+		f.filemime `post_mime_type`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
+;
+
+
+# insert metadata for gallery thumbnails - this relates to the image post ID
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+	ID `post_id`,
+	'_wp_imported_metadata' `meta_key`,
+	s.field_op_slideshow_thumb_data `meta_value`
+	FROM `minnpost.wordpress`.wp_posts p
+	LEFT OUTER JOIN `minnpost.drupal`.content_type_slideshow s ON p.post_parent = s.nid
+	WHERE post_type = 'attachment' AND s.field_op_slideshow_thumb_fid IS NOT NULL
+	GROUP BY post_id
+;
+
+
 # insert metadata for thumbnails - this relates to the content post ID
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
@@ -1296,6 +1404,68 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 ;
 
 # there is no alt or caption info for video files stored in drupal
+
+
+# might as well use the standard thumbnail meta key with the same value for slideshow
+# wordpress will read this part for us in the admin
+# do we need both?
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/slideshow', '/imagecache/thumbnail/images/thumbnails/slideshow')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
+;
+
+
+# insert local gallery files as posts so they show in media library
+# need to watch carefully to see that the id field doesn't have to be removed due to any that wp has already created
+# if it does, we need to create a temporary table to store the drupal node id, because that is how the gallery shortcode works
+INSERT INTO `minnpost.wordpress`.wp_posts
+	(id, post_author, post_date, post_content, post_title, post_excerpt,
+	post_name, post_status, post_parent, guid, post_type, post_mime_type)
+	SELECT DISTINCT
+		n2.nid `id`,
+		n.uid `post_author`,
+		FROM_UNIXTIME(n.created) `post_date`,
+		'' `post_content`,
+		f.filename `post_title`,
+		'' `post_excerpt`,
+		f.filename `post_name`,
+		'inherit' `post_status`,
+		n.nid `post_parent`,
+		CONCAT('https://www.minnpost.com/', f.filepath) `guid`,
+		'attachment' `post_type`,
+		f.filemime `post_mime_type`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON s.nid = n.nid
+		INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
+		INNER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
+		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+;
+
+# there is alt / caption info
+
+# see if this works
+# insert metadata for gallery images - this relates to the image post ID
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+	ID `post_id`,
+	'_wp_imported_metadata' `meta_key`,
+	i.field_main_image_data `meta_value`
+	FROM `minnpost.wordpress`.wp_posts p
+	INNER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON p.post_parent = s.nid
+	INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
+	INNER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
+	GROUP BY post_id
+;
+
+
+
 
 
 # feature thumbnail
