@@ -1328,6 +1328,20 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 ;
 
 
+# insert metadata for main images - this relates to the image post ID
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+		ID `post_id`,
+		'_wp_imported_metadata' `meta_key`,
+		i.field_main_image_data `meta_value`
+		FROM `minnpost.wordpress`.wp_posts p
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image i ON p.post_parent = i.nid
+		WHERE post_type = 'attachment' AND i.field_main_image_data IS NOT NULL
+		GROUP BY post_id
+;
+
+
 # might as well use the standard thumbnail meta key with the same value for audio
 # wordpress will read this part for us in the admin
 # do we need both?
