@@ -109,7 +109,6 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 
 # create temporary table for raw html content
-# Temporary table for department terms
 CREATE TABLE `wp_posts_raw` (
   `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `post_content_raw` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -335,6 +334,43 @@ INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
 		WHERE `minnpost.drupal`.n.type = 'slideshow' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-gallery'
 ;
+
+
+## Get Document Cloud urls from article posts
+# requires the Document Cloud plugin in WP to be enabled
+# uses the [documentcloud url="https://www.documentcloud.org/documents/282753-lefler-thesis.html"] shortcode
+
+
+# create temporary table for documentcloud content
+CREATE TABLE `wp_posts_documentcloud` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `post_content_documentcloud` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+);
+
+
+# store documentcloud data in temp table
+INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_documentcloud
+	(id, post_content_documentcloud)
+	SELECT a.nid, CONCAT('<p><strong>DocumentCloud Document(s):</strong></p>', '[documentcloud url="', GROUP_CONCAT(d.field_op_documentcloud_doc_url SEPARATOR '"][documentcloud url="'), '"]') as urls
+		FROM `minnpost.drupal`.content_type_article a
+		INNER JOIN `minnpost.drupal`.node AS n ON a.vid = n.vid
+		INNER JOIN `minnpost.drupal`.content_field_op_documentcloud_doc AS d ON a.vid = d.vid
+		WHERE d.field_op_documentcloud_doc_url IS NOT NULL
+		GROUP BY nid
+;
+
+
+# append documentcloud data to the post body
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.wordpress`.wp_posts_documentcloud
+	ON wp_posts.ID = wp_posts_documentcloud.ID
+	SET wp_posts.post_content = CONCAT(wp_posts.post_content, wp_posts_documentcloud.post_content_documentcloud)
+;
+
+
+# get rid of that temporary documentcloud table
+DROP TABLE wp_posts_documentcloud;
 
 
 # Set all pages to "pending".
