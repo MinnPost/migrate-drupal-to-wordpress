@@ -52,7 +52,6 @@
 - Other content items to investigate
     - Custom Spill (remember: this one has a field_departments field that lists relevant departments)
     - Image (has a thumbnail as well as a big image)
-    - Slideshow (need to check the metadata on the gallery images)
 - Author / user information
     - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should).
     - We need to figure out how to map the Drupal roles to WordPress capabilities - which ones we can map directly vs which ones we have to create, and how we can create them (probably with a plugin)
