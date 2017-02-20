@@ -1515,17 +1515,6 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
-# more metadata for gallery images; this is caption only if it is stored elsewhere
-# this probably has to be run after the deserialize plugin finishes running, otherwise i think it would get overwritten
-UPDATE `minnpost.wordpress`.wp_posts
-	JOIN `minnpost.drupal`.node ON wp_posts.ID = node.nid
-	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r ON node.vid = r.vid
-	SET wp_posts.post_excerpt = r.body
-	WHERE wp_posts.post_type = 'attachment' AND r.body != ''
-;
-
-
-
 # feature thumbnail
 # this is the larger thumbnail image from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
@@ -1570,6 +1559,15 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		WHERE f.filepath LIKE '%images/thumbnails/video%'
 ;
 
+
+# more metadata for images; this is caption only if it is stored elsewhere
+# this probably has to be run after the deserialize plugin finishes running, otherwise i think it would get overwritten
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.drupal`.node ON wp_posts.ID = node.nid
+	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r ON node.vid = r.vid
+	SET wp_posts.post_excerpt = r.body
+	WHERE wp_posts.post_type = 'attachment' AND r.body != ''
+;
 
 
 # Fix post_name to remove paths.
