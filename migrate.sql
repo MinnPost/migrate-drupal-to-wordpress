@@ -1511,10 +1511,18 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 	INNER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON p.post_parent = s.nid
 	INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
 	INNER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
-	GROUP BY post_id
+	# GROUP BY post_id - I think this grouping is problematic for the slideshow images. maybe it only does one image per story?
 ;
 
 
+# more metadata for gallery images; this is caption only if it is stored elsewhere
+# this probably has to be run after the deserialize plugin finishes running, otherwise i think it would get overwritten
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.drupal`.node ON wp_posts.ID = node.nid
+	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r ON node.vid = r.vid
+	SET wp_posts.post_excerpt = r.body
+	WHERE wp_posts.post_type = 'attachment' AND r.body != ''
+;
 
 
 
