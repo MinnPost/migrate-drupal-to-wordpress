@@ -87,6 +87,15 @@ SELECT
 ;
 
 
+# get the image nodes that are in drupal but not wordpress
+# 2/21/17: there are 33 of these; only 3 of them have a field_main_image_fid
+# i can't tell if this is a problem or not at this point though
+SELECT nid, title
+FROM node n
+WHERE n.type = 'op_image'
+AND n.nid NOT IN (SELECT ID FROM `minnpost.wordpress`.wp_posts WHERE n.nid = ID)
+
+
 # Get count of standard page items
 # this one has an identical count as of 5/19/16
 SELECT
