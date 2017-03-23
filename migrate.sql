@@ -600,6 +600,34 @@ DROP TABLE wp_terms_section;
 ALTER TABLE wp_terms DROP COLUMN term_id_old;
 
 
+# Make categories that aren't in Drupal because permalinks break if the story doesn't have a category at all
+INSERT INTO wp_terms (name, slug, term_group)
+	VALUES
+		('Galleries', 'galleries', 0);
+
+
+# Create taxonomy for those new categories
+INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+	SELECT term_id, 'category'
+	FROM wp_terms
+	WHERE slug = 'galleries'
+;
+
+
+# Create relationships for each gallery story to this new category
+INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
+	SELECT nid as object_id, 
+	(
+		SELECT term_taxonomy_id
+		FROM wp_term_taxonomy tax
+		INNER JOIN wp_terms term ON tax.term_id = term.term_id
+		WHERE term.slug = 'galleries' AND tax.taxonomy = 'category'
+	) as term_taxonomy_id
+	FROM `minnpost.drupal`.node n
+	WHERE n.type = 'slideshow'
+;
+
+
 # Update category counts.
 UPDATE wp_term_taxonomy tt
 	SET `count` = (
@@ -1491,10 +1519,10 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON s.nid = n.nid
-		INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
-		INNER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
-		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON s.nid = n.nid
+		LEFT OUTER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
+		LEFT OUTER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 ;
 
 # there is alt / caption info
