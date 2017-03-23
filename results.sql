@@ -625,8 +625,17 @@ AND `minnpost.wordpress`.t.name != au.title
 
 # Get count of url redirects
 # as of 1/26/17 this is equal
+# 3/23/17: there are 209 gallery redirects because that's how many gallery redirects we have to create
 
 SELECT
 	(SELECT COUNT(*) FROM `minnpost.drupal`.path_redirect) as drupal_redirect_count, 
-	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_redirection_items) as wordpress_redirect_count
+	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_redirection_items) as wordpress_redirect_count,
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_posts p
+		INNER JOIN `minnpost.wordpress`.wp_term_relationships r ON p.ID = r.object_id
+		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+		INNER JOIN `minnpost.wordpress`.wp_terms t ON t.term_id = tax.term_id
+		WHERE t.slug = 'galleries'
+	) as wordpress_gallery_redirect_count
 ;

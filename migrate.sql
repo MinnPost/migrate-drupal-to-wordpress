@@ -611,6 +611,8 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 	SELECT term_id, 'category'
 	FROM wp_terms
 	WHERE slug = 'galleries'
+	ORDER BY term_id DESC
+	LIMIT 1
 ;
 
 
