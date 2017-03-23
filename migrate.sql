@@ -1705,3 +1705,32 @@ INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		FROM `minnpost.drupal`.path_redirect p
 		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON p.redirect = a.src
 ;
+
+
+# create redirects for the gallery stories
+INSERT INTO `minnpost.wordpress`.wp_redirection_items
+	(`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+	SELECT DISTINCT
+		CONCAT('/galleries/', p.post_name) `url`,
+		0 `regex`,
+		0 `position`,
+		1 `last_count`,
+		p.post_modified `last_access`,
+		1 `group_id`,
+		'enabled' `status`,
+		'url' `action_type`,
+		301 `action_code`,
+		CONCAT(
+			(
+			SELECT option_value
+			FROM `minnpost.wordpress`.wp_options
+			WHERE option_name = 'siteurl'
+			),
+			'/',
+			CONCAT('?p=', p.ID)) `action_data`,
+		'url' `match_type`,
+		'' `title`
+		FROM `minnpost.wordpress`.wp_posts p
+		INNER JOIN `minnpost.drupal`.node n ON p.ID = n.nid
+		WHERE n.type = 'slideshow'
+;
