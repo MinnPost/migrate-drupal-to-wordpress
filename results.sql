@@ -87,9 +87,31 @@ SELECT
 ;
 
 
+# need to count the documentcloud items
+# 3/29/17: these match
+SELECT
+	(
+		SELECT COUNT(*) FROM (
+			SELECT d.nid, field_op_documentcloud_doc_url
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.content_field_op_documentcloud_doc d USING(vid)
+			WHERE field_op_documentcloud_doc_url IS NOT NULL
+			GROUP BY nid
+			ORDER BY nid
+		) as documentcloud
+	) as drupal_documentcloud_count, 
+	(
+		SELECT count(*)
+		FROM `minnpost.wordpress`.wp_posts
+		WHERE post_content LIKE '%documentcloud document%'
+	) as wordpress_documentcloud_count
+;
+
+
 # get the image nodes that are in drupal but not wordpress
 # 2/21/17: there are 33 of these; only 3 of them have a field_main_image_fid
-# i can't tell if this is a problem or not at this point though
+# i can't tell if this is a problem or not at this point though. if it is, it's a minor problem.
+# trying to do more joins seems to cause more problems than it solves.
 SELECT nid, title
 FROM node n
 WHERE n.type = 'op_image'
@@ -106,6 +128,7 @@ SELECT
 
 # Get count of categories (wp) and department/section nodes (drupal)
 # 1/12/17: 75 for each
+# 3/23/17: 76 wordpress categories because we had to add one for galleries; wordpress won't create permalinks otherwise
 SELECT
 	(
 		SELECT COUNT(*)
@@ -123,6 +146,7 @@ SELECT
 # 2/2/17: 108724
 # 2/7/17: 108983
 # 2/7/17: 107980 with group by title/category
+# 3/23/17: 107987
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
 FROM `minnpost.drupal`.content_field_department d
 INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
@@ -144,6 +168,7 @@ ORDER BY title, category_title
 # 2/2/17: 108438
 # 2/7/17: 108711
 # 2/7/17: 107703 with group by title/category
+# 3/23/17: 107833
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
@@ -193,6 +218,7 @@ ORDER BY nid, category_title
 
 # get the pairs from wordpress that are not in drupal
 # 2/3/17: 0 results
+# 3/23/17: still has 0 results, even though that maybe shouldn't be accurate now because of the gallery posts?
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
@@ -336,6 +362,7 @@ FROM wordpress_category_pairs
 WHERE name NOT IN(SELECT name FROM drupal_section_department_pairs)
 ;
 # 2/1/17: zero results
+# 3/23/17: still zero results; this should be wrong though i think with the galleries
 
 
 # get rid of those temporary tables

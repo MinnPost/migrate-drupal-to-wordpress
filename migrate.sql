@@ -1504,6 +1504,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 # insert local gallery files as posts so they show in media library
 # need to watch carefully to see that the id field doesn't have to be removed due to any that wp has already created
 # if it does, we need to create a temporary table to store the drupal node id, because that is how the gallery shortcode works
+# 3/23/17: right now this fails because most of the titles are null. need to see if we can just get the ones that aren't null?
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1525,6 +1526,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		LEFT OUTER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
 		LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
 		LEFT OUTER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+		WHERE n.type = 'slideshow' AND f.filename IS NOT NULL
 ;
 
 # there is alt / caption info

@@ -5,6 +5,12 @@
 - Core content items :white_check_mark:
     - Drupal (article, article_full, audio, video, slideshow): 57868
     - WordPress (post; audio, video, and gallery are formats): 57868 (there was a one node difference until we added the video content type. unsure why but this isn't concerning at this time)
+    - Permalink structures for these core types:
+        - article: [field_department-path]/[yyyy]/[mm]/[title-raw]
+        - article_full: [field_department-path]/[yyyy]/[mm]/[title-raw]
+        - audio: [field_department-path]/[yyyy]/[mm]/[title-raw]
+        - video: [field_department-path]/[yyyy]/[mm]/[title-raw]
+        - slideshow: [field_department-path]/[yyyy]/[mm]/[title-raw] (we had to force a category for all the slideshow items so that the redirect would work)
 - Pages :white_check_mark:
     - Drupal: 55
     - WordPress: 55
@@ -62,12 +68,12 @@
     - Thumbnail image
     - Homepage Image Size
     - Main Image Size
-    - Inline Images (this can just go in the body, I think)
+    - Inline Images :white_check_mark:
     - Show Author Info?
     - Related Content
     - Related Multimedia
     - File attachments
-    - DocumentCloud Document
+    - DocumentCloud Document :white_check_mark:
     - Sidebar
     - Meta tags
     - Menu settings
@@ -78,18 +84,18 @@
     - MinnPost+ Icon Style
 - Analytics functionality
 - Modals
-- Sidebar items
+- Sidebar items that aren't custom spills
 - Access to items based on user info
 
 ### Notes
 
-- salesforce is a cluster. too much depends on it.
 - Wrote a plugin that splits the Drupal image metadata into alt, caption, etc. It can be used for as many types as necessary, but is currently only being used for thumbnail images. It's likely we won't need it for inline images, but maybe will need it for detail ones.
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
     - this should be fixed by Largo as I think it has a byline field
 - need user roles and permissions
 - user fields were only saved if the user has ever saved their account. otherwise it is somewhere not in the database. need to figure out what i was talking about here.
 - alt text, captions, whatever else for all images are in a serialized row in drupal. there seem to be some differences with the section/department nodes
+- wrote a plugin to create the custom spills as sidebar widgets. however they can't be migrated into the database directly because they are stored in the wp_options table as a big serialized mess.
 
 
 ### Content fields we don't have to migrate
