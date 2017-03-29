@@ -72,7 +72,7 @@
     - Show Author Info?
     - Related Content
     - Related Multimedia
-    - File attachments
+    - File attachments (these get added to the story inline, and we don't need to list them at the end) :white_check_mark:
     - DocumentCloud Document :white_check_mark:
     - Sidebar
     - Meta tags
