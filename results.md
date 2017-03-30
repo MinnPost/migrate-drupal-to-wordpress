@@ -56,7 +56,7 @@
     - Drupal: 51390
     - WordPress: 51390
 - Other content items to investigate
-    - Custom Spill (remember: this one has a field_departments field that lists relevant departments)
+    - Custom Spill :white_check_mark:
     - Image (has a thumbnail as well as a big image)
 - Author / user information
     - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should).
@@ -96,6 +96,12 @@
 - user fields were only saved if the user has ever saved their account. otherwise it is somewhere not in the database. need to figure out what i was talking about here.
 - alt text, captions, whatever else for all images are in a serialized row in drupal. there seem to be some differences with the section/department nodes
 - wrote a plugin to create the custom spills as sidebar widgets. however they can't be migrated into the database directly because they are stored in the wp_options table as a big serialized mess.
+    - We're using a plugin that can export/import widget settings because of this.
+    - This will be useful for any kind of widgets we have to create.
+- We're using the Merge duplicate terms plugin to merge tags that Drupal has in multiple taxonomies because we don't need this for WordPress.
+    - This will reduce the total count of tags.
+    - It also takes forever to run because there are a lot of duplicates.
+    - No duplicate categories are created by our migration queries.
 
 
 ### Content fields we don't have to migrate
