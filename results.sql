@@ -118,6 +118,47 @@ WHERE n.type = 'op_image'
 AND n.nid NOT IN (SELECT ID FROM `minnpost.wordpress`.wp_posts WHERE n.nid = ID)
 
 
+# count thumbnails tied to posts
+# wordpress: 23768
+SELECT ID, meta_value
+FROM wp_postmeta m
+LEFT OUTER JOIN wp_posts p ON m.post_id = p.ID
+WHERE meta_key = '_thumbnail_ext_url_thumbnail' AND meta_value IS NOT NULL AND ID IS NOT NULL
+GROUP BY ID
+ORDER BY ID
+;
+
+
+# drupal: 23134
+SELECT n.nid as ID, CONCAT('https://www.minnpost.com/', f.filepath) as meta_value
+FROM content_field_thumbnail_image i
+LEFT OUTER JOIN node n USING(nid)
+LEFT OUTER JOIN files f ON i.field_thumbnail_image_fid = f.fid
+WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video', 'slideshow')
+AND i.field_thumbnail_image_fid IS NOT NULL AND n.nid IS NOT NULL
+GROUP BY n.nid
+ORDER BY ID
+;
+
+# find missing ones from drupal
+SELECT ID, meta_value
+FROM wp_postmeta m
+LEFT OUTER JOIN wp_posts p ON m.post_id = p.ID
+WHERE meta_key = '_thumbnail_ext_url_thumbnail' AND meta_value IS NOT NULL AND ID IS NOT NULL
+AND NOT EXISTS (
+	SELECT n.nid as ID, CONCAT('https://www.minnpost.com/', f.filepath) as meta_value
+	FROM `minnpost.drupal`.content_field_thumbnail_image i
+	LEFT OUTER JOIN `minnpost.drupal`.node n USING(nid)
+	LEFT OUTER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video', 'slideshow')
+	AND i.field_thumbnail_image_fid IS NOT NULL AND n.nid IS NOT NULL
+	GROUP BY n.nid
+	ORDER BY ID
+)
+GROUP BY ID
+ORDER BY ID
+
+
 # Get count of standard page items
 # this one has an identical count as of 5/19/16
 SELECT

@@ -65,7 +65,7 @@
     - Deck
     - Byline
     - Teaser (probably will just be excerpt)
-    - Thumbnail image
+    - Thumbnail image :white_check_mark:
     - Homepage Image Size
     - Main Image Size
     - Inline Images :white_check_mark:
