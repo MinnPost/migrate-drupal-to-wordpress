@@ -164,7 +164,7 @@ ORDER BY ID;
 SELECT	
 	(SELECT COUNT(*)
 	FROM `minnpost.wordpress`.wp_postmeta
-	WHERE meta_key = 'homepage_image_size') as wordpress_homepage_image_count,
+	WHERE meta_key = '_mp_image_settings_homepage_image_size') as wordpress_homepage_image_count,
 	(SELECT COUNT(DISTINCT nid, field_hp_image_size_value) 
 		FROM `minnpost.drupal`.content_field_hp_image_size
 		WHERE field_hp_image_size_value IS NOT NULL) as drupal_homepage_image_count

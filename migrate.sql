@@ -1606,7 +1606,7 @@ UPDATE `minnpost.wordpress`.wp_posts
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
-		nid as post_id, 'homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
+		nid as post_id, '_mp_image_settings_homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
 		FROM content_field_hp_image_size
 		WHERE field_hp_image_size_value IS NOT NULL
 ;
