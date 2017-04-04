@@ -1602,6 +1602,16 @@ UPDATE `minnpost.wordpress`.wp_posts
 ;
 
 
+# this is homepage size metadata, field homepage_image_size, for posts
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		nid as post_id, 'homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
+		FROM content_field_hp_image_size
+		WHERE field_hp_image_size_value IS NOT NULL
+;
+
+
 # Fix post_name to remove paths.
 # If applicable; Drupal allows paths (i.e. slashes) in the dst field, but this breaks
 # WordPress URLs. If you have mod_rewrite turned on, stripping out the portion before

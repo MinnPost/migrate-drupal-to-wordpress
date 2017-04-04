@@ -156,7 +156,20 @@ AND NOT EXISTS (
 	ORDER BY ID
 )
 GROUP BY ID
-ORDER BY ID
+ORDER BY ID;
+
+
+# get homepage image sizes
+# 4/4/17: equal numbers here
+SELECT	
+	(SELECT COUNT(*)
+	FROM `minnpost.wordpress`.wp_postmeta
+	WHERE meta_key = 'homepage_image_size') as wordpress_homepage_image_count,
+	(SELECT COUNT(DISTINCT nid, field_hp_image_size_value) 
+		FROM `minnpost.drupal`.content_field_hp_image_size
+		WHERE field_hp_image_size_value IS NOT NULL) as drupal_homepage_image_count
+;
+
 
 
 # Get count of standard page items

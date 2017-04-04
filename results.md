@@ -66,8 +66,9 @@
     - Byline
     - Teaser (probably will just be excerpt)
     - Thumbnail image :white_check_mark:
-    - Homepage Image Size
-    - Main Image Size
+    - Homepage Image Size :white_check_mark:
+    - Main Image Credit
+    - Main Image Caption
     - Inline Images :white_check_mark:
     - Show Author Info?
     - Related Content
