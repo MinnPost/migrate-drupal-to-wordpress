@@ -1612,6 +1612,34 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# deck field
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+			d.nid `post_id`,
+			'_mp_subtitle_settings_deck' as meta_key,
+			d.field_deck_value `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
+		INNER JOIN `minnpost.drupal`.content_field_deck d ON n.nid = d.nid
+		WHERE d.field_deck_value IS NOT NULL
+;
+
+
+# byline field
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+			b.nid `post_id`,
+			'_mp_subtitle_settings_byline' as meta_key,
+			b.field_byline_value `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
+		INNER JOIN `minnpost.drupal`.content_field_byline b ON n.nid = b.nid
+		WHERE b.field_byline_value IS NOT NULL
+;
+
+
 # Fix post_name to remove paths.
 # If applicable; Drupal allows paths (i.e. slashes) in the dst field, but this breaks
 # WordPress URLs. If you have mod_rewrite turned on, stripping out the portion before

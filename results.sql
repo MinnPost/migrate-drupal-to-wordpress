@@ -162,14 +162,53 @@ ORDER BY ID;
 # get homepage image sizes
 # 4/4/17: equal numbers here
 SELECT	
-	(SELECT COUNT(*)
-	FROM `minnpost.wordpress`.wp_postmeta
-	WHERE meta_key = '_mp_image_settings_homepage_image_size') as wordpress_homepage_image_count,
-	(SELECT COUNT(DISTINCT nid, field_hp_image_size_value) 
+	(
+		SELECT COUNT(*)
+		FROM `minnpost.wordpress`.wp_postmeta
+		WHERE meta_key = '_mp_image_settings_homepage_image_size'
+	) as wordpress_homepage_image_count,
+	(
+		SELECT COUNT(DISTINCT nid, field_hp_image_size_value) 
 		FROM `minnpost.drupal`.content_field_hp_image_size
-		WHERE field_hp_image_size_value IS NOT NULL) as drupal_homepage_image_count
+		WHERE field_hp_image_size_value IS NOT NULL
+	) as drupal_homepage_image_count
 ;
 
+
+# count deck fields
+# 4/4/17: equal numbers here
+SELECT
+	(
+		SELECT COUNT(DISTINCT d.nid, d.field_deck_value)
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
+		INNER JOIN `minnpost.drupal`.content_field_deck d ON n.nid = d.nid
+		WHERE d.field_deck_value IS NOT NULL
+	) as drupal_deck_count,
+	(
+		SELECT count(*)
+		FROM `minnpost.wordpress`.wp_postmeta
+		WHERE meta_key = '_mp_subtitle_settings_deck'
+	) as wordpress_deck_count
+;
+
+
+# count byline fields
+# 4/4/17: equal numbers here
+SELECT
+	(
+		SELECT COUNT(DISTINCT b.nid, b.field_byline_value)
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
+		INNER JOIN `minnpost.drupal`.content_field_byline b ON n.nid = b.nid
+		WHERE b.field_byline_value IS NOT NULL
+	) as drupal_byline_count,
+	(
+		SELECT count(*)
+		FROM `minnpost.wordpress`.wp_postmeta
+		WHERE meta_key = '_mp_subtitle_settings_byline'
+	) as wordpress_byline_count
+;
 
 
 # Get count of standard page items

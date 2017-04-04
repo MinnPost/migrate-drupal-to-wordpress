@@ -62,8 +62,8 @@
     - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should).
     - We need to figure out how to map the Drupal roles to WordPress capabilities - which ones we can map directly vs which ones we have to create, and how we can create them (probably with a plugin)
 - Custom fields on core content
-    - Deck
-    - Byline
+    - Deck :white_check_mark:
+    - Byline :white_check_mark:
     - Teaser (probably will just be excerpt)
     - Thumbnail image :white_check_mark:
     - Homepage Image Size :white_check_mark:
