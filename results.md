@@ -67,7 +67,7 @@
 - Custom fields on core content
     - Deck :white_check_mark:
     - Byline :white_check_mark:
-    - Teaser (probably will just be excerpt)
+    - Teaser :white_check_mark:
     - Thumbnail image :white_check_mark:
     - Homepage Image Size :white_check_mark:
     - Main Image Credit
