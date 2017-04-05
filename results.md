@@ -81,9 +81,9 @@
     - Sidebar
     - Meta tags
     - Menu settings
-    - Comment settings
+    - Comment settings :white_check_mark:
     - Path settings
-    - URL redirects
+    - URL redirects :white_check_mark:
     - Content Access Level
     - MinnPost+ Icon Style
 - Analytics functionality
