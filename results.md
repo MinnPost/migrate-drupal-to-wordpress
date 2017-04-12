@@ -52,6 +52,22 @@
         - Detail
         - Author
         - make sure we define all the sizes correctly
+    - Folders to migrate to database
+        - /sites/default/files/imagecache/article_detail :white_check_mark
+        - /sites/default/files/imagecache/article_inset :white_check_mark
+        - /sites/default/files/imagecache/author_photo
+        - /sites/default/files/imagecache/author_teaser
+        - /sites/default/files/imagecache/feature
+        - /sites/default/files/imagecache/feature_large
+        - /sites/default/files/imagecache/feature_middle
+        - /sites/default/files/imagecache/featured_column
+        - /sites/default/files/imagecache/gallery :white_check_mark
+        - /sites/default/files/imagecache/image_detail
+        - /sites/default/files/imagecache/newsletter_thumb
+        - /sites/default/files/imagecache/sidebar_middle
+        - /sites/default/files/imagecache/sidebar_right
+        - /sites/default/files/imagecache/slideshow_image
+        - /sites/default/files/imagecache/thumbnail :white_check_mark
 - Redirects :white_check_mark:
     - Drupal: 51390
     - WordPress: 51390
@@ -141,6 +157,17 @@
 13. True/False question
 14. Election (related to that elections group of modules)
 15. Candidate (related to that elections group of modules)
+
+
+### File folders we don't have to migrate into database
+
+1. /sites/default/files/imagecache/400xY
+2. /sites/default/files/imagecache/elections_candidate_image
+3. /sites/default/files/imagecache/featured_image
+4. /sites/default/files/imagecache/package_featured
+5. /sites/default/files/imagecache/imagefield_default_images
+6. /sites/default/files/imagecache/js-remove
+7. /sites/default/files/op_imgbox
 
 
 ### Special Drupal things that will break
