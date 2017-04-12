@@ -96,7 +96,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 
 
 # Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
-# Add more Drupal content types below if applicable. Must match all types from line 99 that should be imported as 'posts'
+# Add more Drupal content types below if applicable. Must match all types from line 94 that should be imported as 'posts'
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
 	WHERE post_type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
@@ -603,7 +603,8 @@ ALTER TABLE wp_terms DROP COLUMN term_id_old;
 # Make categories that aren't in Drupal because permalinks break if the story doesn't have a category at all
 INSERT INTO wp_terms (name, slug, term_group)
 	VALUES
-		('Galleries', 'galleries', 0);
+		('Galleries', 'galleries', 0)
+;
 
 
 # Create taxonomy for those new categories
@@ -684,6 +685,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_users
 		AND u.uid != 0
 	)
 ;
+
 
 # when we add multiple permissions per user, it is fixed by the Merge Serialized Fields plugin.
 
@@ -1362,11 +1364,11 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
-	post_parent `post_id`,
-	'_thumbnail_id' `meta_key`,
-	ID `meta_value`
-	FROM wp_posts
-	WHERE post_type = 'attachment'
+		post_parent `post_id`,
+		'_thumbnail_id' `meta_key`,
+		ID `meta_value`
+		FROM wp_posts
+		WHERE post_type = 'attachment'
 ;
 
 
@@ -1505,6 +1507,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 # need to watch carefully to see that the id field doesn't have to be removed due to any that wp has already created
 # if it does, we need to create a temporary table to store the drupal node id, because that is how the gallery shortcode works
 # 3/23/17: right now this fails because most of the titles are null. need to see if we can just get the ones that aren't null?
+# 4/12/17: i don't know when this was fixed but it seems to be fine
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1607,7 +1610,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		nid as post_id, '_mp_image_settings_homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
-		FROM content_field_hp_image_size
+		FROM `minnpost.drupal`.content_field_hp_image_size
 		WHERE field_hp_image_size_value IS NOT NULL
 ;
 
@@ -1719,6 +1722,7 @@ UPDATE `minnpost.wordpress`.wp_options
 	SET option_value = 500
 	WHERE option_name = 'large_size_h'
 ;
+
 
 # Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 INSERT INTO `minnpost.wordpress`.wp_redirection_items
