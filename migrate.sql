@@ -1870,3 +1870,55 @@ INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		INNER JOIN `minnpost.drupal`.node n ON p.ID = n.nid
 		WHERE n.type = 'slideshow'
 ;
+
+
+# zoninator zones (like nodequeues)
+
+# add zoninator terms
+INSERT INTO `minnpost.wordpress`.wp_terms
+	(name, slug, term_group)
+	SELECT DISTINCT
+		q.title `name`,
+		replace(trim(lower(q.title)), ' ', '-') `slug`,
+		0 `term_group`
+	FROM `minnpost.drupal`.nodequeue_queue q
+	WHERE q.title != 'Homepage Columns' # we can't use a zone for this because the categories aren't posts in wp
+;
+
+
+# add zoninator taxonomies
+INSERT IGNORE INTO `minnpost.wordpress`.wp_term_taxonomy
+	(term_id, taxonomy, description, parent, count)
+	SELECT DISTINCT
+		term_id `term_id`,
+		'zoninator_zones' `taxonomy`,
+		CONCAT('a:1:{s:11:"description";s:15:"', t.name, '";}') `description`,
+		0 `parent`,
+		0 `count`
+		FROM `minnpost.drupal`.nodequeue_queue q
+		INNER JOIN `minnpost.wordpress`.wp_terms t ON q.title = t.name
+;
+
+
+# add posts to the zones
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			CONCAT('_zoninator_order_', t.term_id) `meta_key`,
+			ABS(
+				CAST(
+					n.position as SIGNED
+				)
+				- 
+				CAST(
+					(
+						SELECT MAX(position) FROM `minnpost.drupal`.nodequeue_nodes nq
+						WHERE nq.qid = q.qid
+					) as SIGNED
+				)
+			) + 1 as `meta_value`
+			FROM `minnpost.drupal`.nodequeue_nodes n
+			INNER JOIN `minnpost.drupal`.nodequeue_queue q ON n.qid = q.qid
+			INNER JOIN `minnpost.wordpress`.wp_terms t ON q.title = t.name
+;
