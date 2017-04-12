@@ -1551,7 +1551,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 
 # feature thumbnail
-# this is the larger thumbnail image from cache folder
+# this is the larger thumbnail image that shows on section pages from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1565,8 +1565,38 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# feature large thumbnail
+# this is the larger thumbnail image that shows on the top of the homepage from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature_large' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_large/images/thumbnails/articles')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/articles%'
+;
+
+
+# feature middle thumbnail
+# this is the middle thumbnail image that shows on the homepage from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature_middle' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_middle/images/thumbnails/articles')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/articles%'
+;
+
+
 # feature thumbnail for audio posts
-# this is the larger thumbnail image from cache folder
+# this is the larger thumbnail image that shows on section pages from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1580,14 +1610,74 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# feature large thumbnail for audio posts
+# this is the larger thumbnail image that shows on the top of the homepage from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature_large' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_large/images/thumbnails/audio')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/audio%'
+;
+
+
+# feature middle thumbnail for audio posts
+# this is the middle thumbnail image that shows on the homepage from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature_middle' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_middle/images/thumbnails/audio')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/audio%'
+;
+
+
 # feature thumbnail for video posts
-# this is the larger thumbnail image from cache folder
+# this is the larger thumbnail image that shows on section pages from cache folder
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
 		'_thumbnail_ext_url_feature' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature/images/thumbnails/video')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/video%'
+;
+
+
+# feature large thumbnail for video posts
+# this is the larger thumbnail image that shows on the top of the homepage from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature_large' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_large/images/thumbnails/video')) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
+		WHERE f.filepath LIKE '%images/thumbnails/video%'
+;
+
+
+# feature middle thumbnail for video posts
+# this is the middle thumbnail image that shows on the homepage from cache folder
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `post_id`,
+		'_thumbnail_ext_url_feature_middle' `meta_key`,
+		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_middle/images/thumbnails/video')) `meta_value`
 		FROM `minnpost.drupal`.node n
 		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
