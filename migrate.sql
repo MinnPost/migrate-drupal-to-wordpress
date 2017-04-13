@@ -80,7 +80,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		FROM_UNIXTIME(n.created) `post_date`,
 		r.body `post_content`,
 		n.title `post_title`,
-		r.teaser `post_excerpt`,
+		t.field_teaser_value `post_excerpt`,
 		substring_index(a.dst, '/', -1) `post_name`,
 		FROM_UNIXTIME(n.changed) `post_modified`,
 		n.type `post_type`,
@@ -90,6 +90,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		USING(vid)
 	LEFT OUTER JOIN `minnpost.drupal`.url_alias a
 		ON a.src = CONCAT('node/', n.nid)
+	LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(vid)
 	# Add more Drupal content types below if applicable.
 	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video', 'slideshow')
 ;
@@ -1685,6 +1686,15 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# get all kinds of post teasers if we have them
+UPDATE `minnpost.wordpress`.wp_posts
+	JOIN `minnpost.drupal`.node n ON wp_posts.ID = n.nid
+	INNER JOIN `minnpost.drupal`.content_field_teaser t ON n.nid = t.nid
+	SET wp_posts.post_excerpt = t.field_teaser_value
+	WHERE t.field_teaser_value != '' AND t.field_teaser_value != NULL
+;
+
+
 # more metadata for images; this is caption only if it is stored elsewhere
 # this probably has to be run after the deserialize plugin finishes running, otherwise i think it would get overwritten
 UPDATE `minnpost.wordpress`.wp_posts
@@ -1702,6 +1712,22 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		nid as post_id, '_mp_image_settings_homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
 		FROM `minnpost.drupal`.content_field_hp_image_size
 		WHERE field_hp_image_size_value IS NOT NULL
+;
+
+
+# fix homepage size vars to match wordpress better
+
+# medium
+UPDATE `minnpost.wordpress`.wp_postmeta
+	SET meta_value = 'feature_middle'
+	WHERE meta_value = 'medium' AND meta_key = '_mp_image_settings_homepage_image_size'
+;
+
+
+# large
+UPDATE `minnpost.wordpress`.wp_postmeta
+	SET meta_value = 'feature_large'
+	WHERE meta_value = 'large' AND meta_key = '_mp_image_settings_homepage_image_size'
 ;
 
 
@@ -1913,7 +1939,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 				- 
 				CAST(
 					(
-						SELECT MAX(position) FROM `minnpost.drupal`.nodequeue_nodes nq
+						SELECT MAX(position)
+						FROM `minnpost.drupal`.nodequeue_nodes nq
 						WHERE nq.qid = q.qid
 					) as SIGNED
 				)
@@ -1922,3 +1949,5 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 			INNER JOIN `minnpost.drupal`.nodequeue_queue q ON n.qid = q.qid
 			INNER JOIN `minnpost.wordpress`.wp_terms t ON q.title = t.name
 ;
+
+
