@@ -1951,3 +1951,65 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
+# Temporary table for menus
+CREATE TABLE `wp_menu` (
+	`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`placement` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	PRIMARY KEY (`id`)
+);
+
+# add menus
+INSERT INTO `minnpost.wordpress`.wp_menu
+	(name, title, placement)
+	SELECT DISTINCT
+		m.menu_name `name`,
+		m.title `title`,
+		REPLACE(TRIM(LOWER(m.title)), ' ', '_') `placement`
+		FROM `minnpost.drupal`.menu_custom m
+		WHERE m.menu_name NOT IN ('admin', 'devel', 'navigation', 'features', 'menu-top-menu')
+;
+
+
+# Temporary table for menu items
+CREATE TABLE `wp_menu_items` (
+	`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`menu-name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`menu-item-title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`menu-item-url` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`menu-item-status` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
+	PRIMARY KEY (`id`)
+);
+
+
+# add menu items
+INSERT INTO `minnpost.wordpress`.wp_menu_items
+	(`menu-name`, `menu-item-title`, `menu-item-url`)
+	SELECT DISTINCT
+		m.menu_name `menu-name`,
+		l.link_title `menu-item-title`,
+		REPLACE(IFNULL(a.dst, l.link_path), '<front>', '/') `menu-item-url`
+		FROM `minnpost.drupal`.menu_links l
+		INNER JOIN `minnpost.wordpress`.wp_menu wm ON wm.name = menu_name
+		INNER JOIN `minnpost.drupal`.menu_custom m USING(menu_name)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON l.link_path = a.src
+		LEFT OUTER JOIN `minnpost.drupal`.node n ON a.src = CONCAT('node/', n.nid)
+		WHERE l.plid = 0 AND l.hidden != 1 AND l.module = 'menu' AND (
+			(
+				n.status = 1 OR l.external = 1 AND m.menu_name NOT LIKE '%/%'
+			)
+			OR
+			(
+				n.status = 1 AND a.dst IS NOT NULL
+			)
+		) OR l.link_path IN ('events', 'support')
+		ORDER BY menu_name, weight
+;
+
+
+# get rid of those temporary menu tables
+DROP TABLE wp_menu;
+DROP TABLE wp_menu_items;
+
+

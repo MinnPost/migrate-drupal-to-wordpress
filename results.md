@@ -102,6 +102,13 @@
     - URL redirects :white_check_mark:
     - Content Access Level
     - MinnPost+ Icon Style
+- Menus
+    - Primary :white_check_mark:
+    - Secondary
+    - Support
+    - Network
+    - Footer Primary :white_check_mark:
+    - Footer Secondary :white_check_mark:
 - Analytics functionality
 - Modals
 - Sidebar items that aren't custom spills
