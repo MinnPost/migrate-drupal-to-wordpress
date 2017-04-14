@@ -1974,37 +1974,43 @@ INSERT INTO `minnpost.wordpress`.wp_menu
 
 # Temporary table for menu items
 CREATE TABLE `wp_menu_items` (
-	`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-	`menu-name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	`menu-item-title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	`menu-item-url` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	`menu-item-status` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
-	PRIMARY KEY (`id`)
-);
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `menu-name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `menu-item-title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `menu-item-url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+  `menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
+  PRIMARY KEY (`id`)
+)
 
 
 # add menu items
 INSERT INTO `minnpost.wordpress`.wp_menu_items
-	(`menu-name`, `menu-item-title`, `menu-item-url`)
+	(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 	SELECT DISTINCT
 		m.menu_name `menu-name`,
 		l.link_title `menu-item-title`,
-		REPLACE(IFNULL(a.dst, l.link_path), '<front>', '/') `menu-item-url`
+		REPLACE(IFNULL(a.dst, l.link_path), '<front>', '/') `menu-item-url`,
+		(
+			SELECT link_title
+			FROM `minnpost.drupal`.menu_links
+			WHERE mlid = l.plid
+		) as `menu-item-parent`
 		FROM `minnpost.drupal`.menu_links l
 		INNER JOIN `minnpost.wordpress`.wp_menu wm ON wm.name = menu_name
 		INNER JOIN `minnpost.drupal`.menu_custom m USING(menu_name)
 		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON l.link_path = a.src
 		LEFT OUTER JOIN `minnpost.drupal`.node n ON a.src = CONCAT('node/', n.nid)
-		WHERE l.plid = 0 AND l.hidden != 1 AND l.module = 'menu' AND (
+		WHERE l.hidden != 1 AND l.module = 'menu' AND l.link_path != 'blogs' AND (
 			(
-				n.status = 1 OR l.external = 1 AND m.menu_name NOT LIKE '%/%'
+				n.status = 1 OR l.external = 1 OR n.nid IS NULL
 			)
 			OR
 			(
 				n.status = 1 AND a.dst IS NOT NULL
 			)
 		) OR l.link_path IN ('events', 'support')
-		ORDER BY menu_name, weight
+		ORDER BY menu_name, plid, weight
 ;
 
 
