@@ -2005,7 +2005,7 @@ INSERT INTO `minnpost.wordpress`.wp_menu_items
 		INNER JOIN `minnpost.drupal`.menu_custom m USING(menu_name)
 		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON l.link_path = a.src
 		LEFT OUTER JOIN `minnpost.drupal`.node n ON a.src = CONCAT('node/', n.nid)
-		WHERE l.hidden != 1 AND l.module = 'menu' AND l.link_path != 'blogs' AND (
+		WHERE l.hidden != 1 AND l.module = 'menu' AND l.link_path NOT IN ('blogs', 'node/68326') AND (
 			(
 				n.status = 1 OR l.external = 1 OR n.nid IS NULL
 			)
@@ -2019,6 +2019,7 @@ INSERT INTO `minnpost.wordpress`.wp_menu_items
 
 
 # get rid of those temporary menu tables
+# can't run this until after the task runs
 DROP TABLE wp_menu;
 DROP TABLE wp_menu_items;
 
