@@ -301,11 +301,15 @@ CREATE TABLE `wp_posts_gallery` (
 
 
 # store gallery ids in temp table
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts_gallery
 	(id, post_content_gallery)
-	SELECT s.nid, GROUP_CONCAT(DISTINCT n2.nid) `post_content_gallery`
-		FROM `minnpost.drupal`.content_field_op_slideshow_images s
-		INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
+	SELECT s.nid, GROUP_CONCAT(DISTINCT n.nid) `post_content_gallery`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		LEFT JOIN `minnpost.drupal`.content_field_op_slideshow_images sr ON sr.vid = n.vid
+		LEFT JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON s.field_op_slideshow_images_nid = n.nid
+		WHERE s.nid IS NOT NULL
 		GROUP BY s.nid
 ;
 
@@ -528,9 +532,11 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 # Create relationships for each story to the departments it had in Drupal
 # Track this relationship by the term_id_old field
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
+	SELECT DISTINCT dept.vid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
 	INNER JOIN wp_terms term ON tax.term_id = term.term_id
 	INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+	INNER JOIN JOIN `minnpost.drupal`.node n ON dept.vid = n.vid
+	#INNER JOIN JOIN `minnpost.drupal`.content_field_teaser t USING(vid)
 	WHERE tax.taxonomy = 'category'
 ;
 
@@ -1710,6 +1716,7 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 # more metadata for images; this is caption only if it is stored elsewhere
 # this probably has to be run after the deserialize plugin finishes running, otherwise i think it would get overwritten
+# todo: fix the plugin so it doesn't overwrite this
 UPDATE `minnpost.wordpress`.wp_posts
 	JOIN `minnpost.drupal`.node ON wp_posts.ID = node.nid
 	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r ON node.vid = r.vid
