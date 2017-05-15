@@ -880,6 +880,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 
 # Drupal authors who may or may not be users
 # these get inserted as posts with a type of guest-author, for the plugin
+# this one does take the vid into account (we do track revisions)
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_modified, post_type, `post_status`)
@@ -895,7 +896,8 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'guest-author' `post_type`,
 		'publish' `post_status`
 	FROM `minnpost.drupal`.node n
-	INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+	INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+	INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 ;
 
@@ -924,7 +926,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_users (term_id, name, slug)
 	substring_index(a.dst, '/', -1) `slug`
 	FROM `minnpost.drupal`.node n
 	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
-	WHERE n.type='author'
+	WHERE n.type = 'author'
 	ORDER BY n.nid
 ;
 
@@ -950,13 +952,16 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, descriptio
 
 
 # Create relationships for each story to the author it had in Drupal
+# Track this relationship by the user_node_id_old field
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-	SELECT ca.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
-	FROM `minnpost.drupal`.content_field_op_author ca
-	LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON ca.field_op_author_nid = t.user_node_id_old
-	LEFT OUTER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_id)
-	WHERE tax.term_taxonomy_id IS NOT NULL
-	GROUP BY CONCAT(ca.nid, ca.field_op_author_nid)
+	SELECT DISTINCT author.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_op_author author ON term.user_node_id_old = author.field_op_author_nid
+			INNER JOIN `minnpost.drupal`.node n ON author.nid = n.nid AND author.vid = n.vid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			WHERE tax.taxonomy = 'author'
 ;
 
 

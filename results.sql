@@ -240,22 +240,22 @@ SELECT
 # 2/7/17: 108983
 # 2/7/17: 107980 with group by title/category
 # 3/23/17: 107987
-# 5/15/17: 109129
-SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
-FROM `minnpost.drupal`.content_field_department d
-INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
+# 5/15/17: 108158
+SELECT DISTINCT d.nid as nid, d.field_department_nid as category, n.title as title, d2.title as category_title
+FROM `minnpost.drupal`.node n
+INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+INNER JOIN `minnpost.drupal`.content_field_department d USING (nid, vid)
 INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
-WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND n.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 GROUP BY title, category_title
 UNION
-SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
-FROM `minnpost.drupal`.content_field_section s
-INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
+SELECT DISTINCT s.nid as nid, s.field_section_nid as category, n.title as title, s2.title as category_title
+FROM `minnpost.drupal`.node n
+INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+INNER JOIN `minnpost.drupal`.content_field_section s USING (nid, vid)
 INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
-WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
-GROUP BY title, category_title
-ORDER BY title, category_title
-;
+WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND n.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+GROUP BY title, category_title;
 
 
 # get all the pairs between posts and categories in wordpress
@@ -263,7 +263,7 @@ ORDER BY title, category_title
 # 2/7/17: 108711
 # 2/7/17: 107703 with group by title/category
 # 3/23/17: 107833
-# 5/15/17: 107899
+# 5/15/17: 108022
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
@@ -278,11 +278,14 @@ ORDER BY post_title, name
 # get the pairs from drupal that are not in wordpress
 # 2/2/17: 0 results
 # 2/6/17: this is confusing because the above queries result in a difference of 272
-SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
-FROM `minnpost.drupal`.content_field_department d
-INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
+# 5/15/17: still 0 results
+# 5/15/17: still has a difference in the above query counts of 136
+SELECT DISTINCT d.nid as nid, d.field_department_nid as category, n.title as title, d2.title as category_title
+FROM `minnpost.drupal`.node n
+INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+INNER JOIN `minnpost.drupal`.content_field_department d USING (nid, vid)
 INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
-WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND n.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 AND NOT EXISTS (
 	SELECT p.ID, t.term_id, p.post_title, t.name
 	FROM `minnpost.wordpress`.wp_term_relationships r
@@ -293,11 +296,12 @@ AND NOT EXISTS (
 	ORDER BY p.ID, name
 )
 UNION
-SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
-FROM `minnpost.drupal`.content_field_section s
-INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
+SELECT DISTINCT s.nid as nid, s.field_section_nid as category, n.title as title, s2.title as category_title
+FROM `minnpost.drupal`.node n
+INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+INNER JOIN `minnpost.drupal`.content_field_section s USING (nid, vid)
 INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
-WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND n.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
 AND NOT EXISTS (
 	SELECT p.ID, t.term_id, p.post_title, t.name
 	FROM `minnpost.wordpress`.wp_term_relationships r
@@ -321,19 +325,22 @@ INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
 INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax USING(term_taxonomy_id)
 INNER JOIN `minnpost.wordpress`.wp_terms t USING(term_id)
 WHERE tax.taxonomy = 'category'
-AND NOT EXISTS(
-	SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
-	FROM `minnpost.drupal`.content_field_department d
-	INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
+AND NOT EXISTS (
+	SELECT DISTINCT d.nid as nid, d.field_department_nid as category, n.title as title, d2.title as category_title
+	FROM `minnpost.drupal`.node n
+	INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+	INNER JOIN `minnpost.drupal`.content_field_department d USING (nid, vid)
 	INNER JOIN `minnpost.drupal`.node d2 ON d.field_department_nid = d2.nid
-	WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+	WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL AND n.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+	GROUP BY title, category_title
 	UNION
-	SELECT DISTINCT s.nid as nid, s.field_section_nid as category, a.title as title, s2.title as category_title
-	FROM `minnpost.drupal`.content_field_section s
-	INNER JOIN `minnpost.drupal`.node a ON s.nid = a.nid
+	SELECT DISTINCT s.nid as nid, s.field_section_nid as category, n.title as title, s2.title as category_title
+	FROM `minnpost.drupal`.node n
+	INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+	INNER JOIN `minnpost.drupal`.content_field_section s USING (nid, vid)
 	INNER JOIN `minnpost.drupal`.node s2 ON s.field_section_nid = s2.nid
-	WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND a.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
-	ORDER BY nid, category_title
+	WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL AND n.type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+	GROUP BY title, category_title
 )
 ORDER BY p.ID, name
 ;
@@ -342,7 +349,7 @@ ORDER BY p.ID, name
 # get count of post/category / node/section or node/department combinations
 # this filters wp into categories only
 # 2/1/17: not working; 108775 for wordpress, 106914 for drupal
-# 5/15/17: 109207 for wp, 119080 for drupal
+# 5/15/17: 109415 for wp, 109468 for drupal
 SELECT
 	(
 		SELECT COUNT(*)
@@ -354,11 +361,15 @@ SELECT
 	(
 		SELECT COUNT(*) FROM (
 			SELECT DISTINCT d.nid as nid, d.field_department_nid as category
-				FROM `minnpost.drupal`.content_field_department d
+				FROM `minnpost.drupal`.node n
+				INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+				INNER JOIN `minnpost.drupal`.content_field_department d USING(nid, vid)
 				WHERE d.nid IS NOT NULL AND d.field_department_nid IS NOT NULL
 				UNION
 				SELECT DISTINCT s.nid as nid, s.field_section_nid as category
-				FROM `minnpost.drupal`.content_field_section s
+				FROM `minnpost.drupal`.node n
+				INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+				INNER JOIN `minnpost.drupal`.content_field_section s USING(nid, vid)
 				WHERE s.nid IS NOT NULL AND s.field_section_nid IS NOT NULL
 				ORDER BY nid
 		) pairs
@@ -629,8 +640,6 @@ SELECT
 # Count how many users we added as terms and term_taxonomy
 # 2001 users for these queries on 6/29/16; this is correct
 # 2018 users for these queries on 1/12/17; this is correct
-SELECT COUNT(*) FROM wp_terms WHERE term_group=1;
-# also could use this
 SELECT count(*) FROM wp_term_taxonomy WHERE taxonomy='author';
 
 
@@ -646,14 +655,16 @@ SELECT count(*) FROM wp_term_taxonomy WHERE taxonomy='author';
 # count for the insert from drupal into wordpress is 52961
 # 7/8/16 final is 52961 for drupal, 52961 for wordpress!!!
 # 1/12/17 54901 for drupal, 54901 for wordpress
+# 5/15/17: 55577 for drupal, 55577 for wordpress - we are tracking the revisions accurately now
 SELECT
 	(
 		SELECT COUNT(*)
 		FROM
 		(
-			Select n.nid
+			SELECT n.nid
 			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_op_author a USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node auth ON a.field_op_author_nid = auth.nid
 			WHERE field_op_author_nid IS NOT NULL
 			GROUP BY concat(a.nid, a.field_op_author_nid)
@@ -666,31 +677,6 @@ SELECT
 		WHERE tax.taxonomy = 'author'
 	) as wordpress_post_author_count
 ;
-
-
-
-# find the story/author pairs in drupal
-#52961
-# 1/12/17: 54901 rows
-Select a.nid, a.field_op_author_nid
-FROM `minnpost.drupal`.content_field_op_author a
-INNER JOIN `minnpost.drupal`.node n ON a.nid = n.nid
-INNER JOIN `minnpost.drupal`.node auth ON a.field_op_author_nid = auth.nid
-WHERE field_op_author_nid IS NOT NULL
-GROUP BY concat(a.nid, a.field_op_author_nid)
-ORDER BY a.nid
-
-
-# find the story/author pairs in wordpress
-#52961
-# can only run this before deleting the user_node_id_old from migrate.sql
-SELECT r.object_id, t.user_node_id_old
-FROM `minnpost.wordpress`.wp_term_relationships r
-INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON tax.term_taxonomy_id = r.term_taxonomy_id
-INNER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
-WHERE tax.taxonomy = 'author'
-ORDER BY r.object_id
-
 
 
 
