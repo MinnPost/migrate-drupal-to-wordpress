@@ -335,6 +335,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 
 
 # use gallery format for gallery posts
+# this doesn't really seem to need any vid stuff
 INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 	SELECT n.nid, tax.term_taxonomy_id
 		FROM `minnpost.drupal`.node n
@@ -358,6 +359,7 @@ CREATE TABLE `wp_posts_documentcloud` (
 
 
 # store documentcloud data in temp table
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_documentcloud
 	(id, post_content_documentcloud)
 	SELECT a.nid, CONCAT('<p><strong>DocumentCloud Document(s):</strong></p>', '[documentcloud url="', GROUP_CONCAT(d.field_op_documentcloud_doc_url SEPARATOR '"][documentcloud url="'), '"]') as urls
@@ -400,13 +402,15 @@ CREATE TABLE `wp_term_relationships_posts` (
 
 
 # store with the term_id from drupal
+# this will break if we incorporate the vid. maybe because drupal stores terms with no nodes, so we can't start with the node table
 INSERT INTO `minnpost.wordpress`.wp_term_relationships_posts (object_id, term_taxonomy_id)
 	SELECT DISTINCT nid, tid FROM `minnpost.drupal`.term_node
 ;
 
 
 # get the term_taxonomy_id for each term and put it in the table
-UPDATE `minnpost.wordpress`.wp_term_relationships_posts r
+# needs an ignore because there's at least one duplicate now
+UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships_posts r
 	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_id
 	SET r.term_taxonomy_id = tax.term_taxonomy_id
 ;
@@ -437,6 +441,7 @@ DROP TABLE wp_term_relationships_posts;
 # Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
 # mp change: uses the pid field from Drupal for the comment_parent field
 # mp change: keep the value 200 characters or less
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_comments
 	(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
 	comment_author_email, comment_author_url, comment_approved, user_id)
