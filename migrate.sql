@@ -532,12 +532,11 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 # Create relationships for each story to the departments it had in Drupal
 # Track this relationship by the term_id_old field
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-	SELECT DISTINCT dept.vid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
-	INNER JOIN wp_terms term ON tax.term_id = term.term_id
-	INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
-	INNER JOIN JOIN `minnpost.drupal`.node n ON dept.vid = n.vid
-	#INNER JOIN JOIN `minnpost.drupal`.content_field_teaser t USING(vid)
-	WHERE tax.taxonomy = 'category'
+	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+			WHERE tax.taxonomy = 'category'
 ;
 
 
