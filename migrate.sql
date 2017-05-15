@@ -120,6 +120,7 @@ CREATE TABLE `wp_posts_raw` (
 
 # store raw values in temp table
 # 1/12/17: this was broken and had to rename the table in the join. unclear why it ever worked before though.
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_raw
 	(id, post_content_raw)
 	SELECT a.nid, h.field_html_value
@@ -155,6 +156,7 @@ CREATE TABLE `wp_posts_audio` (
 
 
 # store audio urls in temp table
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts_audio
 	(id, post_content_audio)
 	SELECT a.nid, CONCAT('https://www.minnpost.com/', f.filepath) `post_content_audio`
@@ -189,6 +191,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 
 
 # use audio format for audio posts
+# this doesn't really seem to need any vid stuff
 INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 	SELECT n.nid, tax.term_taxonomy_id
 		FROM `minnpost.drupal`.node n
@@ -218,6 +221,7 @@ CREATE TABLE `wp_posts_video` (
 # store video urls for local files in temp table
 # for drupal 6, the only way we can do this is to encode FLV files as mp4 files separately, and make sure they 
 # exist at the matching url (whatever.flv needs to be there as whatever.mp4)
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts_video
 	(id, post_content_video)
 	SELECT v.nid, REPLACE(CONCAT('[video src="https://www.minnpost.com/', f.filepath, '"]'), '.flv', '.mp4') `post_content_video`
@@ -228,6 +232,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts_video
 
 # store video urls for embed videos in temp table
 # drupal 6 (at least our version) only does vimeo and youtube
+# these don't really seem to need any vid stuff
 
 # vimeo
 INSERT INTO `minnpost.wordpress`.wp_posts_video
@@ -273,6 +278,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 
 
 # use video format for video posts
+# this doesn't really seem to need any vid stuff
 INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 	SELECT n.nid, tax.term_taxonomy_id
 		FROM `minnpost.drupal`.node n
