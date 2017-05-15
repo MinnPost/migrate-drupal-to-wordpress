@@ -531,11 +531,14 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 
 # Create relationships for each story to the departments it had in Drupal
 # Track this relationship by the term_id_old field
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
 		FROM wp_term_taxonomy tax
 			INNER JOIN wp_terms term ON tax.term_id = term.term_id
 			INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+			INNER JOIN `minnpost.drupal`.node n ON dept.nid = n.nid AND dept.vid = n.vid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
 			WHERE tax.taxonomy = 'category'
 ;
 
@@ -598,11 +601,15 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 
 # Create relationships for each story to the section it had in Drupal
 # Track this relationship by the term_id_old field
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-	SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id from wp_term_taxonomy tax
-	INNER JOIN wp_terms term ON tax.term_id = term.term_id
-	INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
-	WHERE tax.taxonomy = 'category'
+	SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+			INNER JOIN `minnpost.drupal`.node n ON section.nid = n.nid AND section.vid = n.vid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			WHERE tax.taxonomy = 'category'
 ;
 
 
@@ -636,6 +643,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
 
 
 # Create relationships for each gallery story to this new category
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 	SELECT nid as object_id, 
 	(
@@ -645,6 +653,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_
 		WHERE term.slug = 'galleries' AND tax.taxonomy = 'category'
 	) as term_taxonomy_id
 	FROM `minnpost.drupal`.node n
+	INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 	WHERE n.type = 'slideshow'
 ;
 
@@ -835,7 +844,6 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 
 # Assign administrator permissions
 # Set all Drupal super admins to "administrator"
-# todo: do this with an update instead of insert
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value

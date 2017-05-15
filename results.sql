@@ -240,6 +240,7 @@ SELECT
 # 2/7/17: 108983
 # 2/7/17: 107980 with group by title/category
 # 3/23/17: 107987
+# 5/15/17: 109129
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, a.title as title, d2.title as category_title
 FROM `minnpost.drupal`.content_field_department d
 INNER JOIN `minnpost.drupal`.node a ON d.nid = a.nid
@@ -262,6 +263,7 @@ ORDER BY title, category_title
 # 2/7/17: 108711
 # 2/7/17: 107703 with group by title/category
 # 3/23/17: 107833
+# 5/15/17: 107899
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
@@ -312,6 +314,7 @@ ORDER BY nid, category_title
 # get the pairs from wordpress that are not in drupal
 # 2/3/17: 0 results
 # 3/23/17: still has 0 results, even though that maybe shouldn't be accurate now because of the gallery posts?
+# 5/15/17: still has 0 apparently
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
@@ -339,6 +342,7 @@ ORDER BY p.ID, name
 # get count of post/category / node/section or node/department combinations
 # this filters wp into categories only
 # 2/1/17: not working; 108775 for wordpress, 106914 for drupal
+# 5/15/17: 109207 for wp, 119080 for drupal
 SELECT
 	(
 		SELECT COUNT(*)
@@ -364,6 +368,11 @@ SELECT
 
 # get name, term id, and count for category / post pairs compared to section/department / node pairs
 # 2/1/17: these match
+# 5/15/17: these no longer match.
+# however, i think this is necessary because we're no longer saving all the old revisions
+# this means a wordpress post will only have the categories that the active revision has in drupal
+# this also means i can't think of a good way to test the counts anymore.
+
 
 # Temporary table for the story/category pairs
 CREATE TABLE `drupal_section_department_pairs` (
@@ -456,6 +465,7 @@ WHERE name NOT IN(SELECT name FROM drupal_section_department_pairs)
 ;
 # 2/1/17: zero results
 # 3/23/17: still zero results; this should be wrong though i think with the galleries
+# 5/15/17: still zero
 
 
 # get rid of those temporary tables
