@@ -966,7 +966,8 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_
 
 
 # use the title as the user's display name
-# this might be all the info we have about them
+# this might be all the info we have about 
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -974,11 +975,13 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		'cap-display_name' `meta_key`,
 		n.title `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 ;
 
 
 # make a slug for user's login
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -986,7 +989,8 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		'cap-user_login' `meta_key`,
 		substring_index(a.dst, '/', -1) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 ;
 
@@ -1006,6 +1010,7 @@ ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (p
 
 
 # add the email address for the author if we have one
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1013,13 +1018,15 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		'cap-user_email' `meta_key`,
 		REPLACE(link.field_link_multiple_url, 'mailto:', '') `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.drupal`.content_field_link_multiple link USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_link_multiple link USING (nid, vid)
 		WHERE field_link_multiple_title = 'Email the author'
 ;
 
 
 # add the author's twitter account if we have it
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1027,13 +1034,15 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		'cap-twitter' `meta_key`,
 		CONCAT('https://twitter.com/', REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(link.field_link_multiple_url, 'http://www.twitter.com/', ''), 'http://twitter.com/', ''), '@', ''), 'https://twitter.com/', ''), '#%21', ''), '/', '')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
-		INNER JOIN `minnpost.drupal`.content_field_link_multiple link USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_link_multiple link USING (nid, vid)
 		WHERE field_link_multiple_title LIKE '%witter%'
 ;
 
 
 # add the author's job title if we have it
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1041,13 +1050,15 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		'cap-job-title' `meta_key`,
 		author.field_op_author_jobtitle_value `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 		WHERE author.field_op_author_jobtitle_value IS NOT NULL
 ;
 
 
 # if the author is linked to a user account, link them
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1055,12 +1066,14 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		'cap-linked_account' `meta_key`,
 		user.mail `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 ;
 
 
 # if the linked user has an email address, add it
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1068,7 +1081,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'cap-user_email' `meta_key`,
 		user.mail `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 ;
 
@@ -1155,6 +1169,7 @@ ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
 
 # main images as featured images for posts
 # this will be the default if another version is not present
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1162,7 +1177,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url' `meta_key`,
 		CONCAT('https://www.minnpost.com/', f.filepath) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 ;
 
@@ -1173,6 +1189,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # use the detail suffix for the single page image
 # this loads the detail image from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1180,7 +1197,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_detail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/articles', '/imagecache/article_detail/images/articles')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 ;
 
@@ -1192,6 +1210,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # thumbnail version
 # this is the small thumbnail from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1199,12 +1218,14 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_thumbnail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/thumbnail/images/thumbnails/articles')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 ;
 
 
 # insert thumbnails as posts
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1221,7 +1242,8 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 ;
 
@@ -1229,6 +1251,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 
 
 # insert metadata for thumbnails - this relates to the image post ID
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1244,6 +1267,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 # thumbnail version for audio posts
 # this is the small thumbnail from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1251,12 +1275,14 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_thumbnail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
 
 # insert audio thumbnails as posts
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1273,12 +1299,14 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
 
 # insert metadata for audio thumbnails - this relates to the image post ID
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1294,6 +1322,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 # thumbnail version for video posts
 # this is the small thumbnail from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1301,12 +1330,14 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_thumbnail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
 
 
 # insert video thumbnails as posts
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1323,12 +1354,14 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
 
 
 # insert metadata for video thumbnails - this relates to the image post ID
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1344,6 +1377,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 # thumbnail version for gallery posts
 # this is the small thumbnail from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1351,12 +1385,14 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_thumbnail' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/slideshow', '/imagecache/thumbnail/images/thumbnails/slideshow')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
 ;
 
 
 # insert gallery thumbnails as posts
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1373,12 +1409,14 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
 ;
 
 
 # insert metadata for gallery thumbnails - this relates to the image post ID
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1393,6 +1431,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 
 # insert metadata for thumbnails - this relates to the content post ID
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1407,6 +1446,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 # insert main images as posts
 # we put this after the other image stuff because the above query treats all attachment posts as if they are thumbnails
 # and these are not thumbnails
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1423,12 +1463,14 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 ;
 
 
 # insert metadata for main images - this relates to the image post ID
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1445,6 +1487,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 # might as well use the standard thumbnail meta key with the same value for audio
 # wordpress will read this part for us in the admin
 # do we need both?
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1452,12 +1495,14 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/thumbnail/images/thumbnails/audio')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 ;
 
 
 # insert local audio files as posts so they show in media library
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1474,7 +1519,8 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_audio a using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON a.field_audio_file_fid = f.fid
 ;
 
@@ -1484,6 +1530,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 # might as well use the standard thumbnail meta key with the same value for video
 # wordpress will read this part for us in the admin
 # do we need both?
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1491,12 +1538,14 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/thumbnail/images/thumbnails/video')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 ;
 
 
 # insert local video files as posts so they show in media library
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1513,7 +1562,8 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		'video/mp4' `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_video v using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_flash_file_fid = f.fid
 ;
 
@@ -1523,6 +1573,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 # might as well use the standard thumbnail meta key with the same value for slideshow
 # wordpress will read this part for us in the admin
 # do we need both?
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1530,7 +1581,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/slideshow', '/imagecache/thumbnail/images/thumbnails/slideshow')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
 ;
 
@@ -1540,6 +1592,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 # if it does, we need to create a temporary table to store the drupal node id, because that is how the gallery shortcode works
 # 3/23/17: right now this fails because most of the titles are null. need to see if we can just get the ones that aren't null?
 # 4/12/17: i don't know when this was fixed but it seems to be fine
+# 5/15/17: started using the vid to track revisions. need to see if it changes anything.
 INSERT INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_status, post_parent, guid, post_type, post_mime_type)
@@ -1557,7 +1610,8 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 		'attachment' `post_type`,
 		f.filemime `post_mime_type`
 		FROM `minnpost.drupal`.node n
-		LEFT OUTER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON s.nid = n.nid
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_op_slideshow_images s USING(nid, vid)
 		LEFT OUTER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
 		LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
 		LEFT OUTER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
@@ -1568,6 +1622,7 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 
 # see if this works
 # insert metadata for gallery images - this relates to the image post ID
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1584,6 +1639,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 # feature thumbnail
 # this is the larger thumbnail image that shows on section pages from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1591,7 +1647,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature/images/thumbnails/articles')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/articles%'
 ;
@@ -1599,6 +1656,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature large thumbnail
 # this is the larger thumbnail image that shows on the top of the homepage from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1606,7 +1664,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature_large' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_large/images/thumbnails/articles')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/articles%'
 ;
@@ -1614,6 +1673,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature middle thumbnail
 # this is the middle thumbnail image that shows on the homepage from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1621,7 +1681,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature_middle' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_middle/images/thumbnails/articles')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/articles%'
 ;
@@ -1629,6 +1690,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature thumbnail for audio posts
 # this is the larger thumbnail image that shows on section pages from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1636,7 +1698,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature/images/thumbnails/audio')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/audio%'
 ;
@@ -1644,6 +1707,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature large thumbnail for audio posts
 # this is the larger thumbnail image that shows on the top of the homepage from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1651,7 +1715,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature_large' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_large/images/thumbnails/audio')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/audio%'
 ;
@@ -1659,6 +1724,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature middle thumbnail for audio posts
 # this is the middle thumbnail image that shows on the homepage from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1666,7 +1732,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature_middle' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_middle/images/thumbnails/audio')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/audio%'
 ;
@@ -1674,6 +1741,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature thumbnail for video posts
 # this is the larger thumbnail image that shows on section pages from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1681,7 +1749,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature/images/thumbnails/video')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/video%'
 ;
@@ -1689,6 +1758,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature large thumbnail for video posts
 # this is the larger thumbnail image that shows on the top of the homepage from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1696,7 +1766,8 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature_large' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_large/images/thumbnails/video')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/video%'
 ;
@@ -1704,6 +1775,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 
 # feature middle thumbnail for video posts
 # this is the middle thumbnail image that shows on the homepage from cache folder
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1711,16 +1783,19 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		'_thumbnail_ext_url_feature_middle' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_middle/images/thumbnails/video')) `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid)
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
 		WHERE f.filepath LIKE '%images/thumbnails/video%'
 ;
 
 
 # get all kinds of post teasers if we have them
+# this one does take the vid into account
 UPDATE `minnpost.wordpress`.wp_posts
 	JOIN `minnpost.drupal`.node n ON wp_posts.ID = n.nid
-	INNER JOIN `minnpost.drupal`.content_field_teaser t ON n.nid = t.nid
+	INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+	INNER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 	SET wp_posts.post_excerpt = t.field_teaser_value
 	WHERE t.field_teaser_value != '' AND t.field_teaser_value != NULL
 ;
@@ -1729,6 +1804,7 @@ UPDATE `minnpost.wordpress`.wp_posts
 # more metadata for images; this is caption only if it is stored elsewhere
 # this probably has to be run after the deserialize plugin finishes running, otherwise i think it would get overwritten
 # todo: fix the plugin so it doesn't overwrite this
+# this doesn't really seem to need any vid stuff
 UPDATE `minnpost.wordpress`.wp_posts
 	JOIN `minnpost.drupal`.node ON wp_posts.ID = node.nid
 	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r ON node.vid = r.vid
@@ -1738,6 +1814,7 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 
 # this is homepage size metadata, field homepage_image_size, for posts
+# this doesn't really seem to need any vid stuff
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
