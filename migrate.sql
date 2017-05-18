@@ -71,6 +71,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 # Posts from Drupal stories
 # Keeps private posts hidden.
 # parameter: line 95 contains the Drupal content types that we want to migrate
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
 	post_name, post_modified, post_type, `post_status`)
@@ -87,10 +88,10 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		IF(n.status = 1, 'publish', 'draft') `post_status`
 	FROM `minnpost.drupal`.node n
 	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r
-		USING(vid)
+		USING(nid, vid)
 	LEFT OUTER JOIN `minnpost.drupal`.url_alias a
 		ON a.src = CONCAT('node/', n.nid)
-	LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(vid)
+	LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 	# Add more Drupal content types below if applicable.
 	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video', 'slideshow')
 ;
@@ -124,10 +125,11 @@ CREATE TABLE `wp_posts_raw` (
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_raw
 	(id, post_content_raw)
 	SELECT a.nid, h.field_html_value
-	FROM `minnpost.drupal`.content_type_article_full a
-	INNER JOIN `minnpost.drupal`.node AS n ON a.vid = n.vid
-	INNER JOIN `minnpost.drupal`.content_field_html AS h ON a.vid = h.vid
-	WHERE h.field_html_value IS NOT NULL
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_article_full a USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_html AS h USING(nid, vid)
+		WHERE h.field_html_value IS NOT NULL
 ;
 
 
@@ -160,9 +162,10 @@ CREATE TABLE `wp_posts_audio` (
 INSERT INTO `minnpost.wordpress`.wp_posts_audio
 	(id, post_content_audio)
 	SELECT a.nid, CONCAT('https://www.minnpost.com/', f.filepath) `post_content_audio`
-		FROM `minnpost.drupal`.content_type_audio a
-		INNER JOIN `minnpost.drupal`.node AS n ON a.vid = n.vid
-		INNER JOIN `minnpost.drupal`.files AS f ON a.field_audio_file_fid = f.fid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_audio a USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.files f ON a.field_audio_file_fid = f.fid
 ;
 
 
@@ -225,31 +228,36 @@ CREATE TABLE `wp_posts_video` (
 INSERT INTO `minnpost.wordpress`.wp_posts_video
 	(id, post_content_video)
 	SELECT v.nid, REPLACE(CONCAT('[video src="https://www.minnpost.com/', f.filepath, '"]'), '.flv', '.mp4') `post_content_video`
-		FROM `minnpost.drupal`.content_type_video v
-		INNER JOIN `minnpost.drupal`.node AS n ON v.vid = n.vid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_video v USING(nid, vid)
 		INNER JOIN `minnpost.drupal`.files AS f ON v.field_flash_file_fid = f.fid
 ;
 
 # store video urls for embed videos in temp table
 # drupal 6 (at least our version) only does vimeo and youtube
-# these don't really seem to need any vid stuff
+# these do take the vid into account
 
 # vimeo
 INSERT INTO `minnpost.wordpress`.wp_posts_video
 	(id, post_content_video)
 	SELECT v.nid, CONCAT('[embed]https://vimeo.com/', v.field_embedded_video_value, '[/embed]') `post_content_video`
-		FROM `minnpost.drupal`.content_field_embedded_video v
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_embedded_video v USING(nid, vid)
 		WHERE v.field_embedded_video_provider = 'vimeo'
-		GROUP BY v.nid
+		GROUP BY v.nid, v.vid
 ;
 
 # youtube
 INSERT INTO `minnpost.wordpress`.wp_posts_video
 	(id, post_content_video)
 	SELECT v.nid, CONCAT('[embed]https://www.youtube.com/watch?v=', v.field_embedded_video_value, '[/embed]') `post_content_video`
-		FROM `minnpost.drupal`.content_field_embedded_video v
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_embedded_video v USING(nid, vid)
 		WHERE v.field_embedded_video_provider = 'youtube'
-		GROUP BY v.nid
+		GROUP BY v.nid, v.vid
 ;
 
 
@@ -356,9 +364,9 @@ INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
 
 # create temporary table for documentcloud content
 CREATE TABLE `wp_posts_documentcloud` (
-  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `post_content_documentcloud` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`ID`)
+	`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`post_content_documentcloud` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+	PRIMARY KEY (`ID`)
 );
 
 
@@ -366,12 +374,13 @@ CREATE TABLE `wp_posts_documentcloud` (
 # this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_documentcloud
 	(id, post_content_documentcloud)
-	SELECT a.nid, CONCAT('<p><strong>DocumentCloud Document(s):</strong></p>', '[documentcloud url="', GROUP_CONCAT(d.field_op_documentcloud_doc_url SEPARATOR '"][documentcloud url="'), '"]') as urls
-		FROM `minnpost.drupal`.content_type_article a
-		INNER JOIN `minnpost.drupal`.node AS n ON a.vid = n.vid
-		INNER JOIN `minnpost.drupal`.content_field_op_documentcloud_doc AS d ON a.vid = d.vid
+	SELECT a.nid, CONCAT('<p><strong>DocumentCloud Document(s):</strong></p>', '[documentcloud url="', GROUP_CONCAT(d.field_op_documentcloud_doc_url SEPARATOR '"][documentcloud url="'), '"]') as urlsa
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_article a USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_op_documentcloud_doc d USING(nid, vid)
 		WHERE d.field_op_documentcloud_doc_url IS NOT NULL
-		GROUP BY nid
+		GROUP BY nid, vid
 ;
 
 
@@ -468,6 +477,7 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 # Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
 # in our case, we use this to make the urls absolute, at least for now
+# no need for vid stuff
 #UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
 UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
 ;
@@ -506,13 +516,15 @@ CREATE TABLE `wp_terms_dept` (
 
 
 # Put all Drupal departments into the temporary table
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_dept (term_id, name, slug)
 	SELECT nid `term_id`,
-	title `name`,
+	n.title `name`,
 	substring_index(a.dst, '/', -1) `slug`
-	FROM `minnpost.drupal`.node n
-	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
-	WHERE n.type='department'
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+		WHERE n.type='department'
 ;
 
 
@@ -553,6 +565,7 @@ DROP TABLE wp_terms_dept;
 
 # set the department as the primary category for the post, because that is how drupal handles urls
 # in wordpress, this depends on the WP Category Permalink plugin
+# this doesn't really seem to need any vid stuff
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT object_id as post_id, '_category_permalink' as meta_key, CONCAT('a:1:{s:8:"category";s:4:"', t.term_id, '";}') as meta_value
@@ -576,13 +589,15 @@ CREATE TABLE `wp_terms_section` (
 
 
 # Put all Drupal sections into the temporary table
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_section (term_id, name, slug)
 	SELECT nid `term_id`,
-	title `name`,
+	n.title `name`,
 	substring_index(a.dst, '/', -1) `slug`
-	FROM `minnpost.drupal`.node n
-	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
-	WHERE n.type='section'
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+		WHERE n.type='section'
 ;
 
 
@@ -919,15 +934,17 @@ CREATE TABLE `wp_terms_users` (
 
 
 # put the user terms in the temp table
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_users (term_id, name, slug)
 	SELECT DISTINCT
 	nid `term_id`,
-	title `name`,
+	n.title `name`,
 	substring_index(a.dst, '/', -1) `slug`
-	FROM `minnpost.drupal`.node n
-	LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
-	WHERE n.type = 'author'
-	ORDER BY n.nid
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+		WHERE n.type = 'author'
+		ORDER BY n.nid
 ;
 
 
@@ -1802,9 +1819,8 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 
 # more metadata for images; this is caption only if it is stored elsewhere
-# this probably has to be run after the deserialize plugin finishes running, otherwise i think it would get overwritten
-# todo: fix the plugin so it doesn't overwrite this
-# this doesn't really seem to need any vid stuff
+# the deserialize metadata plugin does not overwrite these values
+# this one does take the vid into account
 UPDATE `minnpost.wordpress`.wp_posts
 	JOIN `minnpost.drupal`.node ON wp_posts.ID = node.nid
 	LEFT OUTER JOIN `minnpost.drupal`.node_revisions r ON node.vid = r.vid
@@ -1814,17 +1830,20 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 
 # this is homepage size metadata, field homepage_image_size, for posts
-# this doesn't really seem to need any vid stuff
+# this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		nid as post_id, '_mp_image_settings_homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
-		FROM `minnpost.drupal`.content_field_hp_image_size
-		WHERE field_hp_image_size_value IS NOT NULL
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_hp_image_size s USING(nid, vid)
+		WHERE s.field_hp_image_size_value IS NOT NULL
 ;
 
 
 # fix homepage size vars to match wordpress better
+# these don't really seem to need any vid stuff
 
 # medium
 UPDATE `minnpost.wordpress`.wp_postmeta
@@ -1841,6 +1860,7 @@ UPDATE `minnpost.wordpress`.wp_postmeta
 
 
 # deck field
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1848,13 +1868,14 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 			'_mp_subtitle_settings_deck' as meta_key,
 			d.field_deck_value `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
-		INNER JOIN `minnpost.drupal`.content_field_deck d ON n.nid = d.nid
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_deck d USING(nid, vid)
 		WHERE d.field_deck_value IS NOT NULL
 ;
 
 
 # byline field
+# this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
@@ -1862,8 +1883,8 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 			'_mp_subtitle_settings_byline' as meta_key,
 			b.field_byline_value `meta_value`
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
-		INNER JOIN `minnpost.drupal`.content_field_byline b ON n.nid = b.nid
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_byline b USING(nid, vid)
 		WHERE b.field_byline_value IS NOT NULL
 ;
 
@@ -2036,6 +2057,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_term_taxonomy
 
 
 # add posts to the zones
+# this does not have a vid to use
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 		SELECT DISTINCT
@@ -2070,7 +2092,8 @@ CREATE TABLE `wp_menu` (
 );
 
 # add menus
-# parameter: line 1975 contains the menu types in drupal that we don't want to migrate
+# parameter: line 2104 contains the menu types in drupal that we don't want to migrate
+# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 INSERT INTO `minnpost.wordpress`.wp_menu
 	(name, title, placement)
 	SELECT DISTINCT
@@ -2095,7 +2118,7 @@ CREATE TABLE `wp_menu_items` (
 
 
 # add menu items
-# parameter: line 2009, 2017 are important parameters to keep out/force some urls because of how they're stored in drupal
+# parameter: line 2138, 2146 are important parameters to keep out/force some urls because of how they're stored in drupal
 INSERT INTO `minnpost.wordpress`.wp_menu_items
 	(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 	SELECT DISTINCT
