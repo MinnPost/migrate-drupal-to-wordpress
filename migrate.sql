@@ -70,7 +70,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 
 # Posts from Drupal stories
 # Keeps private posts hidden.
-# parameter: line 95 contains the Drupal content types that we want to migrate
+# parameter: line 96 contains the Drupal content types that we want to migrate
 # this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
@@ -99,7 +99,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 
 # Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 # Add more Drupal content types below if applicable
-# parameter: line 104 contains content types from parameter in line 95 that should be imported as 'posts'
+# parameter: line 105 contains content types from parameter in line 96 that should be imported as 'posts'
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
 	WHERE post_type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
@@ -842,7 +842,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 
 # Assign author permissions.
 # Sets all authors to "author" by default; next section can selectively promote individual authors
-# parameter: line 815 contains the Drupal permission roles that we want to migrate
+# parameter: line 855 contains the Drupal permission roles that we want to migrate
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
