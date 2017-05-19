@@ -2149,7 +2149,7 @@ INSERT INTO `minnpost.wordpress`.wp_menu_items
 
 
 # get rid of those temporary menu tables
-# can't run this until after the task runs
+# can't run this until after the migrate-random-things.php task runs twice. once to add parent items, once to add their children if applicable
 DROP TABLE wp_menu;
 DROP TABLE wp_menu_items;
 
