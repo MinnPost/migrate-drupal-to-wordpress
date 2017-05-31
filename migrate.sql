@@ -2112,13 +2112,14 @@ CREATE TABLE `wp_menu_items` (
   `menu-item-title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `menu-item-url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+  `menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
   `menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
   PRIMARY KEY (`id`)
 )
 
 
 # add menu items
-# parameter: line 2138, 2146 are important parameters to keep out/force some urls because of how they're stored in drupal
+# parameter: line 2152 important parameter to keep out/force some urls because of how they're stored in drupal
 INSERT INTO `minnpost.wordpress`.wp_menu_items
 	(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 	SELECT DISTINCT
@@ -2135,16 +2136,21 @@ INSERT INTO `minnpost.wordpress`.wp_menu_items
 		INNER JOIN `minnpost.drupal`.menu_custom m USING(menu_name)
 		LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON l.link_path = a.src
 		LEFT OUTER JOIN `minnpost.drupal`.node n ON a.src = CONCAT('node/', n.nid)
-		WHERE l.hidden != 1 AND l.module = 'menu' AND l.link_path NOT IN ('blogs', 'node/68326') AND (
+		LEFT OUTER JOIN `minnpost.drupal`.term_data t ON l.link_path = CONCAT('taxonomy/term/', t.tid)
+		WHERE l.hidden != 1 AND l.module = 'menu' AND (
 			(
-				n.status = 1 OR l.external = 1 OR n.nid IS NULL
+				n.status = 1 OR l.external = 1 OR n.nid IS NULL AND n.status != 0
 			)
 			OR
 			(
-				n.status = 1 AND a.dst IS NOT NULL
+				n.status = 1 AND a.dst IS NOT NULL AND n.status != 0
+			)
+			OR
+			(
+				l.router_path = 'taxonomy/term/%' AND t.tid IS NOT NULL
 			)
 		) OR l.link_path IN ('events', 'support')
-		ORDER BY menu_name, plid, weight
+		ORDER BY menu_name, plid, l.weight
 ;
 
 
