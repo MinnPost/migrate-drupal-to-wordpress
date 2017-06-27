@@ -18,6 +18,7 @@ TRUNCATE TABLE `minnpost.wordpress`.wp_posts;
 TRUNCATE TABLE `minnpost.wordpress`.wp_term_relationships;
 TRUNCATE TABLE `minnpost.wordpress`.wp_term_taxonomy;
 TRUNCATE TABLE `minnpost.wordpress`.wp_terms;
+TRUNCATE TABLE `minnpost.wordpress`.wp_termmeta;
 TRUNCATE TABLE `minnpost.wordpress`.wp_redirection_items;
 
 # If you're not bringing over multiple Drupal authors, comment out these lines and the other
@@ -555,6 +556,88 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_
 ;
 
 
+# text fields for categories
+
+# excerpt field
+# this one does take the vid into account
+INSERT INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT term.term_id as `term_id`, '_mp_category_excerpt' as meta_key, t.field_teaser_value `meta_value`
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+			INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			INNER JOIN `minnpost.drupal`.content_field_teaser t ON t.nid = n.nid AND t.vid = n.vid
+			WHERE tax.taxonomy = 'category' AND n.type = 'department' AND t.field_teaser_value IS NOT NULL
+;
+
+
+# sponsorship field
+# this one does take the vid into account
+INSERT INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT term.term_id as `term_id`, '_mp_category_sponsorship' as meta_key, s.field_sponsorship_value `meta_value`
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+			INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			INNER JOIN `minnpost.drupal`.content_field_sponsorship s ON s.nid = n.nid AND s.vid = n.vid
+			WHERE tax.taxonomy = 'category' AND n.type = 'department' AND s.field_sponsorship_value IS NOT NULL
+;
+
+
+# body field
+# this one does take the vid into account
+INSERT INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT term.term_id as `term_id`, '_mp_category_body' as meta_key, nr.body `meta_value`
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+			INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			WHERE tax.taxonomy = 'category' AND n.type = 'department' AND nr.body IS NOT NULL AND nr.body != ''
+;
+
+
+# thumbnail url
+# this is the small thumbnail from cache folder
+# this one does take the vid into account
+# have verified that all these department file urls exist
+INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `term_id`,
+		'_thumbnail_ext_url_thumbnail' `meta_key`,
+		REPLACE(CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/department', '/imagecache/thumbnail/images/thumbnails/department')), 'https://www.minnpost.com/sites/default/files/images/thumbnails', 'https://www.minnpost.com/sites/default/files/imagecache/thumbnail/images/thumbnails') `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+		WHERE n.type = 'department'
+;
+
+
+# main image url
+# this is the main image from cache folder
+# this one does take the vid into account
+# have verified that all these department file urls exist
+INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT
+		n.nid `term_id`,
+		'_category_main_image_ext_url' `meta_key`,
+		CONCAT('https://www.minnpost.com/', f.filepath) `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
+		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+		WHERE n.type = 'department'
+;
+
+
 # Empty term_id_old values so we can start over with our auto increment and still track for sections
 UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
 
@@ -626,6 +709,54 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_
 			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
 			WHERE tax.taxonomy = 'category'
 ;
+
+
+# excerpt field
+# this one does take the vid into account
+# currently none of these have values even though the field is available to them
+INSERT INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT term.term_id as `term_id`, '_mp_category_excerpt' as meta_key, t.field_teaser_value `meta_value`
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+			INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			INNER JOIN `minnpost.drupal`.content_field_teaser t ON t.nid = n.nid AND t.vid = n.vid
+			WHERE tax.taxonomy = 'category' AND n.type = 'section' AND t.field_teaser_value IS NOT NULL
+;
+
+
+# sponsorship field
+# this one does take the vid into account
+INSERT INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT term.term_id as `term_id`, '_mp_category_sponsorship' as meta_key, s.field_sponsorship_value `meta_value`
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+			INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			INNER JOIN `minnpost.drupal`.content_field_sponsorship s ON s.nid = n.nid AND s.vid = n.vid
+			WHERE tax.taxonomy = 'category' AND n.type = 'section' AND s.field_sponsorship_value IS NOT NULL
+;
+
+
+# body field
+# this one does take the vid into account
+INSERT INTO `minnpost.wordpress`.wp_termmeta
+	(term_id, meta_key, meta_value)
+	SELECT DISTINCT term.term_id as `term_id`, '_mp_category_body' as meta_key, nr.body `meta_value`
+		FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+			INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			WHERE tax.taxonomy = 'category' AND n.type = 'section' AND nr.body IS NOT NULL AND nr.body != ''
+;
+
+
+# sections have no images
 
 
 # Empty term_id_old values so we can start over with our auto increment if applicable
@@ -2158,5 +2289,25 @@ INSERT INTO `minnpost.wordpress`.wp_menu_items
 # can't run this until after the migrate-random-things.php task runs twice. once to add parent items, once to add their children if applicable
 DROP TABLE wp_menu;
 DROP TABLE wp_menu_items;
+
+
+# replace content when necessary
+
+# use widgets for news by region
+UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = '<!--break-->
+[widget_instance id="minnpostspills_widget-35" format="0"]
+
+[widget_instance id="minnpostspills_widget-25" format="0"]
+
+[widget_instance id="minnpostspills_widget-17" format="0"]
+
+[widget_instance id="minnpostspills_widget-26" format="0"]'
+	WHERE ID = 30750;
+;
+
+
+# CUSTOM META FIELDS
+# currently we are handling the ui for these with the Carbon Fields plugin but they just use the meta database structure
 
 
