@@ -2311,3 +2311,14 @@ UPDATE `minnpost.wordpress`.wp_posts
 # currently we are handling the ui for these with the Carbon Fields plugin but they just use the meta database structure
 
 
+# ads
+# this allows us to get the ad data into a wordpress table so we can manipulate it into ads with a plugin
+# currently using the migrate random things plugin to work on this
+INSERT IGNORE INTO `minnpost.wordpress`.ads
+	(tag, tag_id, tag_name, priority, conditions, result)
+	SELECT DISTINCT delta as tag, name as tag_id, tag as tag_name, weight as priority, conditions as conditions, reactions as result
+	FROM `minnpost.drupal`.context c
+		INNER JOIN `minnpost.drupal`.blocks b ON c.reactions LIKE CONCAT('%', b.delta, '%')
+		WHERE module = 'minnpost_ads' AND theme = 'siteskin'
+		ORDER BY weight DESC, delta
+;
