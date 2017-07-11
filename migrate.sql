@@ -2294,17 +2294,21 @@ DROP TABLE wp_menu_items;
 # replace content when necessary
 
 # use widgets for news by region
+# these numbers change if we have to recreate the widgets. ugh.
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_content = '<!--break-->
-[widget_instance id="minnpostspills_widget-35" format="0"]
+[widget_instance id="minnpostspills_widget-50" format="0"]
 
-[widget_instance id="minnpostspills_widget-25" format="0"]
+[widget_instance id="minnpostspills_widget-46" format="0"]
 
-[widget_instance id="minnpostspills_widget-17" format="0"]
+[widget_instance id="minnpostspills_widget-18" format="0"]
 
-[widget_instance id="minnpostspills_widget-26" format="0"]'
+[widget_instance id="minnpostspills_widget-45" format="0"]'
 	WHERE ID = 30750;
 ;
+
+# note about widgets: the imported json does not set the target by url field
+# also, resetting the database with all these queries does not break the widgets, so setting them up really only has to be done once
 
 
 # CUSTOM META FIELDS
