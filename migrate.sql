@@ -94,7 +94,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		ON a.src = CONCAT('node/', n.nid)
 	LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 	# Add more Drupal content types below if applicable.
-	WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video', 'slideshow')
+	WHERE n.type IN ('article', 'article_full', 'audio', 'newsletter', 'page', 'video', 'slideshow')
 ;
 
 
@@ -401,6 +401,28 @@ DROP TABLE wp_posts_documentcloud;
 # If you're keeping the same page structure from Drupal, comment out this query
 # and the new page INSERT at the end of this script.
 # UPDATE `minnpost.wordpress`.wp_posts SET post_status = 'pending' WHERE post_type = 'page';
+
+
+# add selected stories for all newsletter posts
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT n.nid as post_id, '_mp_newsletter_top_posts_csv' as meta_key, GROUP_CONCAT(t.field_newsletter_top_nid) as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_newsletter_top t USING(nid, vid)
+		WHERE t.field_newsletter_top_nid IS NOT NULL
+		GROUP BY nid, vid
+;
+
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT n.nid as post_id, '_mp_newsletter_more_posts_csv' as meta_key, GROUP_CONCAT(m.field_newsletter_more_nid) as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_newsletter_more m USING(nid, vid)
+		WHERE m.field_newsletter_more_nid IS NOT NULL
+		GROUP BY nid, vid
+;
 
 
 # Post/Tag relationships
@@ -2222,19 +2244,6 @@ CREATE TABLE `wp_menu` (
 	PRIMARY KEY (`id`)
 );
 
-# add menus
-# parameter: line 2104 contains the menu types in drupal that we don't want to migrate
-# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
-INSERT INTO `minnpost.wordpress`.wp_menu
-	(name, title, placement)
-	SELECT DISTINCT
-		m.menu_name `name`,
-		m.title `title`,
-		REPLACE(TRIM(LOWER(m.title)), ' ', '_') `placement`
-		FROM `minnpost.drupal`.menu_custom m
-		WHERE m.menu_name NOT IN ('admin', 'devel', 'navigation', 'features', 'menu-top-menu')
-;
-
 
 # Temporary table for menu items
 CREATE TABLE `wp_menu_items` (
@@ -2247,6 +2256,20 @@ CREATE TABLE `wp_menu_items` (
   `menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
   PRIMARY KEY (`id`)
 )
+
+
+# add menus
+# parameter: line 2104 contains the menu types in drupal that we don't want to migrate
+# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
+INSERT INTO `minnpost.wordpress`.wp_menu
+	(name, title, placement)
+	SELECT DISTINCT
+		m.menu_name `name`,
+		m.title `title`,
+		REPLACE(TRIM(LOWER(m.title)), ' ', '_') `placement`
+		FROM `minnpost.drupal`.menu_custom m
+		WHERE m.menu_name NOT IN ('admin', 'devel', 'navigation', 'features', 'menu-top-menu')
+;
 
 
 # add menu items
