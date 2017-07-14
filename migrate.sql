@@ -403,6 +403,68 @@ DROP TABLE wp_posts_documentcloud;
 # UPDATE `minnpost.wordpress`.wp_posts SET post_status = 'pending' WHERE post_type = 'page';
 
 
+# newsletter fields
+
+# type field - the data is easier if we just do this one separately for the three types
+# this one does take the vid into account
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'daily' as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+		WHERE tn.tid = 219 and n.type = 'newsletter'
+;
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'greater_mn' as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+		WHERE tn.tid = 220 and n.type = 'newsletter'
+;
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'book_club' as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+		WHERE tn.tid = 221 and n.type = 'newsletter'
+;
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'sunday_review' as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+		WHERE tn.tid = 5396 and n.type = 'newsletter'
+;
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'dc_memo' as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+		WHERE tn.tid = 7910 and n.type = 'newsletter'
+;
+
+
+# preview text field
+# this one does take the vid into account
+# note: this field currently does not exist in any newsletters, so it will error unless someone uses it
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT DISTINCT
+			p.nid `post_id`,
+			'_mp_newsletter_preview_text' as meta_key,
+			p.field_preview_value `meta_value`
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_preview_text p USING(nid, vid)
+		WHERE p.field_preview_value IS NOT NULL
+;
+
+
 # add selected stories for all newsletter posts
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
@@ -2332,10 +2394,6 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 # note about widgets: the imported json does not set the target by url field
 # also, resetting the database with all these queries does not break the widgets, so setting them up really only has to be done once
-
-
-# CUSTOM META FIELDS
-# currently we are handling the ui for these with the Carbon Fields plugin but they just use the meta database structure
 
 
 # ads
