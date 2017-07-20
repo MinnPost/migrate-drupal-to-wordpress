@@ -219,6 +219,37 @@ SELECT
 ;
 
 
+# Get count of newsletter items
+# this one has an identical count as of 7/20/17
+SELECT
+	(SELECT COUNT(*) FROM `minnpost.drupal`.node WHERE type IN ('newsletter')) as drupal_newsletter_count, 
+	(SELECT COUNT(*) FROM `minnpost.wordpress`.wp_posts WHERE post_type = 'newsletter') as wordpress_newsletter_count
+;
+
+
+# Get count of newsletters by type
+# these are identical as of 7/20/17
+
+# drupal
+SELECT td.name, COUNT(*)
+	FROM `minnpost.drupal`.node n
+	INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+	INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+	INNER JOIN `minnpost.drupal`.term_data td USING(tid)
+	WHERE type IN ('newsletter')
+	GROUP BY tn.tid
+;
+
+# wordpress
+SELECT m.meta_value, count(*)
+	FROM `minnpost.wordpress`.wp_posts p
+	INNER JOIN `minnpost.wordpress`.wp_postmeta m ON p.ID = m.post_id
+	WHERE p.post_type = 'newsletter' AND m.meta_key = '_mp_newsletter_type'
+	GROUP BY m.meta_value
+	ORDER BY m.meta_id
+;
+
+
 # Get count of categories (wp) and department/section nodes (drupal)
 # 1/12/17: 75 for each
 # 3/23/17: 76 wordpress categories because we had to add one for galleries; wordpress won't create permalinks otherwise

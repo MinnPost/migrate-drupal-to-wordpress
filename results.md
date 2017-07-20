@@ -14,6 +14,9 @@
 - Pages :white_check_mark:
     - Drupal: 55
     - WordPress: 55
+- Newsletters: :white_check_mark:
+    - Drupal: 2051 (daily: 1593, greater mn: 266, book club: 1, sunday review; 186, washington: 5)
+    - WordPress: 2051 (daily: 1593, greater mn: 266, book club: 1, sunday review; 186, washington: 5)
 - Comments :white_check_mark:
     - Drupal: 198659
     - WordPress: 198659
