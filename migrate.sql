@@ -27,6 +27,11 @@ TRUNCATE TABLE `minnpost.wordpress`.wp_redirection_items;
 DELETE FROM `minnpost.wordpress`.wp_users WHERE ID > 1;
 DELETE FROM `minnpost.wordpress`.wp_usermeta WHERE user_id > 1;
 
+# it is also worth clearing out the individual object maps from the salesforce plugin because ids for things change, and this could break mappings anyway
+TRUNCATE TABLE `minnpost.wordpress`.wp_object_sync_sf_object_map;
+
+# this is where we stop deleting data to start over
+
 
 # Tags from Drupal vocabularies
 # Using REPLACE prevents script from breaking if Drupal contains duplicate terms.
@@ -2396,6 +2401,20 @@ UPDATE `minnpost.wordpress`.wp_posts
 # also, resetting the database with all these queries does not break the widgets, so setting them up really only has to be done once
 
 
+# create ad table for migrating
+CREATE TABLE `ads` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `tag` varchar(255) NOT NULL DEFAULT '',
+  `tag_id` varchar(255) NOT NULL DEFAULT '',
+  `tag_name` varchar(255) NOT NULL DEFAULT '',
+  `priority` int(11) NOT NULL,
+  `conditions` text NOT NULL,
+  `result` text NOT NULL,
+  `stage` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+);
+
+
 # ads
 # this allows us to get the ad data into a wordpress table so we can manipulate it into ads with a plugin
 # currently using the migrate random things plugin to work on this
@@ -2407,3 +2426,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.ads
 		WHERE module = 'minnpost_ads' AND theme = 'siteskin'
 		ORDER BY weight DESC, delta
 ;
+
+
+# get rid of the temporary ad table
+DROP TABLE ads;
