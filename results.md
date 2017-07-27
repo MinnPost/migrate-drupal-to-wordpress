@@ -78,7 +78,7 @@
     - Custom Spill :white_check_mark:
     - Image (has a thumbnail as well as a big image)
 - Author / user information
-    - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should).
+    - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should). :white_check_mark:
     - We need to figure out how to map the Drupal roles to WordPress capabilities - which ones we can map directly vs which ones we have to create, and how we can create them (probably with a plugin)
     - Custom fields for authors and users
 - Category / tag information
@@ -107,9 +107,9 @@
     - MinnPost+ Icon Style
 - Menus
     - Primary :white_check_mark:
-    - Secondary
-    - Support
-    - Network
+    - Secondary :white_check_mark:
+    - Support :white_check_mark:
+    - Network :white_check_mark:
     - Footer Primary :white_check_mark:
     - Footer Secondary :white_check_mark:
 - Analytics functionality
