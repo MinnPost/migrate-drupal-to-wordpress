@@ -137,7 +137,7 @@
 ### Content fields we don't have to migrate
 
 1. field_center_intro
-2. field_center_main_image (if we can fix the sponsor)
+2. field_center_main_image
 3. field_center_related
 4. field_center_title
 5. field_download

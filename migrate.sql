@@ -409,12 +409,6 @@ UPDATE `minnpost.wordpress`.wp_posts
 DROP TABLE wp_posts_documentcloud;
 
 
-# Set all pages to "pending".
-# If you're keeping the same page structure from Drupal, comment out this query
-# and the new page INSERT at the end of this script.
-# UPDATE `minnpost.wordpress`.wp_posts SET post_status = 'pending' WHERE post_type = 'page';
-
-
 # newsletter fields
 
 # add a temporary constraint for newsletter type stuff so we don't add duplicates
@@ -1376,46 +1370,6 @@ ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
 # get rid of that user_node_id_old field if we are done migrating into wp_term_relationships
 ALTER TABLE wp_terms DROP COLUMN user_node_id_old;
 
-
-# VIDEO - READ BELOW AND COMMENT OUT IF NOT APPLICABLE TO YOUR SITE
-# If your Drupal site uses the content_field_video table to store links to YouTube videos,
-# this query will insert the video URLs at the end of all relevant posts.
-# WordPress will automatically convert the video URLs to YouTube embed code.
-#UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.drupal`.content_field_video v
-#	SET p.post_content = CONCAT_WS('\n',post_content,v.field_video_embed)
-#	WHERE p.ID = v.nid
-#;
-
-# IMAGES - READ BELOW AND COMMENT OUT IF NOT APPLICABLE TO YOUR SITE
-# If your Drupal site uses the content_field_image table to store images associated with posts,
-# but not actually referenced in the content of the posts themselves, this query
-# will insert the images at the top of the post.
-# HTML/CSS NOTE: The code applies a "drupal_image" class to the image and places it inside a <div>
-# with the "drupal_image_wrapper" class. Add CSS to your WordPress theme as appropriate to
-# handle styling of these elements. The <img> tag as written assumes you'll be copying the
-# Drupal "files" directory into the root level of WordPress, NOT placing it inside the
-# "wp-content/uploads" directory. It also relies on a properly formatted <base href="" /> tag.
-# Make changes as necessary before running this script!
-
-/*UPDATE IGNORE `minnpost.wordpress`.wp_posts p, `minnpost.drupal`.content_field_main_image i, `minnpost.drupal`.files f
-	SET p.post_content =
-		CONCAT(
-			CONCAT(
-				'<div class="drupal_image_wrapper"><img src="https://www.minnpost.com/',
-				f.filepath,
-				'" class="drupal_image" /></div>'
-			),
-			p.post_content
-		)
-	WHERE p.ID = i.nid
-	AND i.field_main_image_fid = f.fid
-	AND (
-		f.filename LIKE '%.jpg'
-		OR f.filename LIKE '%.jpeg'
-		OR f.filename LIKE '%.png'
-		OR f.filename LIKE '%.gif'
-	)
-;*/
 
 # main images as featured images for posts
 # this will be the default if another version is not present
