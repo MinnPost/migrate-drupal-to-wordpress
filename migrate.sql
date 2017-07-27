@@ -30,14 +30,21 @@ DELETE FROM `minnpost.wordpress`.wp_usermeta WHERE user_id > 1;
 # it is also worth clearing out the individual object maps from the salesforce plugin because ids for things change, and this could break mappings anyway
 TRUNCATE TABLE `minnpost.wordpress`.wp_object_sync_sf_object_map;
 
+# reset the deserialize value so it can start over with deserializing
+UPDATE `minnpost.wordpress`.wp_options
+	SET option_value = 1
+	WHERE option_name = 'deserialize_metadata_last_post_checked'
+;
+
 # this is where we stop deleting data to start over
+
+
 
 
 # Tags from Drupal vocabularies
 # Using REPLACE prevents script from breaking if Drupal contains duplicate terms.
 # permalinks are going to break for tags whatever we do, because drupal puts them all into folders (ie https://www.minnpost.com/category/social-tags/architect)
 # we have to determine which tags should instead be (or already are) categories, so we don't have permalinks like books-1
-
 REPLACE INTO `minnpost.wordpress`.wp_terms
 	(term_id, `name`, slug, term_group)
 	SELECT DISTINCT
@@ -76,7 +83,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 
 # Posts from Drupal stories
 # Keeps private posts hidden.
-# parameter: line 96 contains the Drupal content types that we want to migrate
+# parameter: line 109 contains the Drupal content types that we want to migrate
 # this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 	(id, post_author, post_date, post_content, post_title, post_excerpt,
@@ -105,7 +112,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 
 # Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 # Add more Drupal content types below if applicable
-# parameter: line 105 contains content types from parameter in line 96 that should be imported as 'posts'
+# parameter: line 118 contains content types from parameter in line 109 that should be imported as 'posts'
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_type = 'post'
 	WHERE post_type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
@@ -119,9 +126,9 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 # create temporary table for raw html content
 CREATE TABLE `wp_posts_raw` (
-  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `post_content_raw` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`ID`)
+	`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`post_content_raw` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+	PRIMARY KEY (`ID`)
 );
 
 
@@ -1062,7 +1069,7 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_val
 
 # Assign author permissions.
 # Sets all authors to "author" by default; next section can selectively promote individual authors
-# parameter: line 855 contains the Drupal permission roles that we want to migrate
+# parameter: line 1088 contains the Drupal permission roles that we want to migrate
 INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 	SELECT DISTINCT
 		u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -1203,7 +1210,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_
 
 
 # use the title as the user's display name
-# this might be all the info we have about 
+# this might be all the info we have about the user
 # this one does take the vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
@@ -2326,7 +2333,7 @@ CREATE TABLE `wp_menu_items` (
 
 
 # add menus
-# parameter: line 2104 contains the menu types in drupal that we don't want to migrate
+# parameter: line 2387 contains the menu types in drupal that we don't want to migrate
 # todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 INSERT INTO `minnpost.wordpress`.wp_menu
 	(name, title, placement)
@@ -2340,7 +2347,7 @@ INSERT INTO `minnpost.wordpress`.wp_menu
 
 
 # add menu items
-# parameter: line 2152 important parameter to keep out/force some urls because of how they're stored in drupal
+# parameter: line 2422 important parameter to keep out/force some urls because of how they're stored in drupal
 INSERT INTO `minnpost.wordpress`.wp_menu_items
 	(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 	SELECT DISTINCT
@@ -2403,15 +2410,15 @@ UPDATE `minnpost.wordpress`.wp_posts
 
 # create ad table for migrating
 CREATE TABLE `ads` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `tag` varchar(255) NOT NULL DEFAULT '',
-  `tag_id` varchar(255) NOT NULL DEFAULT '',
-  `tag_name` varchar(255) NOT NULL DEFAULT '',
-  `priority` int(11) NOT NULL,
-  `conditions` text NOT NULL,
-  `result` text NOT NULL,
-  `stage` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+	`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	`tag` varchar(255) NOT NULL DEFAULT '',
+	`tag_id` varchar(255) NOT NULL DEFAULT '',
+	`tag_name` varchar(255) NOT NULL DEFAULT '',
+	`priority` int(11) NOT NULL,
+	`conditions` text NOT NULL,
+	`result` text NOT NULL,
+	`stage` tinyint(1) NOT NULL DEFAULT '0',
+	PRIMARY KEY (`id`)
 );
 
 
