@@ -231,6 +231,7 @@ SELECT
 # these are identical as of 7/20/17
 
 # drupal
+# 1633, 272, 1, 193, 11
 SELECT td.name, COUNT(*)
 	FROM `minnpost.drupal`.node n
 	INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -241,6 +242,7 @@ SELECT td.name, COUNT(*)
 ;
 
 # wordpress
+# 1633, 272, 1, 193, 11
 SELECT m.meta_value, count(*)
 	FROM `minnpost.wordpress`.wp_posts p
 	INNER JOIN `minnpost.wordpress`.wp_postmeta m ON p.ID = m.post_id

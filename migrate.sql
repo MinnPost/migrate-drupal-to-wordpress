@@ -417,9 +417,12 @@ DROP TABLE wp_posts_documentcloud;
 
 # newsletter fields
 
+# add a temporary constraint for newsletter type stuff so we don't add duplicates
+ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_newsletter_type UNIQUE (post_id, meta_key, meta_value(64));
+
 # type field - the data is easier if we just do this one separately for the three types
 # this one does take the vid into account
-INSERT INTO `minnpost.wordpress`.wp_postmeta
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'daily' as meta_value
 		FROM `minnpost.drupal`.node n
@@ -427,7 +430,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
 		WHERE tn.tid = 219 and n.type = 'newsletter'
 ;
-INSERT INTO `minnpost.wordpress`.wp_postmeta
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'greater_mn' as meta_value
 		FROM `minnpost.drupal`.node n
@@ -435,7 +438,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
 		WHERE tn.tid = 220 and n.type = 'newsletter'
 ;
-INSERT INTO `minnpost.wordpress`.wp_postmeta
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'book_club' as meta_value
 		FROM `minnpost.drupal`.node n
@@ -443,7 +446,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
 		WHERE tn.tid = 221 and n.type = 'newsletter'
 ;
-INSERT INTO `minnpost.wordpress`.wp_postmeta
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'sunday_review' as meta_value
 		FROM `minnpost.drupal`.node n
@@ -451,7 +454,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
 		WHERE tn.tid = 5396 and n.type = 'newsletter'
 ;
-INSERT INTO `minnpost.wordpress`.wp_postmeta
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'dc_memo' as meta_value
 		FROM `minnpost.drupal`.node n
@@ -478,7 +481,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 
 
 # add selected stories for all newsletter posts
-INSERT INTO `minnpost.wordpress`.wp_postmeta
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT n.nid as post_id, '_mp_newsletter_top_posts_csv' as meta_key, GROUP_CONCAT(t.field_newsletter_top_nid) as meta_value
 		FROM `minnpost.drupal`.node n
@@ -488,7 +491,7 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		GROUP BY nid, vid
 ;
 
-INSERT INTO `minnpost.wordpress`.wp_postmeta
+INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT n.nid as post_id, '_mp_newsletter_more_posts_csv' as meta_key, GROUP_CONCAT(m.field_newsletter_more_nid) as meta_value
 		FROM `minnpost.drupal`.node n
@@ -497,6 +500,9 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		WHERE m.field_newsletter_more_nid IS NOT NULL
 		GROUP BY nid, vid
 ;
+
+# drop that temporary constraint
+ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_newsletter_type;
 
 
 # Post/Tag relationships
