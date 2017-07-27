@@ -1437,19 +1437,20 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 # for slideshow posts, there is no main image field in Drupal
 
 
-# use the detail suffix for the single page image
+# use the detail suffix for the single page image url field
 # this loads the detail image from cache folder
 # this one does take the vid into account
 INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT DISTINCT
 		n.nid `post_id`,
-		'_thumbnail_ext_url_detail' `meta_key`,
+		'_mp_image_settings_main_image' `meta_key`,
 		CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/articles', '/imagecache/article_detail/images/articles')) `meta_value`
 		FROM `minnpost.drupal`.node n
 		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 		INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
 		INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+		WHERE i.field_main_image_fid IS NOT NULL
 ;
 
 
@@ -1719,8 +1720,24 @@ INSERT INTO `minnpost.wordpress`.wp_posts
 ;
 
 
+# insert main image id as cmb2 field value
+# this now takes vid into account
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+		post_parent `post_id`,
+		'_mp_image_settings_main_image_id' `meta_key`,
+		ID `meta_value`
+		FROM wp_posts p
+		LEFT OUTER JOIN `minnpost.drupal`.node n ON p.post_parent = n.nid
+		LEFT OUTER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image i USING (nid, vid)
+		WHERE post_type = 'attachment' AND guid LIKE '%/imagecache/article_detail/images/articles%'
+;
+
+
 # insert metadata for main images - this relates to the image post ID
-# this doesn't really seem to need any vid stuff
+# this now takes vid into account
 INSERT INTO `minnpost.wordpress`.wp_postmeta
 	(post_id, meta_key, meta_value)
 	SELECT
@@ -1728,8 +1745,24 @@ INSERT INTO `minnpost.wordpress`.wp_postmeta
 		'_wp_imported_metadata' `meta_key`,
 		i.field_main_image_data `meta_value`
 		FROM `minnpost.wordpress`.wp_posts p
-		LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image i ON p.post_parent = i.nid
-		WHERE post_type = 'attachment' AND i.field_main_image_data IS NOT NULL
+			LEFT OUTER JOIN `minnpost.drupal`.node n ON p.post_parent = n.nid
+			LEFT OUTER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image i USING (nid, vid)
+			WHERE post_type = 'attachment' AND i.field_main_image_data IS NOT NULL
+			GROUP BY post_id
+;
+
+
+# insert credit field for main images
+INSERT INTO `minnpost.wordpress`.wp_postmeta
+	(post_id, meta_key, meta_value)
+	SELECT
+		ID `post_id`,
+		'_media_credit' `meta_key`,
+		c.field_main_image_credit_value `meta_value`
+		FROM `minnpost.wordpress`.wp_posts p
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image_credit c ON p.post_parent = c.nid
+		WHERE post_type = 'attachment' AND c.field_main_image_credit_value IS NOT NULL
 		GROUP BY post_id
 ;
 
@@ -2143,6 +2176,9 @@ UPDATE `minnpost.wordpress`.wp_posts
 ;
 UPDATE `minnpost.wordpress`.wp_posts
 	SET post_content = REPLACE(post_content,'<p class="italic">&nbsp;</p>','')
+;
+UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content,'<p class="bold">&nbsp;</p>','')
 ;
 
 
