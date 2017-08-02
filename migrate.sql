@@ -360,8 +360,142 @@
 
 
 
+# Section 3 - Core Post Metadata
 
-# this is where we stop deleting data to start over
+	# core post text/wysiwyg/etc fields
+
+	# get all kinds of post teasers if we have them
+	# this one does take the vid into account
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.drupal`.node n ON wp_posts.ID = n.nid
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
+		SET wp_posts.post_excerpt = t.field_teaser_value
+		WHERE t.field_teaser_value != '' AND t.field_teaser_value != NULL
+	;
+
+
+	# deck field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				d.nid `post_id`,
+				'_mp_subtitle_settings_deck' as meta_key,
+				d.field_deck_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_deck d USING(nid, vid)
+			WHERE d.field_deck_value IS NOT NULL
+	;
+
+
+	# byline field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				b.nid `post_id`,
+				'_mp_subtitle_settings_byline' as meta_key,
+				b.field_byline_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_byline b USING(nid, vid)
+			WHERE b.field_byline_value IS NOT NULL
+	;
+
+
+	# newsletter fields
+
+	# add a temporary constraint for newsletter type stuff so we don't add duplicates
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_newsletter_type UNIQUE (post_id, meta_key, meta_value(64));
+
+	# type field - the data is easier if we just do this one separately for the three types
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'daily' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+			WHERE tn.tid = 219 and n.type = 'newsletter'
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'greater_mn' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+			WHERE tn.tid = 220 and n.type = 'newsletter'
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'book_club' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+			WHERE tn.tid = 221 and n.type = 'newsletter'
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'sunday_review' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+			WHERE tn.tid = 5396 and n.type = 'newsletter'
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_newsletter_type' as meta_key, 'dc_memo' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.term_node tn USING(nid, vid)
+			WHERE tn.tid = 7910 and n.type = 'newsletter'
+	;
+
+
+	# newsletter preview text field
+	# this one does take the vid into account
+	# note: this field currently does not exist in any newsletters, so it will error unless someone uses it
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				p.nid `post_id`,
+				'_mp_newsletter_preview_text' as meta_key,
+				p.field_preview_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_preview_text p USING(nid, vid)
+			WHERE p.field_preview_value IS NOT NULL
+	;
+
+
+	# add top stories for all newsletter posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_newsletter_top_posts_csv' as meta_key, GROUP_CONCAT(t.field_newsletter_top_nid) as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_newsletter_top t USING(nid, vid)
+			WHERE t.field_newsletter_top_nid IS NOT NULL
+			GROUP BY nid, vid
+	;
+
+
+	# add more stories for all newsletter posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_newsletter_more_posts_csv' as meta_key, GROUP_CONCAT(m.field_newsletter_more_nid) as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_newsletter_more m USING(nid, vid)
+			WHERE m.field_newsletter_more_nid IS NOT NULL
+			GROUP BY nid, vid
+	;
+
+
+	# drop that temporary constraint for newsletter type
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_newsletter_type;
 
 
 
