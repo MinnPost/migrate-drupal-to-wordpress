@@ -13,31 +13,353 @@
 
 # Section 1 - Reset
 
-# Empty previous content from WordPress database.
-TRUNCATE TABLE `minnpost.wordpress`.wp_comments;
-TRUNCATE TABLE `minnpost.wordpress`.wp_links;
-TRUNCATE TABLE `minnpost.wordpress`.wp_postmeta;
-TRUNCATE TABLE `minnpost.wordpress`.wp_posts;
-TRUNCATE TABLE `minnpost.wordpress`.wp_term_relationships;
-TRUNCATE TABLE `minnpost.wordpress`.wp_term_taxonomy;
-TRUNCATE TABLE `minnpost.wordpress`.wp_terms;
-TRUNCATE TABLE `minnpost.wordpress`.wp_termmeta;
-TRUNCATE TABLE `minnpost.wordpress`.wp_redirection_items;
+	# Empty previous content from WordPress database.
+	TRUNCATE TABLE `minnpost.wordpress`.wp_comments;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_links;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_postmeta;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_posts;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_term_relationships;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_term_taxonomy;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_terms;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_termmeta;
+	TRUNCATE TABLE `minnpost.wordpress`.wp_redirection_items;
 
-# If you're not bringing over multiple Drupal authors, comment out these lines and the other
-# author-related queries near the bottom of the script.
-# This assumes you're keeping the default admin user (user_id = 1) created during installation.
-DELETE FROM `minnpost.wordpress`.wp_users WHERE ID > 1;
-DELETE FROM `minnpost.wordpress`.wp_usermeta WHERE user_id > 1;
+	# If you're not bringing over multiple Drupal authors, comment out these lines and the other
+	# author-related queries near the bottom of the script.
+	# This assumes you're keeping the default admin user (user_id = 1) created during installation.
+	DELETE FROM `minnpost.wordpress`.wp_users WHERE ID > 1;
+	DELETE FROM `minnpost.wordpress`.wp_usermeta WHERE user_id > 1;
 
-# it is also worth clearing out the individual object maps from the salesforce plugin because ids for things change, and this could break mappings anyway
-TRUNCATE TABLE `minnpost.wordpress`.wp_object_sync_sf_object_map;
+	# it is also worth clearing out the individual object maps from the salesforce plugin because ids for things change, and this could break mappings anyway
+	TRUNCATE TABLE `minnpost.wordpress`.wp_object_sync_sf_object_map;
 
-# reset the deserialize value so it can start over with deserializing
-UPDATE `minnpost.wordpress`.wp_options
-	SET option_value = 1
-	WHERE option_name = 'deserialize_metadata_last_post_checked'
-;
+	# reset the deserialize value so it can start over with deserializing
+	UPDATE `minnpost.wordpress`.wp_options
+		SET option_value = 1
+		WHERE option_name = 'deserialize_metadata_last_post_checked'
+	;
+
+	# this is where we stop deleting data to start over
+
+
+
+# Section 2 - Core Posts
+
+	# Posts from Drupal stories
+	# Keeps private posts hidden.
+	# parameter: line 109 contains the Drupal content types that we want to migrate
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
+		(id, post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_type, `post_status`)
+		SELECT DISTINCT
+			n.nid `id`,
+			n.uid `post_author`,
+			FROM_UNIXTIME(n.created) `post_date`,
+			r.body `post_content`,
+			n.title `post_title`,
+			t.field_teaser_value `post_excerpt`,
+			substring_index(a.dst, '/', -1) `post_name`,
+			FROM_UNIXTIME(n.changed) `post_modified`,
+			n.type `post_type`,
+			IF(n.status = 1, 'publish', 'draft') `post_status`
+		FROM `minnpost.drupal`.node n
+		LEFT OUTER JOIN `minnpost.drupal`.node_revisions r
+			USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a
+			ON a.src = CONCAT('node/', n.nid)
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
+		# Add more Drupal content types below if applicable.
+		WHERE n.type IN ('article', 'article_full', 'audio', 'newsletter', 'page', 'video', 'slideshow')
+	;
+
+
+	# Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
+	# Add more Drupal content types below if applicable
+	# parameter: line 118 contains content types from parameter in line 109 that should be imported as 'posts'
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_type = 'post'
+		WHERE post_type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+	;
+
+
+	## Get Raw HTML content from article_full posts
+	# requires the Raw HTML plugin in WP to be enabled
+	# wrap it in [raw][/raw]
+
+
+	# create temporary table for raw html content
+	CREATE TABLE `wp_posts_raw` (
+		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`post_content_raw` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		PRIMARY KEY (`ID`)
+	);
+
+
+	# store raw values in temp table
+	# 1/12/17: this was broken and had to rename the table in the join. unclear why it ever worked before though.
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_raw
+		(id, post_content_raw)
+		SELECT a.nid, h.field_html_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_article_full a USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_html AS h USING(nid, vid)
+			WHERE h.field_html_value IS NOT NULL
+	;
+
+
+	# append raw data to the post body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.wp_posts_raw
+		ON wp_posts.ID = wp_posts_raw.ID
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '[raw]', wp_posts_raw.post_content_raw, '[/raw]')
+	;
+
+
+	# get rid of that temporary raw table
+	DROP TABLE wp_posts_raw;
+
+
+	## Get audio URLs from audio posts
+	# Use the Audio format, and the core WordPress handling for audio files
+	# this is [audio mp3="source.mp3"]
+
+	# create temporary table for audio content
+	CREATE TABLE `wp_posts_audio` (
+		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`post_content_audio` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		PRIMARY KEY (`ID`)
+	);
+
+
+	# store audio urls in temp table
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_posts_audio
+		(id, post_content_audio)
+		SELECT a.nid, CONCAT('https://www.minnpost.com/', f.filepath) `post_content_audio`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_audio a USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON a.field_audio_file_fid = f.fid
+	;
+
+
+	# append audio file to the post body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.wp_posts_audio
+		ON wp_posts.ID = wp_posts_audio.ID
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '<p>[audio mp3="', wp_posts_audio.post_content_audio, '"]</p>')
+	;
+
+
+	# get rid of that temporary audio table
+	DROP TABLE wp_posts_audio;
+
+
+	## Get video URLs/embeds from video posts
+	# Use the Video format, and the core WordPress handling for video display
+	# if it is a local file, this uses [video src="video-source.mp4"]
+	# can expand to [video width="600" height="480" mp4="source.mp4" ogv="source.ogv" webm="source.webm"]
+	# if it is an embed, it uses [embed width="123" height="456"]http://www.youtube.com/watch?v=dQw4w9WgXcQ[/embed]
+	# the embeds only work if they have been added to the whitelist
+	# width/height are optional on all these
+
+
+	# create temporary table for video content
+	CREATE TABLE `wp_posts_video` (
+		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`post_content_video` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		PRIMARY KEY (`ID`)
+	);
+
+
+	# store video urls for local files in temp table
+	# for drupal 6, the only way we can do this is to encode FLV files as mp4 files separately, and make sure they 
+	# exist at the matching url (whatever.flv needs to be there as whatever.mp4)
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_posts_video
+		(id, post_content_video)
+		SELECT v.nid, REPLACE(CONCAT('[video src="https://www.minnpost.com/', f.filepath, '"]'), '.flv', '.mp4') `post_content_video`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_video v USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.files AS f ON v.field_flash_file_fid = f.fid
+	;
+
+	# store video urls for embed videos in temp table
+	# drupal 6 (at least our version) only does vimeo and youtube
+	# these do take the vid into account
+
+	# vimeo
+	INSERT INTO `minnpost.wordpress`.wp_posts_video
+		(id, post_content_video)
+		SELECT v.nid, CONCAT('[embed]https://vimeo.com/', v.field_embedded_video_value, '[/embed]') `post_content_video`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_embedded_video v USING(nid, vid)
+			WHERE v.field_embedded_video_provider = 'vimeo'
+			GROUP BY v.nid, v.vid
+	;
+
+	# youtube
+	INSERT INTO `minnpost.wordpress`.wp_posts_video
+		(id, post_content_video)
+		SELECT v.nid, CONCAT('[embed]https://www.youtube.com/watch?v=', v.field_embedded_video_value, '[/embed]') `post_content_video`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_embedded_video v USING(nid, vid)
+			WHERE v.field_embedded_video_provider = 'youtube'
+			GROUP BY v.nid, v.vid
+	;
+
+
+	# append video file or embed content to the post body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.wp_posts_video
+		ON wp_posts.ID = wp_posts_video.ID
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '<p>', wp_posts_video.post_content_video, '</p>')
+	;
+
+
+	# get rid of that temporary video table
+	DROP TABLE wp_posts_video;
+
+
+	## Get gallery images from slideshow posts
+	# Use the Gallery format, and the core WordPress handling for image galleries
+	# this is [gallery ids="729,732,731,720"]
+
+	# create temporary table for gallery content
+	CREATE TABLE `wp_posts_gallery` (
+		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`post_content_gallery` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		PRIMARY KEY (`ID`)
+	);
+
+
+	# store gallery ids in temp table
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_posts_gallery
+		(id, post_content_gallery)
+		SELECT s.nid, GROUP_CONCAT(DISTINCT n.nid) `post_content_gallery`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			LEFT JOIN `minnpost.drupal`.content_field_op_slideshow_images sr ON sr.vid = n.vid
+			LEFT JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON s.field_op_slideshow_images_nid = n.nid
+			WHERE s.nid IS NOT NULL
+			GROUP BY s.nid
+	;
+
+
+	# append gallery to the post body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.wp_posts_gallery
+		ON wp_posts.ID = wp_posts_gallery.ID
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '<div id="image-gallery-slideshow">[gallery link="file" ids="', wp_posts_gallery.post_content_gallery, '"]</div>')
+	;
+
+
+	# get rid of that temporary gallery table
+	DROP TABLE wp_posts_gallery;
+
+
+	## Get Document Cloud urls from article posts
+	# requires the Document Cloud plugin in WP to be enabled
+	# uses the [documentcloud url="https://www.documentcloud.org/documents/282753-lefler-thesis.html"] shortcode
+
+
+	# create temporary table for documentcloud content
+	CREATE TABLE `wp_posts_documentcloud` (
+		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`post_content_documentcloud` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		PRIMARY KEY (`ID`)
+	);
+
+
+	# store documentcloud data in temp table
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_documentcloud
+		(id, post_content_documentcloud)
+		SELECT a.nid, CONCAT('<p><strong>DocumentCloud Document(s):</strong></p>', '[documentcloud url="', GROUP_CONCAT(d.field_op_documentcloud_doc_url SEPARATOR '"][documentcloud url="'), '"]') as urlsa
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_article a USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_op_documentcloud_doc d USING(nid, vid)
+			WHERE d.field_op_documentcloud_doc_url IS NOT NULL
+			GROUP BY nid, vid
+	;
+
+
+	# append documentcloud data to the post body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.wp_posts_documentcloud
+		ON wp_posts.ID = wp_posts_documentcloud.ID
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, wp_posts_documentcloud.post_content_documentcloud)
+	;
+
+
+	# get rid of that temporary documentcloud table
+	DROP TABLE wp_posts_documentcloud;
+
+
+	# Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
+	# in our case, we use this to make the urls absolute, at least for now
+	# no need for vid stuff
+	#UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
+	UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
+	;
+
+
+	# Miscellaneous clean-up.
+	# There may be some extraneous blank spaces in your Drupal posts; use these queries
+	# or other similar ones to strip out the undesirable tags.
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content,'<p>&nbsp;</p>','')
+	;
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content,'<p class="italic">&nbsp;</p>','')
+	;
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content,'<p class="bold">&nbsp;</p>','')
+	;
+
+	# these items we don't currently use
+
+	# Fix post_name to remove paths.
+	# If applicable; Drupal allows paths (i.e. slashes) in the dst field, but this breaks
+	# WordPress URLs. If you have mod_rewrite turned on, stripping out the portion before
+	# the final slash will allow old site links to work properly, even if the path before
+	# the slash is different!
+
+	# this does not seem to be useful for us
+
+	/*UPDATE `minnpost.wordpress`.wp_posts
+		SET post_name =
+		REVERSE(SUBSTRING(REVERSE(post_name),1,LOCATE('/',REVERSE(post_name))-1))
+	;*/
+
+	# NEW PAGES - READ BELOW AND COMMENT OUT IF NOT APPLICABLE TO YOUR SITE
+	# MUST COME LAST IN THE SCRIPT AFTER ALL OTHER QUERIES!
+	# If your site will contain new pages, you can set up the basic structure for them here.
+	# Once the import is complete, go into the WordPress admin and copy content from the Drupal
+	# pages (which are set to "pending" in a query above) into the appropriate new pages.
+	#INSERT INTO `minnpost.wordpress`.wp_posts
+	#	(`post_author`, `post_date`, `post_date_gmt`, `post_content`, `post_title`,
+	#	`post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`,
+	#	`post_name`, `to_ping`, `pinged`, `post_modified`, `post_modified_gmt`,
+	#	`post_content_filtered`, `post_parent`, `guid`, `menu_order`, `post_type`,
+	#	`post_mime_type`, `comment_count`)
+	#	VALUES
+	#	(1, NOW(), NOW(), 'Page content goes here, or leave this value empty.', 'Page Title',
+	#	'', 'publish', 'closed', 'closed', '',
+	#	'slug-goes-here', '', '', NOW(), NOW(),
+	#	'', 0, 'http://full.url.to.page.goes.here', 1, 'page', '', 0)
+	#;
+
+
+
 
 # this is where we stop deleting data to start over
 
