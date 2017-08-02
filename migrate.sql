@@ -2501,17 +2501,6 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 ;
 
 
-# get all kinds of post teasers if we have them
-# this one does take the vid into account
-UPDATE `minnpost.wordpress`.wp_posts
-	JOIN `minnpost.drupal`.node n ON wp_posts.ID = n.nid
-	INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-	INNER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
-	SET wp_posts.post_excerpt = t.field_teaser_value
-	WHERE t.field_teaser_value != '' AND t.field_teaser_value != NULL
-;
-
-
 # more metadata for images; this is caption only if it is stored elsewhere
 # the deserialize metadata plugin does not overwrite these values
 # this one does take the vid into account
@@ -2553,80 +2542,7 @@ UPDATE `minnpost.wordpress`.wp_postmeta
 ;
 
 
-# deck field
-# this one does take the vid into account
-INSERT INTO `minnpost.wordpress`.wp_postmeta
-	(post_id, meta_key, meta_value)
-	SELECT DISTINCT
-			d.nid `post_id`,
-			'_mp_subtitle_settings_deck' as meta_key,
-			d.field_deck_value `meta_value`
-		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-		INNER JOIN `minnpost.drupal`.content_field_deck d USING(nid, vid)
-		WHERE d.field_deck_value IS NOT NULL
-;
 
-
-# byline field
-# this one does take the vid into account
-INSERT INTO `minnpost.wordpress`.wp_postmeta
-	(post_id, meta_key, meta_value)
-	SELECT DISTINCT
-			b.nid `post_id`,
-			'_mp_subtitle_settings_byline' as meta_key,
-			b.field_byline_value `meta_value`
-		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-		INNER JOIN `minnpost.drupal`.content_field_byline b USING(nid, vid)
-		WHERE b.field_byline_value IS NOT NULL
-;
-
-
-# Fix post_name to remove paths.
-# If applicable; Drupal allows paths (i.e. slashes) in the dst field, but this breaks
-# WordPress URLs. If you have mod_rewrite turned on, stripping out the portion before
-# the final slash will allow old site links to work properly, even if the path before
-# the slash is different!
-
-# this does not seem to be useful for us
-
-/*UPDATE `minnpost.wordpress`.wp_posts
-	SET post_name =
-	REVERSE(SUBSTRING(REVERSE(post_name),1,LOCATE('/',REVERSE(post_name))-1))
-;*/
-
-# Miscellaneous clean-up.
-# There may be some extraneous blank spaces in your Drupal posts; use these queries
-# or other similar ones to strip out the undesirable tags.
-UPDATE `minnpost.wordpress`.wp_posts
-	SET post_content = REPLACE(post_content,'<p>&nbsp;</p>','')
-;
-UPDATE `minnpost.wordpress`.wp_posts
-	SET post_content = REPLACE(post_content,'<p class="italic">&nbsp;</p>','')
-;
-UPDATE `minnpost.wordpress`.wp_posts
-	SET post_content = REPLACE(post_content,'<p class="bold">&nbsp;</p>','')
-;
-
-
-# NEW PAGES - READ BELOW AND COMMENT OUT IF NOT APPLICABLE TO YOUR SITE
-# MUST COME LAST IN THE SCRIPT AFTER ALL OTHER QUERIES!
-# If your site will contain new pages, you can set up the basic structure for them here.
-# Once the import is complete, go into the WordPress admin and copy content from the Drupal
-# pages (which are set to "pending" in a query above) into the appropriate new pages.
-#INSERT INTO `minnpost.wordpress`.wp_posts
-#	(`post_author`, `post_date`, `post_date_gmt`, `post_content`, `post_title`,
-#	`post_excerpt`, `post_status`, `comment_status`, `ping_status`, `post_password`,
-#	`post_name`, `to_ping`, `pinged`, `post_modified`, `post_modified_gmt`,
-#	`post_content_filtered`, `post_parent`, `guid`, `menu_order`, `post_type`,
-#	`post_mime_type`, `comment_count`)
-#	VALUES
-#	(1, NOW(), NOW(), 'Page content goes here, or leave this value empty.', 'Page Title',
-#	'', 'publish', 'closed', 'closed', '',
-#	'slug-goes-here', '', '', NOW(), NOW(),
-#	'', 0, 'http://full.url.to.page.goes.here', 1, 'page', '', 0)
-#;
 
 
 # WordPress Settings
