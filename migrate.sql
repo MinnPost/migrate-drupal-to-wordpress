@@ -10,6 +10,9 @@
 # This assumes that WordPress and Drupal are in separate databases, named 'wordpress' and 'drupal'.
 # If your database names differ, adjust these accordingly.
 
+
+# Section 1 - Reset
+
 # Empty previous content from WordPress database.
 TRUNCATE TABLE `minnpost.wordpress`.wp_comments;
 TRUNCATE TABLE `minnpost.wordpress`.wp_links;
@@ -80,6 +83,7 @@ INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
 		USING(tid)
 ;
 
+# Section 2 - Core Posts
 
 # Posts from Drupal stories
 # Keeps private posts hidden.
@@ -409,6 +413,9 @@ UPDATE `minnpost.wordpress`.wp_posts
 DROP TABLE wp_posts_documentcloud;
 
 
+
+# Section 3 - Core Post Metadata
+
 # newsletter fields
 
 # add a temporary constraint for newsletter type stuff so we don't add duplicates
@@ -495,9 +502,13 @@ INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		GROUP BY nid, vid
 ;
 
+
 # drop that temporary constraint
 ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_newsletter_type;
 
+
+
+# Section 4 - Terms and Taxonomies and Term Relationships
 
 # Post/Tag relationships
 
@@ -578,9 +589,8 @@ UPDATE `minnpost.wordpress`.wp_posts
 #UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
 UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
 ;
+# Section 5 - Categories and Category Metadata
 
-
-# OPTIONAL ADDITIONS -- REMOVE ALL BELOW IF NOT APPLICABLE TO YOUR CONFIGURATION
 
 # CATEGORIES
 # These are NEW categories, not in `minnpost.drupal`. Add as many sets as needed.
@@ -908,6 +918,14 @@ UPDATE wp_term_taxonomy tt
 		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
 	)
 ;
+
+
+
+# Section 6 - Comments
+
+# OPTIONAL ADDITIONS -- REMOVE ALL BELOW IF NOT APPLICABLE TO YOUR CONFIGURATION
+
+
 
 
 # stuff for users:
