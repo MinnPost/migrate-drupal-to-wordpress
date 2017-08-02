@@ -499,195 +499,164 @@
 
 
 
+# Section 4 - Tags, Post Formats, and their taxonomies and relationships to posts
 
-# Tags from Drupal vocabularies
-# Using REPLACE prevents script from breaking if Drupal contains duplicate terms.
-# permalinks are going to break for tags whatever we do, because drupal puts them all into folders (ie https://www.minnpost.com/category/social-tags/architect)
-# we have to determine which tags should instead be (or already are) categories, so we don't have permalinks like books-1
-REPLACE INTO `minnpost.wordpress`.wp_terms
-	(term_id, `name`, slug, term_group)
-	SELECT DISTINCT
-		d.tid `term_id`,
-		d.name `name`,
-		substring_index(a.dst, '/', -1) `slug`,
-		0 `term_group`
-	FROM `minnpost.drupal`.term_data d
-	INNER JOIN `minnpost.drupal`.term_hierarchy h
-		USING(tid)
-	INNER JOIN `minnpost.drupal`.term_node n
-		USING(tid)
-	LEFT OUTER JOIN `minnpost.drupal`.url_alias a
-		ON a.src = CONCAT('taxonomy/term/', d.tid)
-	WHERE (1
-	 	# This helps eliminate spam tags from import; uncomment if necessary.
-	 	# AND LENGTH(d.name) < 50
-	)
-;
-
-
-# Taxonomy for tags
-# creates a taxonomy item for each tag
-INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
-	(term_id, taxonomy, description, parent)
-	SELECT DISTINCT
-		d.tid `term_id`,
-		'post_tag' `taxonomy`,
-		d.description `description`,
-		h.parent `parent`
-	FROM `minnpost.drupal`.term_data d
-	INNER JOIN `minnpost.drupal`.term_hierarchy h
-		USING(tid)
-;
+	# Tags from Drupal vocabularies
+	# Using REPLACE prevents script from breaking if Drupal contains duplicate terms.
+	# permalinks are going to break for tags whatever we do, because drupal puts them all into folders (ie https://www.minnpost.com/category/social-tags/architect)
+	# we have to determine which tags should instead be (or already are) categories, so we don't have permalinks like books-1
+	REPLACE INTO `minnpost.wordpress`.wp_terms
+		(term_id, `name`, slug, term_group)
+		SELECT DISTINCT
+			d.tid `term_id`,
+			d.name `name`,
+			substring_index(a.dst, '/', -1) `slug`,
+			0 `term_group`
+		FROM `minnpost.drupal`.term_data d
+		INNER JOIN `minnpost.drupal`.term_hierarchy h
+			USING(tid)
+		INNER JOIN `minnpost.drupal`.term_node n
+			USING(tid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a
+			ON a.src = CONCAT('taxonomy/term/', d.tid)
+		WHERE (1
+		 	# This helps eliminate spam tags from import; uncomment if necessary.
+		 	# AND LENGTH(d.name) < 50
+		)
+	;
 
 
-# add audio format for audio posts
-INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-audio', 'post-format-audio');
+	# Taxonomy for tags
+	# creates a taxonomy item for each tag
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy
+		(term_id, taxonomy, description, parent)
+		SELECT DISTINCT
+			d.tid `term_id`,
+			'post_tag' `taxonomy`,
+			d.description `description`,
+			h.parent `parent`
+		FROM `minnpost.drupal`.term_data d
+		INNER JOIN `minnpost.drupal`.term_hierarchy h
+			USING(tid)
+	;
 
 
-# add format to taxonomy
-INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-	SELECT term_id `term_id`, 'post_format' `taxonomy`
-		FROM wp_terms
-		WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-audio'
-;
+	# add audio format for audio posts
+	INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-audio', 'post-format-audio');
 
 
-# use audio format for audio posts
-# this doesn't really seem to need any vid stuff
-INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
-	SELECT n.nid, tax.term_taxonomy_id
-		FROM `minnpost.drupal`.node n
-		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
-		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
-		WHERE `minnpost.drupal`.n.type = 'audio' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-audio'
-;
+	# add format to taxonomy
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+		SELECT term_id `term_id`, 'post_format' `taxonomy`
+			FROM wp_terms
+			WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-audio'
+	;
 
 
-# add video format for video posts
-INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-video', 'post-format-video');
+	# use audio format for audio posts
+	# this doesn't really seem to need any vid stuff
+	INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
+		SELECT n.nid, tax.term_taxonomy_id
+			FROM `minnpost.drupal`.node n
+			CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
+			LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
+			WHERE `minnpost.drupal`.n.type = 'audio' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-audio'
+	;
 
 
-# add format to taxonomy
-INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-	SELECT term_id `term_id`, 'post_format' `taxonomy`
-		FROM wp_terms
-		WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-video'
-;
+	# add video format for video posts
+	INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-video', 'post-format-video');
 
 
-# use video format for video posts
-# this doesn't really seem to need any vid stuff
-INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
-	SELECT n.nid, tax.term_taxonomy_id
-		FROM `minnpost.drupal`.node n
-		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
-		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
-		WHERE `minnpost.drupal`.n.type = 'video' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-video'
-;
+	# add format to taxonomy
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+		SELECT term_id `term_id`, 'post_format' `taxonomy`
+			FROM wp_terms
+			WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-video'
+	;
 
 
-# add gallery format for gallery posts
-INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-gallery', 'post-format-gallery');
+	# use video format for video posts
+	# this doesn't really seem to need any vid stuff
+	INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
+		SELECT n.nid, tax.term_taxonomy_id
+			FROM `minnpost.drupal`.node n
+			CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
+			LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
+			WHERE `minnpost.drupal`.n.type = 'video' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-video'
+	;
 
 
-# add format to taxonomy
-INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-	SELECT term_id `term_id`, 'post_format' `taxonomy`
-		FROM wp_terms
-		WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-gallery'
-;
+	# add gallery format for gallery posts
+	INSERT INTO `minnpost.wordpress`.wp_terms (name, slug) VALUES ('post-format-gallery', 'post-format-gallery');
 
 
-# use gallery format for gallery posts
-# this doesn't really seem to need any vid stuff
-INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
-	SELECT n.nid, tax.term_taxonomy_id
-		FROM `minnpost.drupal`.node n
-		CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
-		LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
-		WHERE `minnpost.drupal`.n.type = 'slideshow' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-gallery'
-;
+	# add format to taxonomy
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+		SELECT term_id `term_id`, 'post_format' `taxonomy`
+			FROM wp_terms
+			WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-gallery'
+	;
 
 
-# Post/Tag relationships
-
-# Temporary table for post relationships with tags
-CREATE TABLE `wp_term_relationships_posts` (
-	`object_id` bigint(20) unsigned NOT NULL DEFAULT '0',
-	`term_taxonomy_id` bigint(20) unsigned NOT NULL DEFAULT '0',
-	`term_order` int(11) NOT NULL DEFAULT '0',
-	PRIMARY KEY (`object_id`,`term_taxonomy_id`),
-	KEY `term_taxonomy_id` (`term_taxonomy_id`)
-);
-
-
-# store with the term_id from drupal
-# this will break if we incorporate the vid. maybe because drupal stores terms with no nodes, so we can't start with the node table
-INSERT INTO `minnpost.wordpress`.wp_term_relationships_posts (object_id, term_taxonomy_id)
-	SELECT DISTINCT nid, tid FROM `minnpost.drupal`.term_node
-;
+	# use gallery format for gallery posts
+	# this doesn't really seem to need any vid stuff
+	INSERT INTO wp_term_relationships (object_id, term_taxonomy_id)
+		SELECT n.nid, tax.term_taxonomy_id
+			FROM `minnpost.drupal`.node n
+			CROSS JOIN `minnpost.wordpress`.wp_term_taxonomy tax
+			LEFT OUTER JOIN `minnpost.wordpress`.wp_terms t ON tax.term_id = t.term_id
+			WHERE `minnpost.drupal`.n.type = 'slideshow' AND tax.taxonomy = 'post_format' AND t.name = 'post-format-gallery'
+	;
 
 
-# get the term_taxonomy_id for each term and put it in the table
-# needs an ignore because there's at least one duplicate now
-UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships_posts r
-	INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_id
-	SET r.term_taxonomy_id = tax.term_taxonomy_id
-;
+	# Post/Tag relationships
+
+	# Temporary table for post relationships with tags
+	CREATE TABLE `wp_term_relationships_posts` (
+		`object_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+		`term_taxonomy_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+		`term_order` int(11) NOT NULL DEFAULT '0',
+		PRIMARY KEY (`object_id`,`term_taxonomy_id`),
+		KEY `term_taxonomy_id` (`term_taxonomy_id`)
+	);
 
 
-# put the post/tag relationships into the correct table
-INSERT INTO `minnpost.wordpress`.wp_term_relationships (object_id, term_taxonomy_id)
-	SELECT object_id, term_taxonomy_id FROM wp_term_relationships_posts p
-;
+	# store with the term_id from drupal
+	# this will break if we incorporate the vid. maybe because drupal stores terms with no nodes, so we can't start with the node table
+	INSERT INTO `minnpost.wordpress`.wp_term_relationships_posts (object_id, term_taxonomy_id)
+		SELECT DISTINCT nid, tid FROM `minnpost.drupal`.term_node
+	;
 
 
-# Update tag counts.
-UPDATE wp_term_taxonomy tt
-	SET `count` = (
-		SELECT COUNT(tr.object_id)
-		FROM wp_term_relationships tr
-		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
-	)
-;
+	# get the term_taxonomy_id for each term and put it in the table
+	# needs an ignore because there's at least one duplicate now
+	UPDATE IGNORE `minnpost.wordpress`.wp_term_relationships_posts r
+		INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_id
+		SET r.term_taxonomy_id = tax.term_taxonomy_id
+	;
 
 
-# get rid of that temporary tag relationship table
-DROP TABLE wp_term_relationships_posts;
+	# put the post/tag relationships into the correct table
+	INSERT INTO `minnpost.wordpress`.wp_term_relationships (object_id, term_taxonomy_id)
+		SELECT object_id, term_taxonomy_id FROM wp_term_relationships_posts p
+	;
 
 
-# Comments
-# Keeps unapproved comments hidden.
-# Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
-# mp change: uses the pid field from Drupal for the comment_parent field
-# mp change: keep the value 200 characters or less
-# this doesn't really seem to need any vid stuff
-INSERT INTO `minnpost.wordpress`.wp_comments
-	(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
-	comment_author_email, comment_author_url, comment_approved, user_id)
-	SELECT DISTINCT
-		cid, nid, FROM_UNIXTIME(timestamp), comment, pid, name,
-		mail, SUBSTRING(homepage, 1, 200), status, uid
-		FROM `minnpost.drupal`.comments
-;
+	# Update tag counts.
+	UPDATE wp_term_taxonomy tt
+		SET `count` = (
+			SELECT COUNT(tr.object_id)
+			FROM wp_term_relationships tr
+			WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
+		)
+	;
 
 
-# Update comments count on wp_posts table.
-UPDATE `minnpost.wordpress`.wp_posts
-	SET `comment_count` = (
-		SELECT COUNT(`comment_post_id`)
-		FROM `minnpost.wordpress`.wp_comments
-		WHERE `minnpost.wordpress`.wp_posts.`id` = `minnpost.wordpress`.wp_comments.`comment_post_id`
-	)
-;
+	# get rid of that temporary tag relationship table
+	DROP TABLE wp_term_relationships_posts;
 
 
-# Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
-# in our case, we use this to make the urls absolute, at least for now
-# no need for vid stuff
-#UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
-UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
-;
 # Section 5 - Categories and Category Metadata
 
 
@@ -1021,6 +990,35 @@ UPDATE wp_term_taxonomy tt
 
 
 # Section 6 - Comments
+
+# Comments
+# Keeps unapproved comments hidden.
+# Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
+# mp change: uses the pid field from Drupal for the comment_parent field
+# mp change: keep the value 200 characters or less
+# this doesn't really seem to need any vid stuff
+INSERT INTO `minnpost.wordpress`.wp_comments
+	(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
+	comment_author_email, comment_author_url, comment_approved, user_id)
+	SELECT DISTINCT
+		cid, nid, FROM_UNIXTIME(timestamp), comment, pid, name,
+		mail, SUBSTRING(homepage, 1, 200), status, uid
+		FROM `minnpost.drupal`.comments
+;
+
+
+# Update comments count on wp_posts table.
+UPDATE `minnpost.wordpress`.wp_posts
+	SET `comment_count` = (
+		SELECT COUNT(`comment_post_id`)
+		FROM `minnpost.wordpress`.wp_comments
+		WHERE `minnpost.wordpress`.wp_posts.`id` = `minnpost.wordpress`.wp_comments.`comment_post_id`
+	)
+;
+
+
+
+
 
 # OPTIONAL ADDITIONS -- REMOVE ALL BELOW IF NOT APPLICABLE TO YOUR CONFIGURATION
 
