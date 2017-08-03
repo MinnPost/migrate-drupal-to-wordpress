@@ -801,349 +801,7 @@
 
 
 
-# Section 6 - Categories, their text fields, their taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
-
-	# this category stuff by default breaks because the term ID has already been used - by the tag instead of the category
-	# it fails to add the duplicate IDs because Drupal has them in separate tables
-	# we fix this by temporarily using a term_id_old field to track the relationships
-	# this term_id_old field gets used to assign each category to:
-	# 1. its custom text fields
-	# 2. its relationships to posts
-	# 3. its taxonomy rows
-
-
-	# add the term_id_old field for tracking Drupal term IDs
-	ALTER TABLE wp_terms ADD term_id_old BIGINT(20);
-
-
-	# Temporary table for department terms
-	CREATE TABLE `wp_terms_dept` (
-		`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`term_group` bigint(10) NOT NULL DEFAULT '0',
-		PRIMARY KEY (`term_id`),
-		KEY `slug` (`slug`(191)),
-		KEY `name` (`name`(191))
-	);
-
-
-	# Put all Drupal departments into the temporary table
-	# this one does take the vid into account
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_dept (term_id, name, slug)
-		SELECT nid `term_id`,
-		n.title `name`,
-		substring_index(a.dst, '/', -1) `slug`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
-			WHERE n.type='department'
-	;
-
-
-	# Put all Drupal departments into terms; store old term ID from Drupal for tracking relationships
-	INSERT INTO wp_terms (name, slug, term_group, term_id_old)
-		SELECT name, slug, term_group, term_id
-		FROM wp_terms_dept d
-	;
-
-
-	# text fields for categories from departments
-
-	# excerpt field
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_excerpt' as meta_key, t.field_teaser_value `meta_value`
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
-				INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				INNER JOIN `minnpost.drupal`.content_field_teaser t ON t.nid = n.nid AND t.vid = n.vid
-				WHERE tax.taxonomy = 'category' AND n.type = 'department' AND t.field_teaser_value IS NOT NULL
-	;
-
-
-	# sponsorship field
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_sponsorship' as meta_key, s.field_sponsorship_value `meta_value`
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
-				INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				INNER JOIN `minnpost.drupal`.content_field_sponsorship s ON s.nid = n.nid AND s.vid = n.vid
-				WHERE tax.taxonomy = 'category' AND n.type = 'department' AND s.field_sponsorship_value IS NOT NULL
-	;
-
-
-	# body field
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_body' as meta_key, nr.body `meta_value`
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
-				INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				WHERE tax.taxonomy = 'category' AND n.type = 'department' AND nr.body IS NOT NULL AND nr.body != ''
-	;
-
-
-	# Create taxonomy for each department
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
-	;
-
-
-	# Create relationships for each story to the departments it had in Drupal
-	# Track this relationship by the term_id_old field
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-		SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
-				INNER JOIN `minnpost.drupal`.node n ON dept.nid = n.nid AND dept.vid = n.vid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				WHERE tax.taxonomy = 'category'
-	;
-
-
-	# Empty term_id_old values so we can start over with our auto increment and still track for sections
-	UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
-
-
-	# get rid of that temporary department table
-	DROP TABLE wp_terms_dept;
-
-
-	# set the department as the primary category for the post, because that is how drupal handles urls
-	# in wordpress, this depends on the WP Category Permalink plugin
-	# this doesn't really seem to need any vid stuff
-	INSERT INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT object_id as post_id, '_category_permalink' as meta_key, CONCAT('a:1:{s:8:"category";s:4:"', t.term_id, '";}') as meta_value
-			FROM wp_term_relationships r
-			INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
-			INNER JOIN wp_terms t ON tax.term_id = t.term_id
-			WHERE tax.taxonomy = 'category'
-	;
-
-
-	# Temporary table for section terms
-	CREATE TABLE `wp_terms_section` (
-		`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`term_group` bigint(10) NOT NULL DEFAULT '0',
-		PRIMARY KEY (`term_id`),
-		KEY `slug` (`slug`(191)),
-		KEY `name` (`name`(191))
-	);
-
-
-	# Put all Drupal sections into the temporary table
-	# this one does take the vid into account
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_section (term_id, name, slug)
-		SELECT nid `term_id`,
-		n.title `name`,
-		substring_index(a.dst, '/', -1) `slug`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
-			WHERE n.type='section'
-	;
-
-
-	# Put all Drupal sections into terms; store old term ID from Drupal for tracking relationships
-	INSERT INTO wp_terms (name, slug, term_group, term_id_old)
-		SELECT name, slug, term_group, term_id
-		FROM wp_terms_section s
-	;
-
-
-	# Create taxonomy for each section
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
-	;
-
-
-	# Create relationships for each story to the section it had in Drupal
-	# Track this relationship by the term_id_old field
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-		SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
-				INNER JOIN `minnpost.drupal`.node n ON section.nid = n.nid AND section.vid = n.vid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				WHERE tax.taxonomy = 'category'
-	;
-
-
-	# text fields for categories from sections
-
-
-	# excerpt field
-	# this one does take the vid into account
-	# currently none of these have values even though the field is available to them
-	INSERT INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_excerpt' as meta_key, t.field_teaser_value `meta_value`
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
-				INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				INNER JOIN `minnpost.drupal`.content_field_teaser t ON t.nid = n.nid AND t.vid = n.vid
-				WHERE tax.taxonomy = 'category' AND n.type = 'section' AND t.field_teaser_value IS NOT NULL
-	;
-
-
-	# sponsorship field
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_sponsorship' as meta_key, s.field_sponsorship_value `meta_value`
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
-				INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				INNER JOIN `minnpost.drupal`.content_field_sponsorship s ON s.nid = n.nid AND s.vid = n.vid
-				WHERE tax.taxonomy = 'category' AND n.type = 'section' AND s.field_sponsorship_value IS NOT NULL
-	;
-
-
-	# body field
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_body' as meta_key, nr.body `meta_value`
-			FROM wp_term_taxonomy tax
-				INNER JOIN wp_terms term ON tax.term_id = term.term_id
-				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
-				INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
-				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				WHERE tax.taxonomy = 'category' AND n.type = 'section' AND nr.body IS NOT NULL AND nr.body != ''
-	;
-
-
-	# Empty term_id_old values so we can start over with our auto increment if applicable
-	UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
-
-
-	# get rid of that temporary section table
-	DROP TABLE wp_terms_section;
-
-
-	# get rid of that term_id_old field if we are done migrating into wp_terms
-	ALTER TABLE wp_terms DROP COLUMN term_id_old;
-
-
-	# Make categories that aren't in Drupal because permalinks break if the story doesn't have a category at all
-	INSERT INTO wp_terms (name, slug, term_group)
-		VALUES
-			('Galleries', 'galleries', 0)
-	;
-
-
-	# Create taxonomy for those new categories
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id, 'category'
-		FROM wp_terms
-		WHERE slug = 'galleries'
-		ORDER BY term_id DESC
-		LIMIT 1
-	;
-
-
-	# Create relationships for each gallery story to this new category
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
-		SELECT nid as object_id, 
-		(
-			SELECT term_taxonomy_id
-			FROM wp_term_taxonomy tax
-			INNER JOIN wp_terms term ON tax.term_id = term.term_id
-			WHERE term.slug = 'galleries' AND tax.taxonomy = 'category'
-		) as term_taxonomy_id
-		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-		WHERE n.type = 'slideshow'
-	;
-
-
-	# Update category counts.
-	UPDATE wp_term_taxonomy tt
-		SET `count` = (
-			SELECT COUNT(tr.object_id)
-			FROM wp_term_relationships tr
-			WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
-		)
-	;
-
-
-	# CATEGORIES
-	# These are NEW categories, not in `minnpost.drupal`. Add as many sets as needed.
-	#INSERT IGNORE INTO `minnpost.wordpress`.wp_terms (name, slug)
-	#	VALUES
-	#	('First Category', 'first-category'),
-	#	('Second Category', 'second-category'),
-	#	('Third Category', 'third-category')
-	#;
-
-
-
-# Section 7 - Category Images. Order doesn't matter but it has to be after categories. We can skip this section if we're testing other stuff.
-
-	# category thumbnail url
-	# this is the small thumbnail from cache folder
-	# this one does take the vid into account
-	# have verified that all these department file urls exist
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT
-			n.nid `term_id`,
-			'_thumbnail_ext_url_thumbnail' `meta_key`,
-			REPLACE(CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/department', '/imagecache/thumbnail/images/thumbnails/department')), 'https://www.minnpost.com/sites/default/files/images/thumbnails', 'https://www.minnpost.com/sites/default/files/imagecache/thumbnail/images/thumbnails') `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
-			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
-			WHERE n.type = 'department'
-	;
-
-
-	# category main image url
-	# this is the main image from cache folder
-	# this one does take the vid into account
-	# have verified that all these department file urls exist
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT
-			n.nid `term_id`,
-			'_category_main_image_ext_url' `meta_key`,
-			CONCAT('https://www.minnpost.com/', f.filepath) `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
-			INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
-			WHERE n.type = 'department'
-	;
-
-
-	# sections have no images
-
-
-
-# Section 8 - Post Images and other local file attachments. Order doesn't matter but it has to be after users because we use the post id there. We can skip this section if we're testing other stuff.
+# Section 6 - Post Images and other local file attachments. Order doesn't matter but it has to be after users because we use the post id there. We can skip this section if we're testing other stuff.
 
 	# main images as featured images for posts
 	# this will be the default if another version is not present
@@ -1878,6 +1536,348 @@
 		SET option_value = 500
 		WHERE option_name = 'large_size_h'
 	;
+
+
+
+# Section 7 - Categories, their text fields, their taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
+
+	# this category stuff by default breaks because the term ID has already been used - by the tag instead of the category
+	# it fails to add the duplicate IDs because Drupal has them in separate tables
+	# we fix this by temporarily using a term_id_old field to track the relationships
+	# this term_id_old field gets used to assign each category to:
+	# 1. its custom text fields
+	# 2. its relationships to posts
+	# 3. its taxonomy rows
+
+
+	# add the term_id_old field for tracking Drupal term IDs
+	ALTER TABLE wp_terms ADD term_id_old BIGINT(20);
+
+
+	# Temporary table for department terms
+	CREATE TABLE `wp_terms_dept` (
+		`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`term_group` bigint(10) NOT NULL DEFAULT '0',
+		PRIMARY KEY (`term_id`),
+		KEY `slug` (`slug`(191)),
+		KEY `name` (`name`(191))
+	);
+
+
+	# Put all Drupal departments into the temporary table
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_dept (term_id, name, slug)
+		SELECT nid `term_id`,
+		n.title `name`,
+		substring_index(a.dst, '/', -1) `slug`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+			WHERE n.type='department'
+	;
+
+
+	# Put all Drupal departments into terms; store old term ID from Drupal for tracking relationships
+	INSERT INTO wp_terms (name, slug, term_group, term_id_old)
+		SELECT name, slug, term_group, term_id
+		FROM wp_terms_dept d
+	;
+
+
+	# text fields for categories from departments
+
+	# excerpt field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_excerpt' as meta_key, t.field_teaser_value `meta_value`
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+				INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				INNER JOIN `minnpost.drupal`.content_field_teaser t ON t.nid = n.nid AND t.vid = n.vid
+				WHERE tax.taxonomy = 'category' AND n.type = 'department' AND t.field_teaser_value IS NOT NULL
+	;
+
+
+	# sponsorship field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_sponsorship' as meta_key, s.field_sponsorship_value `meta_value`
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+				INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				INNER JOIN `minnpost.drupal`.content_field_sponsorship s ON s.nid = n.nid AND s.vid = n.vid
+				WHERE tax.taxonomy = 'category' AND n.type = 'department' AND s.field_sponsorship_value IS NOT NULL
+	;
+
+
+	# body field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_body' as meta_key, nr.body `meta_value`
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+				INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				WHERE tax.taxonomy = 'category' AND n.type = 'department' AND nr.body IS NOT NULL AND nr.body != ''
+	;
+
+
+	# Create taxonomy for each department
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
+	;
+
+
+	# Create relationships for each story to the departments it had in Drupal
+	# Track this relationship by the term_id_old field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
+		SELECT DISTINCT dept.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+				INNER JOIN `minnpost.drupal`.node n ON dept.nid = n.nid AND dept.vid = n.vid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				WHERE tax.taxonomy = 'category'
+	;
+
+
+	# Empty term_id_old values so we can start over with our auto increment and still track for sections
+	UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
+
+
+	# get rid of that temporary department table
+	DROP TABLE wp_terms_dept;
+
+
+	# set the department as the primary category for the post, because that is how drupal handles urls
+	# in wordpress, this depends on the WP Category Permalink plugin
+	# this doesn't really seem to need any vid stuff
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT object_id as post_id, '_category_permalink' as meta_key, CONCAT('a:1:{s:8:"category";s:4:"', t.term_id, '";}') as meta_value
+			FROM wp_term_relationships r
+			INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+			INNER JOIN wp_terms t ON tax.term_id = t.term_id
+			WHERE tax.taxonomy = 'category'
+	;
+
+
+	# Temporary table for section terms
+	CREATE TABLE `wp_terms_section` (
+		`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`term_group` bigint(10) NOT NULL DEFAULT '0',
+		PRIMARY KEY (`term_id`),
+		KEY `slug` (`slug`(191)),
+		KEY `name` (`name`(191))
+	);
+
+
+	# Put all Drupal sections into the temporary table
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_section (term_id, name, slug)
+		SELECT nid `term_id`,
+		n.title `name`,
+		substring_index(a.dst, '/', -1) `slug`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+			WHERE n.type='section'
+	;
+
+
+	# Put all Drupal sections into terms; store old term ID from Drupal for tracking relationships
+	INSERT INTO wp_terms (name, slug, term_group, term_id_old)
+		SELECT name, slug, term_group, term_id
+		FROM wp_terms_section s
+	;
+
+
+	# Create taxonomy for each section
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
+	;
+
+
+	# Create relationships for each story to the section it had in Drupal
+	# Track this relationship by the term_id_old field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
+		SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+				INNER JOIN `minnpost.drupal`.node n ON section.nid = n.nid AND section.vid = n.vid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				WHERE tax.taxonomy = 'category'
+	;
+
+
+	# text fields for categories from sections
+
+
+	# excerpt field
+	# this one does take the vid into account
+	# currently none of these have values even though the field is available to them
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_excerpt' as meta_key, t.field_teaser_value `meta_value`
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+				INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				INNER JOIN `minnpost.drupal`.content_field_teaser t ON t.nid = n.nid AND t.vid = n.vid
+				WHERE tax.taxonomy = 'category' AND n.type = 'section' AND t.field_teaser_value IS NOT NULL
+	;
+
+
+	# sponsorship field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_sponsorship' as meta_key, s.field_sponsorship_value `meta_value`
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+				INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				INNER JOIN `minnpost.drupal`.content_field_sponsorship s ON s.nid = n.nid AND s.vid = n.vid
+				WHERE tax.taxonomy = 'category' AND n.type = 'section' AND s.field_sponsorship_value IS NOT NULL
+	;
+
+
+	# body field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_body' as meta_key, nr.body `meta_value`
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+				INNER JOIN `minnpost.drupal`.node n ON section.field_section_nid = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				WHERE tax.taxonomy = 'category' AND n.type = 'section' AND nr.body IS NOT NULL AND nr.body != ''
+	;
+
+
+	# Empty term_id_old values so we can start over with our auto increment if applicable
+	UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
+
+
+	# get rid of that temporary section table
+	DROP TABLE wp_terms_section;
+
+
+	# get rid of that term_id_old field if we are done migrating into wp_terms
+	ALTER TABLE wp_terms DROP COLUMN term_id_old;
+
+
+	# Make categories that aren't in Drupal because permalinks break if the story doesn't have a category at all
+	INSERT INTO wp_terms (name, slug, term_group)
+		VALUES
+			('Galleries', 'galleries', 0)
+	;
+
+
+	# Create taxonomy for those new categories
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+		SELECT term_id, 'category'
+		FROM wp_terms
+		WHERE slug = 'galleries'
+		ORDER BY term_id DESC
+		LIMIT 1
+	;
+
+
+	# Create relationships for each gallery story to this new category
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
+		SELECT nid as object_id, 
+		(
+			SELECT term_taxonomy_id
+			FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			WHERE term.slug = 'galleries' AND tax.taxonomy = 'category'
+		) as term_taxonomy_id
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		WHERE n.type = 'slideshow'
+	;
+
+
+	# Update category counts.
+	UPDATE wp_term_taxonomy tt
+		SET `count` = (
+			SELECT COUNT(tr.object_id)
+			FROM wp_term_relationships tr
+			WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
+		)
+	;
+
+
+	# CATEGORIES
+	# These are NEW categories, not in `minnpost.drupal`. Add as many sets as needed.
+	#INSERT IGNORE INTO `minnpost.wordpress`.wp_terms (name, slug)
+	#	VALUES
+	#	('First Category', 'first-category'),
+	#	('Second Category', 'second-category'),
+	#	('Third Category', 'third-category')
+	#;
+
+
+
+# Section 8 - Category Images. Order doesn't matter but it has to be after categories. We can skip this section if we're testing other stuff.
+
+	# category thumbnail url
+	# this is the small thumbnail from cache folder
+	# this one does take the vid into account
+	# have verified that all these department file urls exist
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `term_id`,
+			'_thumbnail_ext_url_thumbnail' `meta_key`,
+			REPLACE(CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/department', '/imagecache/thumbnail/images/thumbnails/department')), 'https://www.minnpost.com/sites/default/files/images/thumbnails', 'https://www.minnpost.com/sites/default/files/imagecache/thumbnail/images/thumbnails') `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE n.type = 'department'
+	;
+
+
+	# category main image url
+	# this is the main image from cache folder
+	# this one does take the vid into account
+	# have verified that all these department file urls exist
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `term_id`,
+			'_category_main_image_ext_url' `meta_key`,
+			CONCAT('https://www.minnpost.com/', f.filepath) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+			WHERE n.type = 'department'
+	;
+
+
+	# sections have no images
 
 
 
