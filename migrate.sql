@@ -2,14 +2,14 @@
 
 # Changelog
 
-# 04.11.2016 - Forked for MinnPost by Jonathan Stegall; gradually expanded over approximately forever
-# 07.29.2010 - Updated by Scott Anderson / Room 34 Creative Services http://blog.room34.com/archives/4530
-# 02.06.2009 - Updated by Mike Smullin http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/
-# 05.15.2007 - Updated by D’Arcy Norman http://www.darcynorman.net/2007/05/15/how-to-migrate-from-drupal-5-to-wordpress-2/
-# 05.19.2006 - Created by Dave Dash http://spindrop.us/2006/05/19/migrating-from-drupal-47-to-wordpress/
+	# 04.11.2016 - Forked for MinnPost by Jonathan Stegall; gradually expanded over approximately forever
+	# 07.29.2010 - Updated by Scott Anderson / Room 34 Creative Services http://blog.room34.com/archives/4530
+	# 02.06.2009 - Updated by Mike Smullin http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/
+	# 05.15.2007 - Updated by D’Arcy Norman http://www.darcynorman.net/2007/05/15/how-to-migrate-from-drupal-5-to-wordpress-2/
+	# 05.19.2006 - Created by Dave Dash http://spindrop.us/2006/05/19/migrating-from-drupal-47-to-wordpress/
 
-# This assumes that WordPress and Drupal are in separate databases, named 'wordpress' and 'drupal'.
-# If your database names differ, adjust these accordingly.
+	# This assumes that WordPress and Drupal are in separate databases, named 'wordpress' and 'drupal'.
+	# If your database names differ, adjust these accordingly.
 
 
 # Section 1 - Reset. The order is important here.
@@ -1101,7 +1101,7 @@
 
 
 
-# Section 7 - Category Images. Order doesn't matter but it has to be after categories.
+# Section 7 - Category Images. Order doesn't matter but it has to be after categories. We can skip this section if we're testing other stuff.
 
 	# category thumbnail url
 	# this is the small thumbnail from cache folder
@@ -1143,7 +1143,7 @@
 
 
 
-# Section 8 - Post Images and other local file attachments. Order doesn't matter but it has to be after users.
+# Section 8 - Post Images and other local file attachments. Order doesn't matter but it has to be after users because we use the post id there. We can skip this section if we're testing other stuff.
 
 	# main images as featured images for posts
 	# this will be the default if another version is not present
@@ -1881,7 +1881,7 @@
 
 
 
-# Section 9 - Comments. Order doesn't matter but it needs to be after posts because the post table gets updated.
+# Section 9 - Comments. Order doesn't matter but it needs to be after posts because the post table gets updated. We can skip this section if we're testing other stuff.
 
 	# Comments
 	# Keeps unapproved comments hidden.
@@ -1910,7 +1910,7 @@
 
 
 
-# Section 10 - User and Author Metadata. Order doesn't matter but it needs to be after users/authors.
+# Section 10 - User and Author Metadata. Order doesn't matter but it needs to be after users/authors. We can skip this section if we're testing other stuff.
 
 	# user permissions
 
@@ -2242,7 +2242,7 @@
 
 
 
-# Section 11 - Navigational items. The order doesn't matter here but it does have to wait for cron to finish
+# Section 11 - Navigational items. The order doesn't matter here but it does have to wait for cron to finish. We can skip this section if we're testing other stuff.
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
@@ -2436,7 +2436,7 @@
 
 
 
-# Section 12 - widgets and ads and sidebar such stuff. The order doesn't matter here.
+# Section 12 - widgets and ads and sidebar such stuff. The order doesn't matter here but it has to be after posts since that table gets updated. We can skip this section if we're testing other stuff.
 
 	# replace content when necessary
 
@@ -2490,7 +2490,7 @@
 
 
 
-# Section 13 - General WordPress settings. 
+# Section 13 - General WordPress settings.
 
 
 
