@@ -521,7 +521,7 @@
 
 
 
-# Section 5 - Users and Authors, and their terms and taxonomies and relationships to posts. Order is important here because we use the post ID for authors.
+# Section 4 - Users and Authors, and their terms and taxonomies and relationships to posts. Order is important here because we use the post ID for authors.
 
 	# If we change the inner join to left join on the insert into wp_users, we can get all users inserted
 	# however, this will break the roles. we need to have the roles at least created in WordPress before doing this
@@ -663,7 +663,7 @@
 
 
 
-# Section 6 - Post Images and other local file attachments. Order doesn't matter but it has to be after users because we use the post id there. We can skip this section if we're testing other stuff.
+# Section 5 - Post Images and other local file attachments. Order has to be after users because we use the post id for users but we don't use it here for files. We can skip this section if we're testing other stuff.
 
 	# main images as featured images for posts
 	# this will be the default if another version is not present
