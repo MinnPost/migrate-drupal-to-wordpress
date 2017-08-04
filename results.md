@@ -132,6 +132,7 @@
     - This will reduce the total count of tags.
     - It also takes forever to run because there are a lot of duplicates.
     - No duplicate categories are created by our migration queries.
+- there is a field_image_thumbnail field that is almost useless.
 
 
 ### Content fields we don't have to migrate
