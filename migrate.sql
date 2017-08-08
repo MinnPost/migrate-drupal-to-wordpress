@@ -1641,6 +1641,14 @@
 	;
 
 
+	# we need the taxonomy here too because that is how the join works
+
+	# Create taxonomy for each department
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
+		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
+	;
+
+
 	# text fields for categories from departments
 
 	# excerpt field
@@ -1687,12 +1695,6 @@
 	;
 
 
-	# Create taxonomy for each department
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
-	;
-
-
 	# Create relationships for each story to the departments it had in Drupal
 	# Track this relationship by the term_id_old field
 	# this one does take the vid into account
@@ -1705,6 +1707,151 @@
 				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
 				WHERE tax.taxonomy = 'category'
 	;
+
+
+	# we need category images here because we need to have the term_id_old field for the image parent
+
+
+	# add the image_post_file_id_old field for tracking Drupal file ids
+	ALTER TABLE wp_posts ADD image_post_file_id_old BIGINT(20);
+
+	# these image posts also need a temporary term id because they don't have a post parent
+	ALTER TABLE wp_posts ADD term_id BIGINT(20);
+
+
+	# insert main category images as posts
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old, term_id)
+		SELECT DISTINCT
+			n.uid `post_author`,
+			FROM_UNIXTIME(f.timestamp) `post_date`,
+			'' `post_content`,
+			f.filename `post_title`,
+			'' `post_excerpt`,
+			f.filename `post_name`,
+			'inherit' `post_status`,
+			term.term_id `post_parent`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/department', '/imagecache/feature/images/department')) `guid`,
+			'attachment' `post_type`,
+			f.filemime `post_mime_type`,
+			f.fid `image_post_file_id_old`,
+			term.term_id `term_id`
+			FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+			INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			INNER JOIN `minnpost.drupal`.content_field_main_image i ON i.nid = n.nid AND i.vid = n.vid
+			INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+	;
+
+	# insert the id and url as meta fields for the main image for each category
+	# each needs the post id for the story
+	# _mp_image_settings_main_image_id (the image post id)
+	# _mp_image_settings_main_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
+
+	# post id for image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT
+			p.term_id `term_id`,
+			'_mp_category_main_image_id' `meta_key`,
+			p.ID `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL
+	;
+
+
+	# url for image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT
+			p.term_id `post_id`,
+			'_mp_category_main_image' `meta_key`,
+			p.guid `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL
+	;
+
+
+	# insert category thumbnails as posts
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old, term_id)
+		SELECT DISTINCT
+			n.uid `post_author`,
+			FROM_UNIXTIME(f.timestamp) `post_date`,
+			'' `post_content`,
+			f.filename `post_title`,
+			'' `post_excerpt`,
+			f.filename `post_name`,
+			'inherit' `post_status`,
+			'0' `post_parent`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/department', '/imagecache/thumbnail/images/thumbnails/department')) `guid`,
+			'attachment' `post_type`,
+			f.filemime `post_mime_type`,
+			f.fid `image_post_file_id_old`,
+			term.term_id `term_id`
+			FROM wp_term_taxonomy tax
+			INNER JOIN wp_terms term ON tax.term_id = term.term_id
+			INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+			INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i ON i.nid = n.nid AND i.vid = n.vid
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+	;
+
+
+	# insert the id and url as meta fields for the thumbnail image for the category
+	# each needs the post id for the item
+	# _mp_category_thumbnail_image_id (the image post id)
+	# _mp_category_thumbnail_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
+
+	# post id for image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT
+			p.term_id `term_id`,
+			'_mp_category_thumbnail_image_id' `meta_key`,
+			p.ID `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL
+	;
+
+
+	# url for image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT
+			p.term_id `post_id`,
+			'_mp_category_thumbnail_image' `meta_key`,
+			p.guid `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL
+	;
+
+
+	# then we can get rid of that temp file id field
+	ALTER TABLE wp_posts DROP COLUMN image_post_file_id_old;
+	ALTER TABLE wp_posts DROP COLUMN term_id;
+
+
+	# sections have no images
 
 
 	# Empty term_id_old values so we can start over with our auto increment and still track for sections
@@ -1894,45 +2041,6 @@
 
 
 
-# Section 9 - Category Images. Order has to be after categories. We can skip this section if we're testing other stuff.
-
-	# category thumbnail url
-	# this is the small thumbnail from cache folder
-	# this one does take the vid into account
-	# have verified that all these department file urls exist
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT
-			n.nid `term_id`,
-			'_thumbnail_ext_url_thumbnail' `meta_key`,
-			REPLACE(CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/department', '/imagecache/thumbnail/images/thumbnails/department')), 'https://www.minnpost.com/sites/default/files/images/thumbnails', 'https://www.minnpost.com/sites/default/files/imagecache/thumbnail/images/thumbnails') `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
-			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
-			WHERE n.type = 'department'
-	;
-
-
-	# category main image url
-	# this is the main image from cache folder
-	# this one does take the vid into account
-	# have verified that all these department file urls exist
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
-		(term_id, meta_key, meta_value)
-		SELECT DISTINCT
-			n.nid `term_id`,
-			'_category_main_image_ext_url' `meta_key`,
-			CONCAT('https://www.minnpost.com/', f.filepath) `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
-			INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
-			WHERE n.type = 'department'
-	;
-
-
-	# sections have no images
 # Section 9 - Comments. Order has to be after posts because the post table gets updated. We can skip this section if we're testing other stuff.
 
 	# Comments
