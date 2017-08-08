@@ -1499,7 +1499,11 @@
 	# newsletter fields
 
 	# add a temporary constraint for newsletter type stuff so we don't add duplicates
-	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_newsletter_type UNIQUE (post_id, meta_key, meta_value(64));
+	# first we need to delete duplicate meta rows so we can add the constraint
+	DELETE t1 FROM `wp_postmeta` t1, `wp_postmeta` t2 WHERE t1.meta_id > t2.meta_id AND t1.post_id = t2.post_id AND t1.meta_key = t2.meta_key AND t1.meta_value = t2.meta_value
+	;
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_newsletter_type UNIQUE (post_id, meta_key, meta_value(255))
+	;
 
 	# type field - the data is easier if we just do this one separately for the three types
 	# this one does take the vid into account
