@@ -78,7 +78,8 @@
 
 	# Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 	# Add more Drupal content types below if applicable
-	# parameter: line 84 must contain the content types from parameter in line 75 that should be imported as 'posts'
+	# parameter: line 85 must contain the content types from parameter in line 75 that should be imported as 'posts'
+	# newsletter and page should stay as they are
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_type = 'post'
 		WHERE post_type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
@@ -307,11 +308,11 @@
 	DROP TABLE wp_posts_documentcloud;
 
 
-	# Fix images in post content; uncomment if you're moving files from "files" to "wp-content/uploads".
+	# Fix image urls in post content
 	# in our case, we use this to make the urls absolute, at least for now
 	# no need for vid stuff
-	#UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"/wp-content/uploads/');
-	UPDATE `minnpost.wordpress`.wp_posts SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
 	;
 
 
@@ -645,7 +646,7 @@
 	;
 
 
-	# Create relationships for each story to the author it had in Drupal
+	# Create relationships for each story to the authors it had in Drupal
 	# Track this relationship by the user_node_id_old field
 	# this one does take the vid into account
 	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
@@ -697,7 +698,7 @@
 	;
 
 
-	# large size
+	# large size (article_detail from drupal)
 	UPDATE `minnpost.wordpress`.wp_options
 		SET option_value = 640
 		WHERE option_name = 'large_size_w'
@@ -874,7 +875,7 @@
 
 	# we store the drupal_file_id as a temp field and use it for the meta insert
 
-	# add the user_node_id_old field for tracking Drupal node IDs for authors
+	# add the image_post_file_id_old field for tracking Drupal node IDs for posts
 	ALTER TABLE wp_posts ADD image_post_file_id_old BIGINT(20);
 
 
@@ -1338,20 +1339,6 @@
 	;
 
 
-	# insert credit field for main images
-	INSERT INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT
-			ID `post_id`,
-			'_media_credit' `meta_key`,
-			c.field_main_image_credit_value `meta_value`
-			FROM `minnpost.wordpress`.wp_posts p
-			LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image_credit c ON p.post_parent = c.nid
-			WHERE post_type = 'attachment' AND c.field_main_image_credit_value IS NOT NULL
-			GROUP BY post_id
-	;
-
-
 	# insert metadata for post thumbnails - this relates to the image post ID
 	# this doesn't really seem to need any vid stuff
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
@@ -1434,6 +1421,20 @@
 		LEFT OUTER JOIN `minnpost.drupal`.node_revisions r ON node.vid = r.vid
 		SET wp_posts.post_excerpt = r.body
 		WHERE wp_posts.post_type = 'attachment' AND r.body != ''
+	;
+
+
+	# insert credit field for main images
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+			ID `post_id`,
+			'_media_credit' `meta_key`,
+			c.field_main_image_credit_value `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image_credit c ON p.post_parent = c.nid
+			WHERE post_type = 'attachment' AND c.field_main_image_credit_value IS NOT NULL
+			GROUP BY post_id
 	;
 
 
@@ -1916,10 +1917,7 @@
 
 
 	# sections have no images
-
-
-
-# Section 10 - Comments. Order has to be after posts because the post table gets updated. We can skip this section if we're testing other stuff.
+# Section 9 - Comments. Order has to be after posts because the post table gets updated. We can skip this section if we're testing other stuff.
 
 	# Comments
 	# Keeps unapproved comments hidden.
@@ -1948,7 +1946,7 @@
 
 
 
-# Section 11 - User and Author Metadata. Order needs to be after users/authors (#4). We can skip this section if we're testing other stuff.
+# Section 10 - User and Author Metadata. Order needs to be after users/authors (#4). We can skip this section if we're testing other stuff.
 
 	# user permissions
 
@@ -2068,7 +2066,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 2081 contains the Drupal permission roles that we want to migrate
+	# parameter: line 2247 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -2126,11 +2124,6 @@
 	#		WHERE tr.term_taxonomy_id = tt.term_taxonomy_id
 	#	)
 	#;
-
-
-	# assign authors from author nodes to stories where applicable
-	# not sure this query is useful at all
-	# UPDATE `minnpost.wordpress`.wp_posts AS posts INNER JOIN `minnpost.drupal`.content_field_op_author AS authors ON posts.ID = authors.nid SET posts.post_author = authors.field_op_author_nid;
 
 
 	# user and author text fields
@@ -2280,7 +2273,7 @@
 
 
 
-# Section 12 - Navigational items. The order doesn't matter here but it does have to wait for cron to finish. We can skip this section if we're testing other stuff.
+# Section 11 - Navigational items. The order doesn't matter here but it does have to wait for cron to finish. We can skip this section if we're testing other stuff.
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
@@ -2418,7 +2411,7 @@
 
 
 	# add menus
-	# parameter: line 2430 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 2622 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -2432,7 +2425,7 @@
 
 
 	# add menu items
-	# parameter: line 2465 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 2657 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
@@ -2474,7 +2467,7 @@
 
 
 
-# Section 13 - widgets and ads and sidebar such stuff. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff.
+# Section 12 - widgets and ads and sidebar such stuff. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff.
 
 	# replace content when necessary
 
@@ -2528,7 +2521,7 @@
 
 
 
-# Section 14 - General WordPress settings.
+# Section 13 - General WordPress settings.
 
 
 
