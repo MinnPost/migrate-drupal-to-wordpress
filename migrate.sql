@@ -761,25 +761,6 @@
 			WHERE n.type = 'slideshow' AND f.filename IS NOT NULL
 	;
 
-	# there is alt / caption info
-
-	# insert metadata for gallery images - this relates to the image post ID
-	# 8/317: this was using the story post id instead of image like it was supposed to. fixed it though i think
-	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT
-			s.field_op_slideshow_images_nid `post_id`,
-			'_wp_imported_metadata' `meta_key`,
-			i.field_main_image_data `meta_value`
-			FROM node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN content_field_op_slideshow_images s ON n.nid = s.field_op_slideshow_images_nid
-			INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
-			INNER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
-			GROUP BY s.field_op_slideshow_images_nid
-	;
-
 
 	# insert gallery thumbnails as posts
 	# this one does take the vid into account
@@ -802,21 +783,6 @@
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid, vid)
 			INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
-	;
-
-
-	# insert metadata for gallery thumbnails - this relates to the image post ID
-	# this doesn't need vid because it joins with the wordpress image post already
-	INSERT INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT
-		p.ID `post_id`,
-		'_wp_imported_metadata' `meta_key`,
-		s.field_op_slideshow_thumb_data `meta_value`
-		FROM `minnpost.wordpress`.wp_posts p
-		INNER JOIN `minnpost.drupal`.files f ON p.post_title = f.filename
-		INNER JOIN `minnpost.drupal`.content_type_slideshow s ON f.fid = s.field_op_slideshow_thumb_fid
-		GROUP BY p.ID
 	;
 
 
@@ -1312,6 +1278,43 @@
 
 	# our _wp_imported_metadata field is fixed by the Deserialize Metadata plugin: https://wordpress.org/extend/plugins/deserialize-metadata/
 
+	# there is alt / caption info
+
+	# insert metadata for gallery images - this relates to the image post ID
+	# 8/317: this was using the story post id instead of image like it was supposed to. fixed it though i think
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+			s.field_op_slideshow_images_nid `post_id`,
+			'_wp_imported_metadata' `meta_key`,
+			i.field_main_image_data `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON n.nid = s.field_op_slideshow_images_nid
+			INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
+			INNER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
+			WHERE i.field_main_image_data IS NOT NULL
+			GROUP BY s.field_op_slideshow_images_nid
+	;
+
+
+	# insert metadata for gallery thumbnails - this relates to the image post ID
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+		p.ID `post_id`,
+		'_wp_imported_metadata' `meta_key`,
+		s.field_op_slideshow_thumb_data `meta_value`
+		FROM `minnpost.wordpress`.wp_posts p
+		INNER JOIN `minnpost.drupal`.files f ON p.post_title = f.filename
+		INNER JOIN `minnpost.drupal`.content_type_slideshow s ON f.fid = s.field_op_slideshow_thumb_fid
+		WHERE s.field_op_slideshow_thumb_data IS NOT NULL
+		GROUP BY p.ID
+	;
+
+
 	# insert metadata for slideshow images - this relates to the image post ID
 	# this one does take the vid into account
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
@@ -1320,11 +1323,12 @@
 			s.field_op_slideshow_images_nid `post_id`,
 			'_wp_imported_metadata' `meta_key`,
 			i.field_main_image_data `meta_value`
-			FROM node n
+			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN content_field_op_slideshow_images s ON n.nid = s.field_op_slideshow_images_nid
+			INNER JOIN `minnpost.drupal`.content_field_op_slideshow_images s ON n.nid = s.field_op_slideshow_images_nid
 			INNER JOIN `minnpost.drupal`.node n2 ON s.field_op_slideshow_images_nid = n2.nid
 			INNER JOIN `minnpost.drupal`.content_field_main_image i ON n2.nid = i.nid
+			WHERE i.field_main_image_data IS NOT NULL
 			GROUP BY s.field_op_slideshow_images_nid
 	;
 
