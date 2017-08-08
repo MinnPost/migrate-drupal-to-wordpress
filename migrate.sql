@@ -329,6 +329,7 @@
 		SET post_content = REPLACE(post_content,'<p class="bold">&nbsp;</p>','')
 	;
 
+
 	# these items we don't currently use
 
 	# Fix post_name to remove paths.
@@ -665,7 +666,7 @@
 
 
 
-# Section 5 - Post Images and other local file attachments, and attach them to posts. Order has to be after users because we use the post id for users above but we don't have one to use here for files, so it autoincrements. But we can skip this section if we're testing other stuff.
+# Section 5 - Post Images (including authors) and other local file attachments, and attach them to posts. Order has to be after users because we use the post id for users above but we don't have one to use here for files, so it autoincrements. But we can skip this section if we're testing other stuff.
 	
 	# WordPress Settings for image uploads
 
