@@ -1013,8 +1013,10 @@
 	;
 
 
-	# insert the id and url as meta fields for the main image for each post
-	# each needs the post id for the story
+
+
+	# insert the id and url as meta fields for the thumbnail image for each post/post type
+	# each needs the post id for the item
 	# _mp_image_settings_thumbnail_image_id (the image post id)
 	# _mp_image_settings_thumbnail_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
 
