@@ -121,7 +121,7 @@
 
 - Wrote a plugin that splits the Drupal image metadata into alt, caption, etc. It can be used for as many types as necessary, but is currently only being used for thumbnail images. It's likely we won't need it for inline images, but maybe will need it for detail ones.
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
-    - this should be fixed by Largo as I think it has a byline field
+    - this is fine
 - need user roles and permissions
 - user fields were only saved if the user has ever saved their account. otherwise it is somewhere not in the database. need to figure out what i was talking about here.
 - alt text, captions, whatever else for all images are in a serialized row in drupal. there seem to be some differences with the section/department nodes

@@ -727,6 +727,7 @@
 	# 	for audio posts, there is no main image field in Drupal but there is a thumbnail
 	# 	for video posts, there is no main image field in Drupal but there is a thumbnail
 	# 	for slideshow posts, there is no main image field in Drupal but there is a thumbnail
+	#	for authors, there is a main image and a thumbnail
 
 
 	# gallery images for gallery posts
@@ -875,6 +876,7 @@
 			INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
 	;
 
+
 	# insert the id and url as meta fields for the main image for each post
 	# each needs the post id for the story
 	# _mp_post_main_image_id (the image post id)
@@ -907,6 +909,63 @@
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
 			WHERE p.post_type = 'attachment'
+	;
+
+
+	# insert author photos as posts
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
+		SELECT DISTINCT
+			n.uid `post_author`,
+			FROM_UNIXTIME(f.timestamp) `post_date`,
+			'' `post_content`,
+			f.filename `post_title`,
+			'' `post_excerpt`,
+			f.filename `post_name`,
+			'inherit' `post_status`,
+			n.nid `post_parent`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/author', '/imagecache/author_photo/images/author')) `guid`,
+			'attachment' `post_type`,
+			f.filemime `post_mime_type`,
+			f.fid `image_post_file_id_old`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author a USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON a.field_author_photo_fid = f.fid
+	;
+
+
+	# post id for author image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+			p.post_parent `post_id`,
+			'_mp_author_image_id' `meta_key`,
+			p.ID `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			INNER JOIN `minnpost.wordpress`.wp_posts parent ON p.post_parent = parent.ID
+			WHERE p.post_type = 'attachment' and parent.post_type = 'guest-author'
+	;
+
+
+	# url for author image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+			p.post_parent `post_id`,
+			'_mp_author_image' `meta_key`,
+			p.guid `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			INNER JOIN `minnpost.wordpress`.wp_posts parent ON p.post_parent = parent.ID
+			WHERE p.post_type = 'attachment' and parent.post_type = 'guest-author'
 	;
 
 
@@ -1049,6 +1108,11 @@
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
 			WHERE p.post_type = 'attachment'
 	;
+
+
+
+
+	# author thumbnail does not go into the interface so we can just store it as a meta field instead of a post
 
 
 	# then we can get rid of that temp file id field
@@ -1271,6 +1335,22 @@
 
 
 	# there is no /feature/images/thumbnails/slideshow
+
+
+	# thumbnail for authors
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_author_image_thumbnail' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/author', '/imagecache/author_teaser/images/author')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author a USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON a.field_author_photo_fid = f.fid
+			WHERE f.filepath LIKE '%images/author%'
+	;
 
 
 	# we still need images for events but we don't yet have posts for them :(
@@ -1525,6 +1605,8 @@
 	# first we need to delete duplicate meta rows so we can add the constraint
 	DELETE t1 FROM `wp_postmeta` t1, `wp_postmeta` t2 WHERE t1.meta_id > t2.meta_id AND t1.post_id = t2.post_id AND t1.meta_key = t2.meta_key AND t1.meta_value = t2.meta_value
 	;
+
+
 	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_newsletter_type UNIQUE (post_id, meta_key, meta_value(255))
 	;
 
@@ -2422,6 +2504,37 @@
 
 	# drop that temporary constraint
 	ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
+
+
+	# add the excerpt field for the author if we have one
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_author_excerpt' as meta_key,
+				t.field_teaser_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
+			WHERE t.field_teaser_value IS NOT NULL
+	;
+
+
+	# add the bio field for the author if we have one
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_author_bio' as meta_key,
+				r.body `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+			WHERE r.body IS NOT NULL and r.body != ''
+	;
 
 
 
