@@ -2444,7 +2444,7 @@
 		SELECT DISTINCT
 			n.nid `post_id`,
 			'cap-twitter' `meta_key`,
-			CONCAT('https://twitter.com/', REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(link.field_link_multiple_url, 'http://www.twitter.com/', ''), 'http://twitter.com/', ''), '@', ''), 'https://twitter.com/', ''), '#%21', ''), '/', '')) `meta_value`
+			REPLACE(CONCAT('https://twitter.com/', REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(link.field_link_multiple_url, 'http://www.twitter.com/', ''), 'http://twitter.com/', ''), '@', ''), 'https://twitter.com/', ''), '#%21', ''), '/', '')), 'https://twitter.com/https:www.twitter.com', 'https://twitter.com/') `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
