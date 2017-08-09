@@ -877,8 +877,8 @@
 
 	# insert the id and url as meta fields for the main image for each post
 	# each needs the post id for the story
-	# _mp_image_settings_main_image_id (the image post id)
-	# _mp_image_settings_main_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
+	# _mp_post_main_image_id (the image post id)
+	# _mp_post_main_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
 
 	# post id for image
 	# have to use that temp file id field
@@ -887,7 +887,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT
 			p.post_parent `post_id`,
-			'_mp_image_settings_main_image_id' `meta_key`,
+			'_mp_post_main_image_id' `meta_key`,
 			p.ID `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
@@ -902,7 +902,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT
 			p.post_parent `post_id`,
-			'_mp_image_settings_main_image' `meta_key`,
+			'_mp_post_main_image' `meta_key`,
 			p.guid `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
@@ -1018,8 +1018,8 @@
 
 	# insert the id and url as meta fields for the thumbnail image for each post/post type
 	# each needs the post id for the item
-	# _mp_image_settings_thumbnail_image_id (the image post id)
-	# _mp_image_settings_thumbnail_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
+	# _mp_post_thumbnail_image_id (the image post id)
+	# _mp_post_thumbnail_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
 
 	# post id for thumbnail image
 	# have to use that temp file id field
@@ -1028,7 +1028,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT
 			p.post_parent `post_id`,
-			'_mp_image_settings_thumbnail_image_id' `meta_key`,
+			'_mp_post_thumbnail_image_id' `meta_key`,
 			p.ID `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
@@ -1043,7 +1043,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT
 			p.post_parent `post_id`,
-			'_mp_image_settings_thumbnail_image' `meta_key`,
+			'_mp_post_thumbnail_image' `meta_key`,
 			p.guid `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
@@ -1067,7 +1067,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature' `meta_key`,
+			'_mp_post_thumbnail_image_feature' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature/images/thumbnails/articles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1084,7 +1084,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature_large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_large/images/thumbnails/articles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1101,7 +1101,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_middle/images/thumbnails/articles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1120,7 +1120,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature' `meta_key`,
+			'_mp_post_thumbnail_image_feature' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/feature/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1137,7 +1137,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature_large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/feature_large/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1154,7 +1154,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/feature_middle/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1173,7 +1173,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature' `meta_key`,
+			'_mp_post_thumbnail_image_feature' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature/images/thumbnails/audio')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1190,7 +1190,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature_large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_large/images/thumbnails/audio')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1207,7 +1207,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_middle/images/thumbnails/audio')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1226,7 +1226,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature' `meta_key`,
+			'_mp_post_thumbnail_image_feature' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1243,7 +1243,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature_large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_large/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1260,7 +1260,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_image_settings_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_middle/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1420,12 +1420,32 @@
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
-			nid as post_id, '_mp_image_settings_homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
+			nid as post_id, '_mp_post_homepage_image_size' as meta_key, field_hp_image_size_value as meta_value
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_hp_image_size s USING(nid, vid)
 			WHERE s.field_hp_image_size_value IS NOT NULL
 	;
+
+
+	# fix homepage size vars to match wordpress image size names
+	# these don't really seem to need any vid stuff
+
+
+	# medium
+	UPDATE `minnpost.wordpress`.wp_postmeta
+		SET meta_value = 'feature_middle'
+		WHERE meta_value = 'medium' AND meta_key = '_mp_post_homepage_image_size'
+	;
+
+	# large
+	UPDATE `minnpost.wordpress`.wp_postmeta
+		SET meta_value = 'feature_large'
+		WHERE meta_value = 'large' AND meta_key = '_mp_post_homepage_image_size'
+	;
+
+
+
 
 
 	# excerpt for image posts; this is caption only if it is stored elsewhere
@@ -1752,8 +1772,8 @@
 
 	# insert the id and url as meta fields for the main image for each category
 	# each needs the post id for the story
-	# _mp_image_settings_main_image_id (the image post id)
-	# _mp_image_settings_main_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
+	# _mp_post_main_image_id (the image post id)
+	# _mp_post_main_image (full url, at least during the migration phase; it might change when we're uploading natively but who knows)
 
 	# post id for image
 	# have to use that temp file id field
@@ -2315,7 +2335,8 @@
 
 
 	# add a temporary constraint for email addresses so we don't add duplicates
-	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(64));
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(255))
+	;
 
 
 	# add the email address for the author if we have one
@@ -2379,6 +2400,10 @@
 			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 			INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 	;
+
+
+	# in wordpress, the author has a first name/last name and some other fields
+	# but we don't store those on the author object in drupal so we don't need to migrate it
 
 
 	# if the linked user has an email address, add it
@@ -2534,11 +2559,11 @@
 	  `menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
 	  `menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
 	  PRIMARY KEY (`id`)
-	)
+	);
 
 
 	# add menus
-	# parameter: line 2622 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 2625 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -2552,7 +2577,7 @@
 
 
 	# add menu items
-	# parameter: line 2657 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 2660 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
@@ -2641,6 +2666,9 @@
 			WHERE module = 'minnpost_ads' AND theme = 'siteskin'
 			ORDER BY weight DESC, delta
 	;
+
+
+	# have to wait for migrate cron to run before deleting the table
 
 
 	# get rid of the temporary ad table
