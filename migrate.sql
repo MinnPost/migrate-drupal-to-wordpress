@@ -1680,6 +1680,20 @@
 	;
 
 
+	# show department on top stories
+	# this one does take the vid into account
+	# note: this field currently does not exist in any newsletters, so it will error unless someone uses it
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			nid `post_id`,
+			'_mp_newsletter_show_department_for_top_stories' as meta_key,
+			'on' as meta_value
+			FROM `minnpost.drupal`.content_type_newsletter n
+			WHERE field_top_stories_department_value = 'On'
+	;
+
+
 	# add more stories for all newsletter posts
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
