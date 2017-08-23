@@ -1699,7 +1699,7 @@
 
 
 
-# Section 8 - Categories, their text fields, their taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
+# Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
 	# this category stuff by default breaks because the term ID has already been used - by the tag instead of the category
 	# it fails to add the duplicate IDs because Drupal has them in separate tables
@@ -2295,7 +2295,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 2247 contains the Drupal permission roles that we want to migrate
+	# parameter: line 2406 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -2501,6 +2501,7 @@
 			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
 			INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
 	;
+	
 
 	# drop that temporary constraint
 	ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
@@ -2664,19 +2665,19 @@
 
 	# Temporary table for menu items
 	CREATE TABLE `wp_menu_items` (
-	  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-	  `menu-name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	  `menu-item-title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	  `menu-item-url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	  `menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
-	  `menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
-	  `menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
-	  PRIMARY KEY (`id`)
+		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`menu-name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`menu-item-title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`menu-item-url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+		`menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
+		`menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
+		PRIMARY KEY (`id`)
 	);
 
 
 	# add menus
-	# parameter: line 2625 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 2793 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -2690,7 +2691,7 @@
 
 
 	# add menu items
-	# parameter: line 2660 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 2828 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
