@@ -994,6 +994,7 @@
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
 			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE n.type IN ('article')
 	;
 
 
@@ -1353,7 +1354,7 @@
 	;
 
 
-	# we still need images for events but we don't yet have posts for them :(
+	# todo: we still need images for events but we don't yet have posts for them :(
 
 
 
@@ -1523,9 +1524,6 @@
 		SET meta_value = 'feature_large'
 		WHERE meta_value = 'large' AND meta_key = '_mp_post_homepage_image_size'
 	;
-
-
-
 
 
 	# excerpt for image posts; this is caption only if it is stored elsewhere
@@ -1814,6 +1812,26 @@
 	;
 
 
+	# temporary table for featured departments with their section id
+	CREATE TABLE `wp_featured_terms` (
+		`section_id` bigint(20) unsigned NOT NULL,
+		`featured_terms` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''
+	);
+
+
+	# populate featured departments
+	INSERT INTO `minnpost.wordpress`.wp_featured_terms(section_id, featured_terms)
+		SELECT cs.field_section_nid as section_nid, GROUP_CONCAT(t.term_id) as featured_terms
+			FROM `minnpost.drupal`.node d
+			INNER JOIN `minnpost.drupal`.content_field_section cs USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.node s ON cs.field_section_nid = s.nid
+			INNER JOIN `minnpost.wordpress`.wp_terms t ON t.term_id_old = d.nid
+			WHERE d.type = 'department' AND field_section_nid IS NOT NULL
+			GROUP BY field_section_nid
+			ORDER BY s.title, d.changed
+	;
+
+
 	# we need category images here because we need to have the term_id_old field for the image parent
 
 
@@ -1951,6 +1969,39 @@
 	;
 
 
+	# featured column thumbnail image
+	# this is the larger thumbnail image that shows on the top of the homepage from cache folder
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT
+			p.term_id `post_id`,
+			'_mp_category_featured_column_image' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE( f.filepath, '/images/thumbnails/department', '/imagecache/featured_column/images/thumbnails/department')) `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL AND f.filepath LIKE '%/images/thumbnails/department%'
+	;
+
+
+	# featured column thumbnail image other path
+	# this is the larger thumbnail image that shows on the top of the homepage from cache folder
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT
+			p.term_id `post_id`,
+			'_mp_category_featured_column_image' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE( f.filepath, '/images/thumbnails', '/imagecache/featured_column/images/thumbnails')) `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL AND f.filepath LIKE '%/images/thumbnails%'
+	;
+
+
+	# todo: still need featured columns for homepage as a nav menu
+
+
 	# then we can get rid of that temp file id field
 	ALTER TABLE wp_posts DROP COLUMN image_post_file_id_old;
 	ALTER TABLE wp_posts DROP COLUMN term_id;
@@ -2030,6 +2081,23 @@
 				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
 				WHERE tax.taxonomy = 'category'
 	;
+
+
+	# update featured categories so they use the actual section term ids
+	UPDATE `minnpost.wordpress`.wp_featured_terms ft JOIN wp_terms t ON t.term_id_old = ft.section_id
+		SET ft.section_id = t.term_id
+	;
+
+
+	# put those featured categories into the term meta table
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT section_id as term_id, '_mp_category_featured_columns' as meta_key, featured_terms as meta_value
+		FROM wp_featured_terms
+	;
+
+	# get rid of that temporary featured term table
+	DROP TABLE wp_featured_terms;
 
 
 	# text fields for categories from sections
