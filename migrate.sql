@@ -2023,7 +2023,7 @@
 	# this doesn't really seem to need any vid stuff
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
-		SELECT object_id as post_id, '_category_permalink' as meta_key, CONCAT('a:1:{s:8:"category";s:4:"', t.term_id, '";}') as meta_value
+		SELECT object_id as post_id, '_category_permalink' as meta_key, CONCAT('a:1:{s:8:"category";', CONCAT('s:', char_length(t.term_id), ':"'), t.term_id, '";}') as meta_value
 			FROM wp_term_relationships r
 			INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
 			INNER JOIN wp_terms t ON tax.term_id = t.term_id
