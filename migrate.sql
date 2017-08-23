@@ -2758,6 +2758,13 @@
 	;
 
 
+	# add a menu for featured columns
+	INSERT INTO `minnpost.wordpress`.wp_menu
+		(name, title, placement)
+		VALUES('menu-featured-columns', 'Featured Columns', 'featured_columns');
+	;
+
+
 	# add menu items
 	# parameter: line 2828 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
@@ -2791,6 +2798,24 @@
 				)
 			) OR l.link_path IN ('events', 'support')
 			ORDER BY menu_name, plid, l.weight
+	;
+
+	
+	# insert homepage featured columns
+	INSERT INTO `minnpost.wordpress`.wp_menu_items
+		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
+		SELECT 
+			'menu-featured-columns' `menu-name`,
+			n.title `menu-item-title`,
+			substring_index(a.dst, '/', -1) `menu-item-url`,
+			NULL `menu-item-parent`
+			FROM `minnpost.drupal`.nodequeue_nodes nn
+			INNER JOIN `minnpost.drupal`.nodequeue_queue q USING(qid)
+			INNER JOIN `minnpost.drupal`.node n USING(nid)
+			LEFT OUTER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+			WHERE q.title = 'Homepage Columns' AND n.title != 'The Glean'
+			ORDER BY nn.position
 	;
 
 
