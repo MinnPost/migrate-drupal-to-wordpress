@@ -1074,6 +1074,32 @@
 	;
 
 
+	# insert slideshow thumbnails as posts
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
+		SELECT DISTINCT
+			n.uid `post_author`,
+			FROM_UNIXTIME(f.timestamp) `post_date`,
+			'' `post_content`,
+			f.filename `post_title`,
+			'' `post_excerpt`,
+			f.filename `post_name`,
+			'inherit' `post_status`,
+			n.nid `post_parent`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/slideshow', '/imagecache/thumbnail/images/thumbnails/slideshow')) `guid`,
+			'attachment' `post_type`,
+			f.filemime `post_mime_type`,
+			f.fid `image_post_file_id_old`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
+	;
+
+
+	# we need to check this again and make sure there are no duplicate image urls bc they will break
 
 
 	# insert the id and url as meta fields for the thumbnail image for each post/post type
@@ -1092,7 +1118,7 @@
 			p.ID `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
-			WHERE p.post_type = 'attachment'
+			WHERE p.post_type = 'attachment' AND p.ID NOT LIKE '%imagecache/article_detail%'
 	;
 
 
@@ -1107,10 +1133,14 @@
 			p.guid `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
-			WHERE p.post_type = 'attachment'
+			WHERE p.post_type = 'attachment' AND p.guid NOT LIKE '%imagecache/article_detail%'
 	;
 
 
+	# i am not totally sure we will have to do this after the meta_value NOT LIKE, but in case we need it here it is
+	DELETE FROM `minnpost.wordpress`.wp_postmeta
+	WHERE meta_key = '_mp_post_thumbnail_image_id' AND meta_value LIKE '%imagecache/article_detail%'
+	;
 
 
 	# author thumbnail does not go into the interface so we can just store it as a meta field instead of a post
