@@ -50,22 +50,23 @@
     - WordPress: 6957 pairs. Adding 853 (WordPress does not create relationships where there are no posts) makes 7810.
 - Images
     - need to think about how to count this properly
-        - Feature
-        - Thumbnail
-        - Detail
-        - Author
+        - Feature :white_check_mark:
+        - Thumbnail :white_check_mark:
+        - Detail :white_check_mark:
+        - Author :white_check_mark:
+        - Featured Column :white_check_mark:
         - make sure we define all the sizes correctly
     - Folders to migrate to database
         - /sites/default/files/imagecache/article_detail :white_check_mark
         - /sites/default/files/imagecache/article_inset :white_check_mark
-        - /sites/default/files/imagecache/author_photo
-        - /sites/default/files/imagecache/author_teaser
-        - /sites/default/files/imagecache/feature
-        - /sites/default/files/imagecache/feature_large
-        - /sites/default/files/imagecache/feature_middle
-        - /sites/default/files/imagecache/featured_column
+        - /sites/default/files/imagecache/author_photo :white_check_mark:
+        - /sites/default/files/imagecache/author_teaser :white_check_mark:
+        - /sites/default/files/imagecache/feature :white_check_mark:
+        - /sites/default/files/imagecache/feature_large :white_check_mark:
+        - /sites/default/files/imagecache/feature_middle :white_check_mark:
+        - /sites/default/files/imagecache/featured_column :white_check_mark:
         - /sites/default/files/imagecache/gallery :white_check_mark
-        - /sites/default/files/imagecache/image_detail
+        - /sites/default/files/imagecache/image_detail :white_check_mark:
         - /sites/default/files/imagecache/newsletter_thumb
         - /sites/default/files/imagecache/sidebar_middle
         - /sites/default/files/imagecache/sidebar_right
@@ -81,7 +82,7 @@
     - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should). :white_check_mark:
     - We need to figure out how to map the Drupal roles to WordPress capabilities - which ones we can map directly vs which ones we have to create, and how we can create them (probably with a plugin)
     - Custom fields for authors and users
-- Category / tag information
+- Category / tag information :white_check_mark:
     - Categories have several custom fields, and a custom display at their url
 - Custom fields on core content
     - Deck :white_check_mark:
@@ -89,8 +90,8 @@
     - Teaser :white_check_mark:
     - Thumbnail image :white_check_mark:
     - Homepage Image Size :white_check_mark:
-    - Main Image Credit
-    - Main Image Caption
+    - Main Image Credit :white_check_mark:
+    - Main Image Caption :white_check_mark:
     - Inline Images :white_check_mark:
     - Show Author Info?
     - Related Content
@@ -115,6 +116,12 @@
 - Analytics functionality
 - Modals
 - Sidebar items that aren't custom spills
+    - featured columns (on categories) :white_check_mark:
+    - featured columns (on homepage) :white_check_mark:
+    - glean (on homepage) :white_check_mark:
+    - subscribe form for dc
+    - who's running
+    - data & maps
 - Access to items based on user info
 
 ### Notes
