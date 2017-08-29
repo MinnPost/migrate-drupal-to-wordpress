@@ -370,7 +370,8 @@
 	# Tags from Drupal vocabularies
 	# Using REPLACE prevents script from breaking if Drupal contains duplicate terms.
 	# permalinks are going to break for tags whatever we do, because drupal puts them all into folders (ie https://www.minnpost.com/category/social-tags/architect)
-	# we have to determine which tags should instead be (or already are) categories, so we don't have permalinks like books-1
+	# we have created redirects that point to the correct urls for tags - /tag/slug; this is different than /slug for categories
+	# this should prevent issues because of slugs that represent tags and categories
 	REPLACE INTO `minnpost.wordpress`.wp_terms
 		(term_id, `name`, slug, term_group)
 		SELECT DISTINCT
@@ -2660,6 +2661,7 @@
 # Section 11 - Navigational items. The order doesn't matter here but it does have to wait for cron to finish. We can skip this section if we're testing other stuff.
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
+	# these are from the path_redirect table
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -2685,6 +2687,36 @@
 			'' `title`
 			FROM `minnpost.drupal`.path_redirect p
 			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON p.redirect = a.src
+	;
+
+
+	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
+	# these are from the url_alias table and these are also necessary, but we have to fix some of the urls because of nesting
+	INSERT INTO `minnpost.wordpress`.wp_redirection_items
+		(`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+		SELECT DISTINCT
+			CONCAT('/', a.dst) `url`,
+			0 `regex`,
+			0 `position`,
+			1 `last_count`,
+			CURRENT_TIMESTAMP() `last_access`,
+			1 `group_id`,
+			'enabled' `status`,
+			'url' `action_type`,
+			301 `action_code`,
+			CONCAT(
+				(
+				SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				),
+				'/',
+				CONCAT('tag/', substring_index(REPLACE(REPLACE(a.dst, 'category/keywords/', 'tag/'), 'category/minnpost-topic/', 'tag/'), '/', -1))) `action_data`,
+			'url' `match_type`,
+			'' `title`
+			FROM `minnpost.drupal`.url_alias a
+			LEFT JOIN `minnpost.wordpress`.wp_posts p ON p.post_name = substring_index(a.dst, '/', -1)
+			WHERE p.ID IS NULL AND a.dst NOT LIKE '%author%' AND a.dst NOT LIKE '%department%' AND a.dst NOT LIKE '%section%' AND a.dst != REPLACE(REPLACE(a.dst, 'category/keywords/', 'tag/'), 'category/minnpost-topic/', 'tag/')
 	;
 
 
