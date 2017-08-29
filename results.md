@@ -84,6 +84,7 @@
     - Custom fields for authors and users
 - Category / tag information :white_check_mark:
     - Categories have several custom fields, and a custom display at their url
+    - tags have an rss feed link at their url
 - Custom fields on core content
     - Deck :white_check_mark:
     - Byline :white_check_mark:
