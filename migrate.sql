@@ -2408,7 +2408,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 2406 contains the Drupal permission roles that we want to migrate
+	# parameter: line 2421 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -2827,7 +2827,7 @@
 
 
 	# add menus
-	# parameter: line 2793 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 2839 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -2848,7 +2848,7 @@
 
 
 	# add menu items
-	# parameter: line 2828 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 2881 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
