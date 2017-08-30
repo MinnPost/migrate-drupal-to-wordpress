@@ -3016,6 +3016,10 @@
 	ALTER TABLE `minnpost.wordpress`.wp_sidebars ADD migrated TINYINT(1) DEFAULT 0;
 
 
+	# after the plugin runs, delete the temporary sidebar table
+	DROP TABLE wp_sidebars;
+
+
 
 # Section 13 - General WordPress settings.
 
