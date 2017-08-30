@@ -2957,6 +2957,9 @@
 	;
 
 
+	# we have to add a Middle tag manually with is_single conditional
+
+
 	# have to wait for migrate cron to run before deleting the table
 
 
@@ -2964,11 +2967,59 @@
 	DROP TABLE ads;
 
 
+	# temporary table for basic html sidebar items and their placement
+	CREATE TABLE `wp_sidebars` (
+		`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+		`title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+		`show_on` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT '',
+		PRIMARY KEY (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+
+	# put the active sidebars into that temporary table
+	INSERT INTO `minnpost.wordpress`.wp_sidebars
+		(title, content, show_on)
+		SELECT
+			IFNULL(d.field_display_title_value, CONCAT('!', n.title)) as title,
+			IF(LENGTH(nr.body)>0, nr.body, field_teaser_value) as content,
+			IFNULL(i.action_data, field_visibility_value) as show_on
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_sidebar s USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_visibility v USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.content_field_display_title d USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.wordpress`.wp_redirection_items i ON v.field_visibility_value = REPLACE(i.url, '/category', 'category')
+			WHERE n.status = 1
+			GROUP BY nid
+			ORDER BY n.status, changed
+	;
+
+
+	# fix the table
+	ALTER TABLE `minnpost.wordpress`.wp_sidebars CONVERT TO CHARACTER SET utf8mb4 collate utf8mb4_unicode_ci;
+
+
+	# update urls
+	UPDATE `minnpost.wordpress`.wp_sidebars s
+		SET show_on = REPLACE(show_on, CONCAT((
+			SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				), '/'),
+			'')
+	;
+
+
+	# add the migrated field
+	ALTER TABLE `minnpost.wordpress`.wp_sidebars ADD migrated TINYINT(1) DEFAULT 0;
+
+
 
 # Section 13 - General WordPress settings.
 
-
-
+	
 
 
 
