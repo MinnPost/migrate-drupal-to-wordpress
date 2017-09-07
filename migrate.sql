@@ -3012,6 +3012,13 @@
 	;
 
 
+	# Fix image urls in widget content
+	# in our case, we use this to make the urls absolute, at least for now
+	UPDATE `minnpost.wordpress`.wp_sidebars
+	SET content = REPLACE(content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
+	;
+
+
 	# add the migrated field
 	ALTER TABLE `minnpost.wordpress`.wp_sidebars ADD migrated TINYINT(1) DEFAULT 0;
 
