@@ -2981,19 +2981,22 @@
 	INSERT INTO `minnpost.wordpress`.wp_sidebars
 		(title, content, show_on)
 		SELECT
-			IFNULL(d.field_display_title_value, CONCAT('!', n.title)) as title,
-			IF(LENGTH(nr.body)>0, nr.body, field_teaser_value) as content,
-			IFNULL(i.action_data, field_visibility_value) as show_on
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_type_sidebar s USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_visibility v USING(nid, vid)
-			LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
-			LEFT OUTER JOIN `minnpost.drupal`.content_field_display_title d USING(nid, vid)
-			LEFT OUTER JOIN `minnpost.wordpress`.wp_redirection_items i ON v.field_visibility_value = REPLACE(i.url, '/category', 'category')
-			WHERE n.status = 1
-			GROUP BY nid
-			ORDER BY n.status, changed
+            IFNULL(d.field_display_title_value, CONCAT('!', n.title)) as title,
+            IF(LENGTH(u.field_url_url)>0, CONCAT(CONCAT(IF(LENGTH(f.filepath)>0, CONCAT('<div class="image">',IFNULL(CONCAT('<a href="/', u.field_url_url, '">'), ''), '<img src="https://www.minnpost.com/', f.filepath, '">', IF(LENGTH(u.field_url_url) > 0, '</a></div>', '</div>')),''), IF(LENGTH(nr.body)>0, nr.body, field_teaser_value)), '<p><a href="/', u.field_url_url, '" class="a-more">More</a></p>'), CONCAT(IF(LENGTH(f.filepath)>0, CONCAT('<div class="image">',IFNULL(CONCAT('<a href="/', u.field_url_url, '">'), ''), '<img src="https://www.minnpost.com/', f.filepath, '">', IF(LENGTH(u.field_url_url) > 0, '</a></div>', '</div>')),''), IF(LENGTH(nr.body)>0, nr.body, field_teaser_value))) as content,
+            IFNULL(i.action_data, field_visibility_value) as show_on
+            FROM `minnpost.drupal`.node n
+            INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+            INNER JOIN `minnpost.drupal`.content_type_sidebar s USING(nid, vid)
+            INNER JOIN `minnpost.drupal`.content_field_visibility v USING(nid, vid)
+            LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
+            LEFT OUTER JOIN `minnpost.drupal`.content_field_image_thumbnail i USING(nid, vid)
+            LEFT OUTER JOIN `minnpost.drupal`.files f ON i.field_image_thumbnail_fid = f.fid
+            LEFT OUTER JOIN `minnpost.drupal`.content_field_url u USING(nid, vid)
+            LEFT OUTER JOIN `minnpost.drupal`.content_field_display_title d USING(nid, vid)
+            LEFT OUTER JOIN `minnpost.wordpress`.wp_redirection_items i ON v.field_visibility_value = REPLACE(i.url, '/category', 'category')
+            WHERE n.status = 1
+            GROUP BY nid
+            ORDER BY n.status, changed DESC, created DESC
 	;
 
 
