@@ -2983,7 +2983,7 @@
 		SELECT
             IFNULL(d.field_display_title_value, CONCAT('!', n.title)) as title,
             IF(LENGTH(u.field_url_url)>0, CONCAT(CONCAT(IF(LENGTH(f.filepath)>0, CONCAT('<div class="image">',IFNULL(CONCAT('<a href="/', u.field_url_url, '">'), ''), '<img src="https://www.minnpost.com/', f.filepath, '">', IF(LENGTH(u.field_url_url) > 0, '</a></div>', '</div>')),''), IF(LENGTH(nr.body)>0, nr.body, field_teaser_value)), '<p><a href="/', u.field_url_url, '" class="a-more">More</a></p>'), CONCAT(IF(LENGTH(f.filepath)>0, CONCAT('<div class="image">',IFNULL(CONCAT('<a href="/', u.field_url_url, '">'), ''), '<img src="https://www.minnpost.com/', f.filepath, '">', IF(LENGTH(u.field_url_url) > 0, '</a></div>', '</div>')),''), IF(LENGTH(nr.body)>0, nr.body, field_teaser_value))) as content,
-            IFNULL(i.action_data, field_visibility_value) as show_on
+            IFNULL(i.action_data, GROUP_CONCAT(field_visibility_value)) as show_on
             FROM `minnpost.drupal`.node n
             INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
             INNER JOIN `minnpost.drupal`.content_type_sidebar s USING(nid, vid)
