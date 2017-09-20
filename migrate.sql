@@ -1207,6 +1207,23 @@
 	;
 
 
+	# newsletter thumbnail
+	# this is the thumbnail image that shows on newsletters
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/newsletter_thumb/images/thumbnails/articles')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/articles%'
+	;
+
+
 	# for full page article
 
 	# feature thumbnail
@@ -1252,6 +1269,23 @@
 			n.nid `post_id`,
 			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/feature_middle/images/thumbnails/fullpagearticles')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/fullpagearticles%'
+	;
+
+
+	# newsletter thumbnail
+	# this is the thumbnail image that shows on newsletters
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/newsletter_thumb/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
@@ -1313,6 +1347,23 @@
 	;
 
 
+	# newsletter thumbnail
+	# this is the thumbnail image that shows on newsletters
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/newsletter_thumb/images/thumbnails/audio')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_audio a USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON a.field_op_audio_thumbnail_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/audio%'
+	;
+
+
 	# for video
 
 	# feature thumbnail for video posts
@@ -1358,6 +1409,23 @@
 			n.nid `post_id`,
 			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_middle/images/thumbnails/video')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/video%'
+	;
+
+
+	# newsletter thumbnail
+	# this is the thumbnail image that shows on newsletters
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/newsletter_thumb/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
@@ -2044,7 +2112,7 @@
 	;
 
 
-	# todo: still need featured columns for homepage as a nav menu
+	# note: featured columns for homepage only is a widget
 
 
 	# then we can get rid of that temp file id field
@@ -2408,7 +2476,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 2421 contains the Drupal permission roles that we want to migrate
+	# parameter: line 2489 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -2827,7 +2895,7 @@
 
 
 	# add menus
-	# parameter: line 2839 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 2907 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -2848,7 +2916,7 @@
 
 
 	# add menu items
-	# parameter: line 2881 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 2949 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
