@@ -3039,13 +3039,17 @@
 	CREATE TABLE `wp_sidebars` (
 		`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 		`title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 		`content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+		`type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'custom_html',
 		`show_on` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT '',
+		`categories` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  		`tags` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
 		PRIMARY KEY (`id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 
-	# put the active sidebars into that temporary table
+	# put the active sidebar items into that temporary table
 	INSERT INTO `minnpost.wordpress`.wp_sidebars
 		(title, content, show_on)
 		SELECT
@@ -3092,6 +3096,37 @@
 
 	# add the migrated field
 	ALTER TABLE `minnpost.wordpress`.wp_sidebars ADD migrated TINYINT(1) DEFAULT 0;
+
+	
+	# manually add a few sidebars
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`, `migrated`)
+		VALUES
+			('Featured Columns', NULL, 'menu-featured-columns', 'nav_menu', '<front>', NULL, NULL, 0)
+	;
+
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`, `migrated`)
+		VALUES
+			('The Glean', 'glean', '', 'minnpostspills_widget', '<front>', 'glean', NULL, 0)
+	;
+
+	
+	# add the active minnpost spills widgets into temporary table
+	INSERT INTO `minnpost.wordpress`.wp_sidebars
+		(title, url, content, type, show_on, categories, tags)
+		SELECT
+			n.title as title, u.field_url_url as url, nr.body as content, 'minnpostspills_widget' as type, GROUP_CONCAT(DISTINCT field_visibility_value) as show_on, GROUP_CONCAT(DISTINCT IFNULL(a.dst, d.title)) as categories, GROUP_CONCAT(DISTINCT t.name) as tags
+				FROM `minnpost.drupal`.node n
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON n.nid = nr.nid and n.vid = nr.vid
+				INNER JOIN `minnpost.drupal`.content_type_spill s ON n.nid = s.nid and n.vid = s.vid
+				LEFT OUTER JOIN `minnpost.drupal`.term_node tn ON n.nid = tn.nid and n.vid = tn.vid
+				LEFT OUTER JOIN `minnpost.drupal`.term_data t ON tn.tid = t.tid
+				LEFT OUTER JOIN `minnpost.drupal`.content_field_departments cd ON n.nid = cd.nid and n.vid = cd.vid
+				LEFT OUTER JOIN `minnpost.drupal`.node d ON cd.field_departments_nid = d.nid
+				LEFT OUTER JOIN `minnpost.drupal`.content_field_visibility v ON n.nid = v.nid and n.vid = v.vid
+				LEFT OUTER JOIN `minnpost.drupal`.content_field_url u ON n.nid = u.nid and n.vid = u.vid
+				LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', d.nid)
+				GROUP BY n.nid
+	;
 
 
 	# after the plugin runs, delete the temporary sidebar table
