@@ -3129,6 +3129,17 @@
 	;
 
 
+	# add some basic blocks from drupal as widgets
+	INSERT INTO `minnpost.wordpress`.wp_sidebars
+		(title, url, content, type, show_on, categories, tags)
+		SELECT CONCAT('!', info) as title, null as url, body as content, 'custom_html' as type, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(delta, 1, 'footer'), 2, 'newsletter-footer'), 3, 'newsletter'), 5, 'newsletter'), 'menu-footer-primary', 'newsletter') as show_on, null as categories, null as tags
+			FROM blocks
+			INNER JOIN boxes USING(bid)
+			WHERE body NOT LIKE '%gorton%' AND body NOT LIKE '%phase2%' AND delta NOT IN ('admin', 'features', 'menu-footer-secondary', '0')
+			ORDER BY delta
+	;
+
+
 	# after the plugin runs, delete the temporary sidebar table
 	DROP TABLE wp_sidebars;
 
