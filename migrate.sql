@@ -2984,13 +2984,13 @@
 	# these numbers change if we have to recreate the widgets. ugh.
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_content = '<!--break-->
-	[widget_instance id="minnpostspills_widget-50" format="0"]
+	[widget_instance id="minnpostspills_widget-8"]
 
-	[widget_instance id="minnpostspills_widget-46" format="0"]
+	[widget_instance id="minnpostspills_widget-21"]
 
-	[widget_instance id="minnpostspills_widget-18" format="0"]
+	[widget_instance id="minnpostspills_widget-11"]
 
-	[widget_instance id="minnpostspills_widget-45" format="0"]'
+	[widget_instance id="minnpostspills_widget-22"]'
 		WHERE ID = 30750;
 	;
 
