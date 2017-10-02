@@ -3105,6 +3105,11 @@
 			('The Glean', 'glean', '', 'minnpostspills_widget', '<front>', 'glean', NULL)
 	;
 
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+		VALUES
+			('', NULL, '', 'popular-widget', '<front>', NULL, NULL)
+	;
+
 	
 	# add the active minnpost spills widgets into temporary table
 	INSERT INTO `minnpost.wordpress`.wp_sidebars
