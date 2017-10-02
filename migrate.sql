@@ -3107,7 +3107,12 @@
 
 	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
 		VALUES
-			('', NULL, '', 'popular-widget', '<front>', NULL, NULL)
+			('Recent Stories', NULL, '', 'recent-posts', '!<front>', NULL, NULL)
+	;
+
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+		VALUES
+			('', NULL, '', 'popular-widget', '*', NULL, NULL)
 	;
 
 	
