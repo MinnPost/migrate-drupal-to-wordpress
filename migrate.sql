@@ -3175,7 +3175,7 @@
 
 	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
 		VALUES
-			('Recent Stories', NULL, '', 'recent-posts', '!<front>', NULL, NULL)
+			('Recent Stories', NULL, '', 'rpwe_widget', '!<front>', NULL, NULL)
 	;
 
 	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
