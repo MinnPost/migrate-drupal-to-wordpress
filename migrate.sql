@@ -576,9 +576,9 @@
 	# Drupal authors who may or may not be users
 	# these get inserted as posts with a type of guest-author, for the plugin
 	# this one does take the vid into account (we do track revisions)
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_type, `post_status`)
 		SELECT DISTINCT
 			n.nid `id`,
 			n.uid `post_author`,
@@ -587,6 +587,8 @@
 			n.title `post_title`,
 			'' `post_excerpt`,
 			CONCAT('cap-', substring_index(a.dst, '/', -1)) `post_name`,
+			'' `to_ping`,
+			'' `pinged`,
 			FROM_UNIXTIME(n.changed) `post_modified`,
 			'guest-author' `post_type`,
 			'publish' `post_status`
@@ -739,7 +741,7 @@
 	# 3/23/17: right now this fails because most of the titles are null. need to see if we can just get the ones that aren't null?
 	# 4/12/17: i don't know when this was fixed but it seems to be fine
 	# 5/15/17: started using the vid to track revisions. need to see if it changes anything.
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
@@ -767,7 +769,7 @@
 
 	# insert gallery thumbnails as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
@@ -794,7 +796,7 @@
 
 	# insert local audio files as posts so they show in media library
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
@@ -821,7 +823,7 @@
 	# insert local video files as posts so they show in media library
 	# this one does take the vid into account
 	# 8/3/17: this is currently empty; we don't seem to need it anymore
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
@@ -855,7 +857,7 @@
 
 	# insert main images as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
@@ -915,7 +917,7 @@
 
 	# insert author photos as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
@@ -975,7 +977,7 @@
 
 	# insert post thumbnails as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
@@ -1001,7 +1003,7 @@
 
 	# insert full page article thumbnails as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
@@ -1027,7 +1029,7 @@
 
 	# insert audio thumbnails as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
@@ -1052,7 +1054,7 @@
 
 	# insert video thumbnails as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
@@ -1077,7 +1079,7 @@
 
 	# insert slideshow thumbnails as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
@@ -2025,7 +2027,7 @@
 
 	# insert main category images as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old, term_id)
 		SELECT DISTINCT
@@ -2088,7 +2090,7 @@
 
 	# insert category thumbnails as posts
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old, term_id)
 		SELECT DISTINCT
