@@ -3179,16 +3179,6 @@
 			('The Glean', 'glean', '', 'minnpostspills_widget', '<front>', 'glean', NULL)
 	;
 
-	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
-		VALUES
-			('Recent Stories', NULL, '', 'rpwe_widget', '!<front>', NULL, NULL)
-	;
-
-	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
-		VALUES
-			('', NULL, '', 'popular-widget', '*', NULL, NULL)
-	;
-
 	
 	# add the active minnpost spills widgets into temporary table
 	INSERT INTO `minnpost.wordpress`.wp_sidebars
@@ -3206,6 +3196,18 @@
 				LEFT OUTER JOIN `minnpost.drupal`.content_field_url u ON n.nid = u.nid and n.vid = u.vid
 				LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', d.nid)
 				GROUP BY n.nid
+	;
+
+
+	# manually add a few more sidebars
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+		VALUES
+			('Recent Stories', NULL, '', 'rpwe_widget', '!<front>', NULL, NULL)
+	;
+
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+		VALUES
+			('', NULL, '', 'popular-widget', '*', NULL, NULL)
 	;
 
 
