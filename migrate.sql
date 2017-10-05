@@ -1523,6 +1523,11 @@
 	;
 
 
+	# todo: we need to figure out whether and how to handle duplicate meta_keys for the same post
+	# but with conflicting values
+	# i know that at least sometimes the url is the same; it's being added more than once somehow. this may just not be a problem though.
+
+
 	# todo: we still need images for events but we don't yet have posts for them :(
 
 
@@ -1851,7 +1856,6 @@
 
 	# show department on top stories
 	# this one does take the vid into account
-	# note: this field currently does not exist in any newsletters, so it will error unless someone uses it
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
@@ -2546,7 +2550,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 2557 contains the Drupal permission roles that we want to migrate
+	# parameter: line 2563 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -2965,7 +2969,7 @@
 
 
 	# add menus
-	# parameter: line 2975 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 2981 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -2986,7 +2990,7 @@
 
 
 	# add menu items
-	# parameter: line 3017 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 3023 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
