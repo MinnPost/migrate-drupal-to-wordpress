@@ -21,8 +21,8 @@
 	TRUNCATE TABLE `minnpost.wordpress`.wp_postmeta;
 	TRUNCATE TABLE `minnpost.wordpress`.wp_posts;
 	TRUNCATE TABLE `minnpost.wordpress`.wp_term_relationships;
-	DELETE FROM `minnpost.wordpress`.wp_term_taxonomy WHERE ID > 1;
-	DELETE FROM `minnpost.wordpress`.wp_terms WHERE ID > 1;
+	DELETE FROM `minnpost.wordpress`.wp_term_taxonomy WHERE term_taxonomy_id > 1;
+	DELETE FROM `minnpost.wordpress`.wp_terms WHERE term_id > 1;
 	TRUNCATE TABLE `minnpost.wordpress`.wp_termmeta;
 	TRUNCATE TABLE `minnpost.wordpress`.wp_redirection_items;
 
