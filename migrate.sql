@@ -413,8 +413,8 @@
 
 
 	# add format to taxonomy
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id `term_id`, 'post_format' `taxonomy`
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
+		SELECT term_id `term_id`, 'post_format' `taxonomy`, '' `description`
 			FROM wp_terms
 			WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-audio'
 	;
@@ -436,8 +436,8 @@
 
 
 	# add format to taxonomy
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id `term_id`, 'post_format' `taxonomy`
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
+		SELECT term_id `term_id`, 'post_format' `taxonomy`, '' `description`
 			FROM wp_terms
 			WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-video'
 	;
@@ -459,8 +459,8 @@
 
 
 	# add format to taxonomy
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id `term_id`, 'post_format' `taxonomy`
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
+		SELECT term_id `term_id`, 'post_format' `taxonomy`, '' `description`
 			FROM wp_terms
 			WHERE `minnpost.wordpress`.wp_terms.name = 'post-format-gallery'
 	;
@@ -1928,8 +1928,8 @@
 	# we need the taxonomy here too because that is how the join works
 
 	# Create taxonomy for each department
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
+		SELECT term_id, 'category', '' FROM wp_terms WHERE term_id_old IS NOT NULL
 	;
 
 
@@ -2245,8 +2245,8 @@
 
 
 	# Create taxonomy for each section
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id, 'category' FROM wp_terms WHERE term_id_old IS NOT NULL
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
+		SELECT term_id, 'category', '' FROM wp_terms WHERE term_id_old IS NOT NULL
 	;
 
 
@@ -2349,8 +2349,8 @@
 
 
 	# Create taxonomy for those new categories
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy)
-		SELECT term_id, 'category'
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
+		SELECT term_id, 'category', ''
 		FROM wp_terms
 		WHERE slug = 'galleries'
 		ORDER BY term_id DESC
@@ -3140,10 +3140,6 @@
 	;
 
 
-	# fix the table
-	ALTER TABLE `minnpost.wordpress`.wp_sidebars CONVERT TO CHARACTER SET utf8mb4 collate utf8mb4_unicode_ci;
-
-
 	# update urls
 	UPDATE `minnpost.wordpress`.wp_sidebars s
 		SET show_on = REPLACE(show_on, CONCAT((
@@ -3153,6 +3149,10 @@
 				), '/'),
 			'')
 	;
+
+
+	# fix the table
+	ALTER TABLE `minnpost.wordpress`.wp_sidebars CONVERT TO CHARACTER SET utf8mb4 collate utf8mb4_unicode_ci;
 
 
 	# Fix image urls in widget content
