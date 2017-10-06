@@ -178,6 +178,12 @@
 15. Candidate (related to that elections group of modules)
 
 
+### Other stuff we don't have to migrate
+
+1. Weather
+2. Quiz
+
+
 ### File folders we don't have to migrate into database
 
 1. /sites/default/files/imagecache/400xY
