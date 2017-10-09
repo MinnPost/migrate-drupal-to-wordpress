@@ -3155,6 +3155,10 @@
 	;
 
 
+	# fix the table
+	ALTER TABLE `minnpost.wordpress`.wp_sidebars CONVERT TO CHARACTER SET utf8mb4 collate utf8mb4_unicode_ci;
+
+
 	# update urls
 	UPDATE `minnpost.wordpress`.wp_sidebars s
 		SET show_on = REPLACE(show_on, CONCAT((
@@ -3164,10 +3168,6 @@
 				), '/'),
 			'')
 	;
-
-
-	# fix the table
-	ALTER TABLE `minnpost.wordpress`.wp_sidebars CONVERT TO CHARACTER SET utf8mb4 collate utf8mb4_unicode_ci;
 
 
 	# Fix image urls in widget content
