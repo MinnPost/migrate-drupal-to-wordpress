@@ -644,7 +644,7 @@
 
 	# Create taxonomy for each author
 	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
-		SELECT term_id, 'author', CONCAT(p.post_title, ' ', t.name, ' ', p.ID) as description
+		SELECT t.term_id, 'author', CONCAT(p.post_title, ' ', t.name, ' ', p.ID) as description
 		FROM wp_terms t
 		INNER JOIN wp_posts p ON t.`user_node_id_old` = p.ID
 	;
