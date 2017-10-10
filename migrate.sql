@@ -2058,7 +2058,7 @@
 			f.filename `post_name`,
 			'inherit' `post_status`,
 			term.term_id `post_parent`,
-			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/department', '/imagecache/feature/images/department')) `guid`,
+			CONCAT('https://www.minnpost.com/', REPLACE(REPLACE(f.filepath, '/images/department', '/imagecache/feature/images/department'), '/images', '/imagecache/feature/images')) `guid`,
 			'attachment' `post_type`,
 			f.filemime `post_mime_type`,
 			f.fid `image_post_file_id_old`,
