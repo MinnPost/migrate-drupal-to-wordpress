@@ -101,9 +101,9 @@
     - DocumentCloud Document :white_check_mark:
     - Sidebar
     - Meta tags
-    - Menu settings
+    - Menu settings :white_check_mark:
     - Comment settings :white_check_mark:
-    - Path settings
+    - Path settings :white_check_mark:
     - URL redirects :white_check_mark:
     - Content Access Level
     - MinnPost+ Icon Style
@@ -116,14 +116,20 @@
     - Footer Secondary :white_check_mark:
 - Analytics functionality
 - Modals
-- Sidebar items that aren't custom spills
+- Sidebar items that aren't custom spills :white_check_mark:
     - featured columns (on categories) :white_check_mark:
     - featured columns (on homepage) :white_check_mark:
     - glean (on homepage) :white_check_mark:
-    - subscribe form for dc
-    - who's running
-    - data & maps
+    - subscribe form for dc :white_check_mark:
+    - who's running :white_check_mark:
+    - data & maps :white_check_mark:
+    - letters to editor (need to make this form work still)
 - Access to items based on user info
+- Featured Items is used at least on static pages
+    - content_field_rel_feature table
+    - News by Region :white_check_mark:
+    - Columns
+    - Our Staff
 
 ### Notes
 
