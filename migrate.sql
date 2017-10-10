@@ -2298,6 +2298,7 @@
 		FROM wp_featured_terms
 	;
 
+
 	# get rid of that temporary featured term table
 	DROP TABLE wp_featured_terms;
 
