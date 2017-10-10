@@ -1985,6 +1985,21 @@
 	;
 
 
+	# content link field - this does not go into the wordpress ui because it is so rarely used in drupal
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_termmeta
+		(term_id, meta_key, meta_value)
+		SELECT DISTINCT term.term_id as `term_id`, '_mp_category_excerpt_links' as meta_key, CONCAT('a:2:{s:3:"url";', CONCAT('s:', char_length(m.field_link_multiple_url), ':"'), m.field_link_multiple_url, '";s:4:"text";', CONCAT('s:', char_length(m.field_link_multiple_title), ':"'), m.field_link_multiple_title, '";}') `meta_value`
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_department dept ON term.term_id_old = dept.field_department_nid
+				INNER JOIN `minnpost.drupal`.node n ON dept.field_department_nid = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				INNER JOIN `minnpost.drupal`.content_field_link_multiple m ON m.nid = n.nid AND m.vid = n.vid
+				WHERE tax.taxonomy = 'category' AND n.type = 'department' AND m.field_link_multiple_url IS NOT NULL AND m.field_link_multiple_url != ''
+	;
+
+
 	# Create relationships for each story to the departments it had in Drupal
 	# Track this relationship by the term_id_old field
 	# this one does take the vid into account
