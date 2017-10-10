@@ -2212,6 +2212,38 @@
 	# sections have no images
 
 
+	# temporary table for categories listed on the columns page
+	CREATE TABLE `column_ids` (
+		`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+		`post_id` int(11) NOT NULL,
+		`term_ids` text NOT NULL,
+		PRIMARY KEY (`id`)
+	);
+
+
+	# put the columns listed on that page into the table
+	INSERT INTO `minnpost.wordpress`.column_ids
+		(post_id, term_ids)
+		SELECT ID `post_id`, GROUP_CONCAT(term_id ORDER BY n2.title) `term_ids`
+			FROM `minnpost.wordpress`.wp_posts p
+				INNER JOIN `minnpost.drupal`.node n ON p.ID = n.nid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON n.nid = nr.nid AND n.vid = nr.vid
+				INNER JOIN `minnpost.drupal`.content_field_rel_feature f ON n.nid = f.nid AND n.vid = f.vid
+				INNER JOIN `minnpost.drupal`.node n2 ON f.field_rel_feature_nid = n2.nid
+				INNER JOIN `minnpost.wordpress`.wp_terms t ON f.field_rel_feature_nid = t.term_id_old
+				WHERE post_title = 'Columns'
+				GROUP BY ID
+	;
+
+
+	# append shortcode for columns to the page
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.column_ids
+		ON wp_posts.ID = column_ids.post_id
+		SET wp_posts.post_content = CONCAT('<div class="a-page-info">', wp_posts.post_content, '</div><!--break-->[column_list term_ids="', column_ids.term_ids, '"]')
+	;
+
+
 	# Empty term_id_old values so we can start over with our auto increment and still track for sections
 	UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
 
@@ -3075,9 +3107,18 @@
 
 
 
-# Section 12 - widgets and ads and sidebar such stuff. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff.
+# Section 12 - widgets and ads and sidebar such stuff. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff or if we didn't clear all of the relevant items.
 
 	# replace content when necessary
+
+
+	# add category ids to the shortcode on the columns page
+	# append the shortcode to the post body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.drupal`.wp_posts_raw
+		ON wp_posts.ID = wp_posts_raw.ID
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '[raw]', wp_posts_raw.post_content_raw, '[/raw]')
+	;
 
 	# use widgets for news by region
 	# these numbers change if we have to recreate the widgets. ugh.
