@@ -2865,6 +2865,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
+	# use line 2894 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -2890,6 +2891,7 @@
 			'' `title`
 			FROM `minnpost.drupal`.path_redirect p
 			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON p.redirect = a.src
+			WHERE p.redirect NOT IN ('about-us')
 	;
 
 
