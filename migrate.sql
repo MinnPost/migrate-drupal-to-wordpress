@@ -2121,7 +2121,7 @@
 			f.filename `post_name`,
 			'inherit' `post_status`,
 			'0' `post_parent`,
-			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/department', '/imagecache/thumbnail/images/thumbnails/department')) `guid`,
+			CONCAT('https://www.minnpost.com/', REPLACE(REPLACE(f.filepath, '/images/thumbnails/department', '/imagecache/thumbnail/images/thumbnails/department'), '/images/thumbnails', '/imagecache/thumbnail/images/thumbnails')) `guid`,
 			'attachment' `post_type`,
 			f.filemime `post_mime_type`,
 			f.fid `image_post_file_id_old`,
@@ -2152,7 +2152,7 @@
 			p.ID `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
-			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL AND f.filepath LIKE '%thumbnail%'
 	;
 
 
@@ -2167,7 +2167,7 @@
 			p.guid `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
-			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL
+			WHERE p.post_type = 'attachment' AND term_id IS NOT NULL AND f.filepath LIKE '%thumbnail%'
 	;
 
 
