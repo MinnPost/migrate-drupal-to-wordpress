@@ -3181,17 +3181,19 @@
 		`show_on` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT '',
 		`categories` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   		`tags` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  		`batch` int(11) DEFAULT NULL,
 		PRIMARY KEY (`id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 
 	# put the active sidebar items into that temporary table
 	INSERT INTO `minnpost.wordpress`.wp_sidebars
-		(title, content, show_on)
+		(title, content, show_on, batch)
 		SELECT
             IFNULL(d.field_display_title_value, CONCAT('!', n.title)) as title,
             IF(LENGTH(u.field_url_url)>0, CONCAT(CONCAT(IF(LENGTH(f.filepath)>0, CONCAT('<div class="image">',IFNULL(CONCAT('<a href="/', u.field_url_url, '">'), ''), '<img src="https://www.minnpost.com/', f.filepath, '">', IF(LENGTH(u.field_url_url) > 0, '</a></div>', '</div>')),''), IF(LENGTH(nr.body)>0, nr.body, field_teaser_value)), '<p><a href="/', u.field_url_url, '" class="a-more">More</a></p>'), CONCAT(IF(LENGTH(f.filepath)>0, CONCAT('<div class="image">',IFNULL(CONCAT('<a href="/', u.field_url_url, '">'), ''), '<img src="https://www.minnpost.com/', f.filepath, '">', IF(LENGTH(u.field_url_url) > 0, '</a></div>', '</div>')),''), IF(LENGTH(nr.body)>0, nr.body, REPLACE(field_teaser_value, '[newsletter_embed:dc]', '[newsletter_embed newsletter="dc"]')))) as content,
-            IFNULL(i.action_data, GROUP_CONCAT(field_visibility_value)) as show_on
+            IFNULL(i.action_data, GROUP_CONCAT(field_visibility_value)) as show_on,
+            '4' as batch
             FROM `minnpost.drupal`.node n
             INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
             INNER JOIN `minnpost.drupal`.content_type_sidebar s USING(nid, vid)
@@ -3223,6 +3225,29 @@
 	;
 
 
+	# update content urls and link attributes
+	UPDATE `minnpost.wordpress`.wp_sidebars s
+		SET content = REPLACE(content, ' target="_self"', '')
+	;
+	UPDATE `minnpost.wordpress`.wp_sidebars s
+		SET content = REPLACE(content, ' target="_blank"', '')
+	;
+	UPDATE `minnpost.wordpress`.wp_sidebars s
+		SET content = REPLACE(content, '<a href="https://www.minnpost.com/', CONCAT('<a href="', (
+			SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				), '/'))
+	;
+	UPDATE `minnpost.wordpress`.wp_sidebars s
+		SET content = REPLACE(content, '<a href="http://www.minnpost.com/', CONCAT('<a href="', (
+			SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				), '/'))
+	;
+
+
 	# Fix image urls in widget content
 	# in our case, we use this to make the urls absolute, at least for now
 	UPDATE `minnpost.wordpress`.wp_sidebars
@@ -3231,22 +3256,29 @@
 
 	
 	# manually add a few sidebars
-	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`, `batch`)
 		VALUES
-			('Featured Columns', NULL, 'menu-featured-columns', 'nav_menu', '<front>', NULL, NULL)
+			('The Glean', 'glean', '', 'minnpostspills_widget', '<front>', 'glean', NULL, 1)
 	;
 
-	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`, `batch`)
 		VALUES
-			('The Glean', 'glean', '', 'minnpostspills_widget', '<front>', 'glean', NULL)
+			('Featured Columns', NULL, 'menu-featured-columns', 'nav_menu', '<front>', NULL, NULL, 2)
 	;
 
 	
 	# add the active minnpost spills widgets into temporary table
 	INSERT INTO `minnpost.wordpress`.wp_sidebars
-		(title, url, content, type, show_on, categories, tags)
+		(title, url, content, type, show_on, categories, tags, batch)
 		SELECT
-			n.title as title, u.field_url_url as url, nr.body as content, 'minnpostspills_widget' as type, GROUP_CONCAT(DISTINCT field_visibility_value) as show_on, GROUP_CONCAT(DISTINCT IFNULL(a.dst, d.title)) as categories, GROUP_CONCAT(DISTINCT t.name) as tags
+			n.title as title,
+			u.field_url_url as url,
+			nr.body as content,
+			'minnpostspills_widget' as type,
+			GROUP_CONCAT(DISTINCT field_visibility_value) as show_on,
+			GROUP_CONCAT(DISTINCT IFNULL(a.dst, d.title)) as categories,
+			GROUP_CONCAT(DISTINCT t.name) as tags,
+			'3' as batch
 				FROM `minnpost.drupal`.node n
 				INNER JOIN `minnpost.drupal`.node_revisions nr ON n.nid = nr.nid and n.vid = nr.vid
 				INNER JOIN `minnpost.drupal`.content_type_spill s ON n.nid = s.nid and n.vid = s.vid
@@ -3262,21 +3294,21 @@
 
 
 	# manually add a few more sidebars
-	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`, `batch`)
 		VALUES
-			('Recent Stories', NULL, '', 'rpwe_widget', '!<front>', NULL, NULL)
+			('Recent Stories', NULL, '', 'rpwe_widget', '!<front>', NULL, NULL, 5)
 	;
 
-	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`)
+	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`, `batch`)
 		VALUES
-			('', NULL, '', 'popular-widget', '*', NULL, NULL)
+			('', NULL, '', 'popular-widget', '*', NULL, NULL, 6)
 	;
 
 
 	# add some basic blocks from drupal as widgets
 	INSERT INTO `minnpost.wordpress`.wp_sidebars
-		(title, url, content, type, show_on, categories, tags)
-		SELECT REPLACE(REPLACE(CONCAT('!', info), '!hp_staff', 'MinnPost Staff'), '!hp_donors', 'Thanks to our generous donors') as title, null as url, body as content, 'custom_html' as type, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(delta, 1, 'footer'), 2, 'newsletter-footer'), 3, 'newsletter'), 5, 'newsletter'), 'menu-footer-primary', 'newsletter') as show_on, null as categories, null as tags
+		(title, url, content, type, show_on, categories, tags, batch)
+		SELECT REPLACE(REPLACE(CONCAT('!', info), '!hp_staff', 'MinnPost Staff'), '!hp_donors', 'Thanks to our generous donors') as title, null as url, body as content, 'custom_html' as type, REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(delta, 1, 'footer'), 2, 'newsletter-footer'), 3, 'newsletter'), 5, 'newsletter'), 'menu-footer-primary', 'newsletter') as show_on, null as categories, null as tags, 7 as batch
 			FROM `minnpost.drupal`.blocks
 			INNER JOIN `minnpost.drupal`.boxes USING(bid)
 			WHERE body NOT LIKE '%gorton%' AND body NOT LIKE '%phase2%' AND delta NOT IN ('admin', 'features', 'menu-footer-secondary', '0')
