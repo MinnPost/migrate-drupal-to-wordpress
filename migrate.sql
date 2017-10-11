@@ -2244,6 +2244,10 @@
 	;
 
 
+	# get rid of that temporary column id table
+	DROP TABLE column_ids;
+
+
 	# Empty term_id_old values so we can start over with our auto increment and still track for sections
 	UPDATE `minnpost.wordpress`.wp_terms SET term_id_old = NULL;
 
@@ -3111,14 +3115,6 @@
 
 	# replace content when necessary
 
-
-	# add category ids to the shortcode on the columns page
-	# append the shortcode to the post body
-	UPDATE `minnpost.wordpress`.wp_posts
-		JOIN `minnpost.drupal`.wp_posts_raw
-		ON wp_posts.ID = wp_posts_raw.ID
-		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '[raw]', wp_posts_raw.post_content_raw, '[/raw]')
-	;
 
 	# use widgets for news by region
 	# these numbers change if we have to recreate the widgets. ugh.
