@@ -41,6 +41,14 @@
 		WHERE option_name = 'deserialize_metadata_last_post_checked'
 	;
 
+
+	# set the current migrate time to right now
+	INSERT INTO `wp_options` (`option_name`, `option_value`)
+		VALUES
+			('wp_migrate_timestamp', UNIX_TIMESTAMP(NOW()))
+	;
+
+
 	# this is where we stop deleting data to start over
 
 
