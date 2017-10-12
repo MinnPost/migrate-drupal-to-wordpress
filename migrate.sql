@@ -3110,7 +3110,11 @@
 		SELECT DISTINCT
 			m.menu_name `menu-name`,
 			l.link_title `menu-item-title`,
-			REPLACE(IFNULL(a.dst, l.link_path), '<front>', '/') `menu-item-url`,
+			REPLACE(REPLACE(IFNULL(a.dst, l.link_path), '<front>', '/'), 'https://www.minnpost.com/', CONCAT((
+			SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				), '/')) `menu-item-url`,
 			(
 				SELECT link_title
 				FROM `minnpost.drupal`.menu_links
@@ -3137,6 +3141,10 @@
 			) OR l.link_path IN ('events', 'support')
 			ORDER BY menu_name, plid, l.weight
 	;
+
+
+	# manually delete the weather one
+	DELETE FROM `minnpost.wordpress`.wp_menu_items WHERE `menu-item-url` = 'weather';
 
 	
 	# insert homepage featured columns
