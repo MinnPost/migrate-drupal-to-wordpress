@@ -308,7 +308,58 @@
 	DROP TABLE wp_posts_documentcloud;
 
 
-	# Fix image urls in post content
+	# create temporary table for file attachments that need to be listed because they aren't already in the node body
+	CREATE TABLE `wp_posts_attachments` (
+	  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	  `post_content_attachment_url` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+	  `post_content_attachment_filename` varchar(256) NOT NULL DEFAULT '',
+	  `post_content_attachment_extension` varchar(256) NOT NULL DEFAULT '',
+	  PRIMARY KEY (`ID`)
+	);
+
+
+	# store listed attachments in temp table
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_attachments
+		(id, post_content_attachment_url, post_content_attachment_filename, post_content_attachment_extension, link)
+		SELECT n.nid, CONCAT('/', f.filepath), f.filename, LCASE(SUBSTRING_INDEX(f.filename,'.',-1))
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_files fp USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON fp.field_files_fid = f.fid
+			WHERE fp.field_files_fid IS NOT NULL AND r.body NOT LIKE CONCAT('%', REPLACE(REPLACE(REPLACE(f.filepath, ' ', '%20'), '(', '%28'), ')', '%29'), '%') AND field_files_list = 1
+	;
+
+
+	# create the full url for the link
+	UPDATE `minnpost.wordpress`.wp_posts_attachments
+		SET link = CONCAT('<p><a class="a-icon-link a-icon-link-', post_content_attachment_extension, '" href="', post_content_attachment_url, '">', '<img src="/wp-content/themes/minnpost-largo/assets/img/icons/', post_content_attachment_extension, '.png" alt=""> ', post_content_attachment_filename, '</a></p>')
+	;
+
+
+	# store attachment content in temp table
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_attachments_content
+		(id, post_content_attachments)
+		SELECT a.ID, CONCAT('<p><strong>Attached File(s):</strong></p>', '<p>', GROUP_CONCAT(a.link ORDER BY a.ID SEPARATOR '</p>'), '</p>') as attachments
+			FROM `minnpost.wordpress`.wp_posts_attachments a
+			GROUP BY a.ID
+	;
+
+
+	# append attachment data to the post body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.wp_posts_attachments_content
+		ON wp_posts.ID = wp_posts_attachments_content.ID
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, wp_posts_attachments_content.post_content_attachments)
+	;
+
+
+	# get rid of those temporary attachment tables
+	DROP TABLE wp_posts_attachments;
+	DROP TABLE wp_posts_attachments_content;
+
+
+	# Fix image/file urls in post content
 	# in our case, we use this to make the urls absolute, at least for now
 	# no need for vid stuff
 	UPDATE `minnpost.wordpress`.wp_posts

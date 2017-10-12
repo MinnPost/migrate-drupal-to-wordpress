@@ -97,7 +97,7 @@
     - Show Author Info?
     - Related Content
     - Related Multimedia
-    - File attachments (these get added to the story inline, and we don't need to list them at the end) :white_check_mark:
+    - File attachments (these get added to the story inline, and we don't need to list them at the end except for a few, which we added via SQL if the url wasn't already in the body) :white_check_mark:
     - DocumentCloud Document :white_check_mark:
     - Sidebar
     - Meta tags
