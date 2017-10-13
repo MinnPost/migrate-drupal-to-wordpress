@@ -128,7 +128,7 @@
 - Featured Items is used at least on static pages
     - content_field_rel_feature table
     - News by Region :white_check_mark:
-    - Columns
+    - Columns :white_check_mark:
     - Our Staff
 
 ### Notes

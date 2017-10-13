@@ -57,7 +57,7 @@
 
 	# Posts from Drupal stories
 	# Keeps private posts hidden.
-	# parameter: line 75 contains the Drupal content types that we want to migrate
+	# parameter: line 83 contains the Drupal content types that we want to migrate
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_content, post_title, post_excerpt,
@@ -86,7 +86,7 @@
 
 	# Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 	# Add more Drupal content types below if applicable
-	# parameter: line 85 must contain the content types from parameter in line 75 that should be imported as 'posts'
+	# parameter: line 93 must contain the content types from parameter in line 83 that should be imported as 'posts'
 	# newsletter and page should stay as they are
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_type = 'post'
@@ -2708,7 +2708,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 2563 contains the Drupal permission roles that we want to migrate
+	# parameter: line 2721 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -2962,7 +2962,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 2894 to exclude things if we find out they break when used in wordpress
+	# use line 2991 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -3129,7 +3129,7 @@
 
 
 	# add menus
-	# parameter: line 2981 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 3141 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -3150,7 +3150,7 @@
 
 
 	# add menu items
-	# parameter: line 3023 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 3187 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
