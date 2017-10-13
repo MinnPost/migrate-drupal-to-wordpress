@@ -1854,6 +1854,20 @@
 	;
 
 
+	# set the remove sidebar field for article_full posts
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_remove_right_sidebar' as meta_key,
+				'on' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			WHERE n.type = 'article_full'
+	;
+
+
 	# newsletter fields
 
 	# add a temporary constraint for newsletter type stuff so we don't add duplicates
