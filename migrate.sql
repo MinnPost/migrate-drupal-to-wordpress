@@ -1839,6 +1839,21 @@
 	;
 
 
+	# sidebar field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				s.nid `post_id`,
+				'_mp_post_sidebar' as meta_key,
+				s.field_sidebar_value as `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_sidebar s USING(nid, vid)
+			WHERE s.field_sidebar_value IS NOT NULL
+	;
+
+
 	# newsletter fields
 
 	# add a temporary constraint for newsletter type stuff so we don't add duplicates
