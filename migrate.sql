@@ -2525,7 +2525,7 @@
 		comment_author_email, comment_author_url, comment_approved, user_id)
 		SELECT DISTINCT
 			cid, nid, FROM_UNIXTIME(timestamp), comment, pid, name,
-			mail, SUBSTRING(homepage, 1, 200), status, uid
+			mail, SUBSTRING(homepage, 1, 200), IF(status=1, 0, 1), uid
 			FROM `minnpost.drupal`.comments
 	;
 
