@@ -389,6 +389,15 @@
 	;
 
 
+	# replace classes when needed
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content,'<div class="credit">','<div class="a-media-meta a-media-credit">')
+	;
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content,'<div class="caption">','<div class="a-media-meta a-media-caption">')
+	;
+
+
 	# these items we don't currently use
 
 	# Fix post_name to remove paths.
