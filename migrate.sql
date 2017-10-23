@@ -80,7 +80,7 @@
 			ON a.src = CONCAT('node/', n.nid)
 		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 		# Add more Drupal content types below if applicable.
-		WHERE n.type IN ('article', 'article_full', 'audio', 'newsletter', 'page', 'video', 'slideshow')
+		WHERE n.type IN ('article', 'article_full', 'audio', 'newsletter', 'page', 'video', 'slideshow') AND n.title != 'Weather'
 	;
 
 
