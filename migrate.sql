@@ -630,7 +630,7 @@
 		(ID, user_login, user_pass, user_nicename, user_email,
 		user_registered, user_activation_key, user_status, display_name)
 		SELECT DISTINCT
-			u.uid as ID, u.mail as user_login, NULL as user_pass, u.name as user_nicename, u.mail as user_email,
+			u.uid as ID, u.mail as user_login, pass as user_pass, u.name as user_nicename, u.mail as user_email,
 			FROM_UNIXTIME(created) as user_registered, '' as user_activation_key, 0 as user_status, u.name as display_name
 		FROM `minnpost.drupal`.users u
 		WHERE (1
