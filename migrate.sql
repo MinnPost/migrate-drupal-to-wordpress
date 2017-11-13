@@ -2972,7 +2972,7 @@
 
 
 
-# Section 11 - Navigational items. The order doesn't matter here but it does have to wait for cron to finish. We can skip this section if we're testing other stuff.
+# Section 11 - Zones and redirect items. The order doesn't matter here.
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
@@ -3119,6 +3119,9 @@
 	;
 
 
+# Section 12 - Menus. We can't run this one all at once because we have to wait for cron to finish before deleting. The order doesn't matter though.
+
+
 	# Temporary table for menus
 	CREATE TABLE `wp_menu` (
 		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -3232,7 +3235,7 @@
 
 
 
-# Section 12 - widgets and ads and sidebar such stuff. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff or if we didn't clear all of the relevant items.
+# Section 13 - widgets and ads and sidebar such stuff. This depends on cron. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff or if we didn't clear all of the relevant items.
 
 	# replace content when necessary
 
@@ -3450,7 +3453,7 @@
 
 
 
-# Section 13 - General WordPress settings.
+# Section 14 - General WordPress settings.
 
 	
 
