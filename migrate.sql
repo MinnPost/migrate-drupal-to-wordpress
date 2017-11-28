@@ -3065,6 +3065,33 @@
 	;
 
 
+	# redirects for spill urls
+	INSERT INTO `wp_redirection_items` (`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+		VALUES(
+			'/more-in-politics-policy',
+			0,
+			0,
+			1,
+			CURRENT_TIMESTAMP(),
+			1,
+			'enabled',
+			'url',
+			301,
+			CONCAT(
+				(
+				SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				),
+				'/',
+				'politics-policy'
+			),
+			'url',
+			''
+		)
+	;
+
+
 	# zoninator zones (like nodequeues)
 
 	# add zoninator terms
