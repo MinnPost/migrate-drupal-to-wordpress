@@ -3305,18 +3305,24 @@
 	INSERT IGNORE INTO `minnpost.wordpress`.ads
 		(tag, tag_id, tag_name, priority, conditions, result)
 		SELECT DISTINCT delta as tag, name as tag_id, tag as tag_name, weight as priority, conditions as conditions, reactions as result
-		FROM `minnpost.drupal`.context c
-			INNER JOIN `minnpost.drupal`.blocks b ON c.reactions LIKE CONCAT('%', b.delta, '%')
-			WHERE module = 'minnpost_ads' AND theme = 'siteskin' AND name != 'minnpost_newsletter_sunday_review' AND delta != 'TopLeft'
-			ORDER BY weight DESC, delta
+			FROM `minnpost.drupal`.context c
+				INNER JOIN `minnpost.drupal`.blocks b ON c.reactions LIKE CONCAT('%', b.delta, '%')
+				WHERE module = 'minnpost_ads' AND theme = 'siteskin' AND name != 'minnpost_newsletter_sunday_review' AND delta != 'TopLeft' AND name != 'advertising-weather'
+				ORDER BY weight DESC, delta
 	;
 
 
-	# manually delete the weather ads
-	DELETE FROM `minnpost.wordpress`.ads WHERE `tag_id` = 'advertising-weather';
-
-
 	# we have to add a Middle tag manually with is_single conditional
+	INSERT IGNORE INTO `minnpost.wordpress`.ads
+		(tag, tag_id, tag_name, priority, conditions)
+		VALUES('Middle', 'middle-default', 'Middle', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}', 2)
+	;
+
+	# we have to add a Middle3 tag manually with is_home conditional
+	INSERT IGNORE INTO `minnpost.wordpress`.ads
+		(tag, tag_id, tag_name, priority, conditions)
+		VALUES('Middle3', 'middle3-home', 'Middle3', 10, 'a:1:{s:4:"path";a:1:{s:6:"values";a:1:{s:7:"<front>";s:7:"<front>";}}}')
+	;
 
 
 	# have to wait for migrate cron to run before deleting the table
