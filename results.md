@@ -67,21 +67,20 @@
         - /sites/default/files/imagecache/featured_column :white_check_mark:
         - /sites/default/files/imagecache/gallery :white_check_mark
         - /sites/default/files/imagecache/image_detail :white_check_mark:
-        - /sites/default/files/imagecache/newsletter_thumb
+        - /sites/default/files/imagecache/newsletter_thumb :white_check_mark:
         - /sites/default/files/imagecache/sidebar_middle
         - /sites/default/files/imagecache/sidebar_right
-        - /sites/default/files/imagecache/slideshow_image
+        - /sites/default/files/imagecache/slideshow_image :white_check_mark:
         - /sites/default/files/imagecache/thumbnail :white_check_mark
 - Redirects :white_check_mark:
     - Drupal: 51390
     - WordPress: 51390
 - Other content items to investigate
     - Custom Spill :white_check_mark:
-    - Image (has a thumbnail as well as a big image)
 - Author / user information
     - We have user member level and member level capabilities (and with the Salesforce plugin, they sync as they should). :white_check_mark:
     - We need to figure out how to map the Drupal roles to WordPress capabilities - which ones we can map directly vs which ones we have to create, and how we can create them (probably with a plugin)
-    - Custom fields for authors and users
+    - Custom fields for authors and users :white_check_mark:
 - Category / tag information :white_check_mark:
     - Categories have several custom fields, and a custom display at their url
     - tags have an rss feed link at their url
@@ -182,6 +181,7 @@
 13. True/False question
 14. Election (related to that elections group of modules)
 15. Candidate (related to that elections group of modules)
+16. Image (this gets done in other ways)
 
 
 ### Other stuff we don't have to migrate
