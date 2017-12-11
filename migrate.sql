@@ -3315,30 +3315,30 @@
 	# we have to add a Middle tag manually with is_single conditional
 	INSERT IGNORE INTO `minnpost.wordpress`.ads
 		(tag, tag_id, tag_name, priority, conditions)
-		VALUES('Middle', 'middle-default', 'Middle', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}')
+		VALUES('Middle', 'Middle', 'Middle', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}')
 	;
 
 	# we have to add the x100 - x110 tags manually with is_single conditional
 	INSERT IGNORE INTO `minnpost.wordpress`.ads
 		(tag, tag_id, tag_name, priority, conditions)
 		VALUES
-			('x100', 'x100-default', 'x100', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x101', 'x101-default', 'x101', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x102', 'x102-default', 'x102', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x103', 'x103-default', 'x103', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x104', 'x104-default', 'x104', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x105', 'x105-default', 'x105', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x106', 'x106-default', 'x106', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x107', 'x107-default', 'x107', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x108', 'x108-default', 'x108', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x109', 'x109-default', 'x109', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
-			('x110', 'x110-default', 'x110', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}')
+			('x100', 'x100', 'x100', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x101', 'x101', 'x101', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x102', 'x102', 'x102', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x103', 'x103', 'x103', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x104', 'x104', 'x104', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x105', 'x105', 'x105', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x106', 'x106', 'x106', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x107', 'x107', 'x107', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x108', 'x108', 'x108', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x109', 'x109', 'x109', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}'),
+			('x110', 'x110', 'x110', 10, 'a:1:{s:4:"node";a:2:{s:6:"values";a:1:{s:7:"article";s:7:"article";}s:7:"options";a:1:{s:9:"node_form";s:1:"1";}}}')
 	;
 
 	# we have to add a Middle3 tag manually with is_home conditional
 	INSERT IGNORE INTO `minnpost.wordpress`.ads
 		(tag, tag_id, tag_name, priority, conditions)
-		VALUES('Middle3', 'middle3-home', 'Middle3', 10, 'a:1:{s:4:"path";a:1:{s:6:"values";a:1:{s:7:"<front>";s:7:"<front>";}}}')
+		VALUES('Middle3', 'Middle3', 'Middle3', 10, 'a:1:{s:4:"path";a:1:{s:6:"values";a:1:{s:7:"<front>";s:7:"<front>";}}}')
 	;
 
 
