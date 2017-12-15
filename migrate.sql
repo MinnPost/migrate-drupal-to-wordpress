@@ -384,6 +384,24 @@
 	;
 
 
+	# Fix ad shortcodes in post content
+	# no need for vid stuff
+	# replace strings: [ad], [ ad ], [ad:Right1], [ ad:Right1 ]
+	# this results in no rows with the above strings in wp_posts
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '[ad]', '[cms_ad]')
+	;
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '[ ad ]', '[cms_ad]')
+	;
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '[ ad:Right1 ]', '[cms_ad:Right1]')
+	;
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '[ad:Right1]', '[cms_ad:Right1]')
+	;
+
+
 	# Miscellaneous clean-up.
 	# There may be some extraneous blank spaces in your Drupal posts; use these queries
 	# or other similar ones to strip out the undesirable tags.
