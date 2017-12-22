@@ -15,6 +15,9 @@
 
 # Section 1 - Reset. The order is important here.
 
+	# make sure encoding is: utf8-unicode (utf8mb4)
+	# make sure collation is: utf8mb4_general_ci
+
 	# Empty previous content from WordPress database.
 	TRUNCATE TABLE `minnpost.wordpress`.wp_comments;
 	TRUNCATE TABLE `minnpost.wordpress`.wp_links;
@@ -3110,6 +3113,393 @@
 	;
 
 
+	# redirects for rss feeds
+	# doing these manually because no one really uses them anyway
+	INSERT INTO `wp_redirection_items` (`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+		VALUES
+			(
+				'/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/166/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'politics-policy/feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/167/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'health/feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/168/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'education/feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/169/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'environment/feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/113/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'arts-culture/feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/170/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'business/feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/171/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'sports/feed'
+				),
+				'url',
+				''
+			),
+			(	'/section/233/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'perspectives/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30915/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'artscape/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30885/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'community-sketchbook/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30805/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'community-voices/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30908/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'earth-journal/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30833/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'eric-black-ink/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30795/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'glean/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30871/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'inside-minnpost/feed'
+				),
+				'url',
+				''
+			),
+			(	'/department/30912/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'macro-micro-minnesota/feed'
+				),
+				'url',
+				''
+			),
+		
+			(	'/department/30870/rss.xml',
+				'0',
+				'0',
+				1,
+				CURRENT_TIMESTAMP(),
+				1,
+				'enabled',
+				'url',
+				301,
+				CONCAT(
+					(
+					SELECT option_value
+					FROM `minnpost.wordpress`.wp_options
+					WHERE option_name = 'siteurl'
+					),
+					'/',
+					'second-opinion/feed'
+				),
+				'url',
+				''
+			)
+	;
+
+
 	# zoninator zones (like nodequeues)
 
 	# add zoninator terms
@@ -3162,6 +3552,7 @@
 				INNER JOIN `minnpost.drupal`.nodequeue_queue q ON n.qid = q.qid
 				INNER JOIN `minnpost.wordpress`.wp_terms t ON q.title = t.name
 	;
+
 
 
 # Section 12 - Menus. We can't run this one all at once because we have to wait for cron to finish before deleting. The order doesn't matter though.
@@ -3521,7 +3912,18 @@
 
 
 
-# Section 14 - General WordPress settings.
+# Section 14 - manually create any posts/pages that we need. The order doesn't matter but it has to be after section 8.
+
+	# Subscribe page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_type, `post_status`)
+		VALUES (1, CURRENT_TIMESTAMP(), '<div class="m-form m-form-standalone m-form-newsletter-shortcode m-form-newsletter-shortcode-full">[newsletter_embed newsletter="full"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.</div>', 'Subscribe', '', 'subscribe', CURRENT_TIMESTAMP(), 'page', 'publish')
+	;
+
+
+
+# Section 15 - General WordPress settings.
 
 	
 
