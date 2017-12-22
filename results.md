@@ -99,7 +99,7 @@
     - File attachments (these get added to the story inline, and we don't need to list them at the end except for a few, which we added via SQL if the url wasn't already in the body) :white_check_mark:
     - DocumentCloud Document :white_check_mark:
     - Sidebar :white_check_mark:
-    - Meta tags
+    - Meta tags :white_check_mark:
     - Menu settings :white_check_mark:
     - Comment settings :white_check_mark:
     - Path settings :white_check_mark:
@@ -132,6 +132,7 @@
 
 ### Notes
 
+- We need to make sure we copy all the file folders from Drupal to WordPress. I think it's possible they could be reorganized, but we have to assume they won't be and that we will need those files, including the imagecache urls.
 - Wrote a plugin that splits the Drupal image metadata into alt, caption, etc. It can be used for as many types as necessary, but is currently only being used for thumbnail images. It's likely we won't need it for inline images, but maybe will need it for detail ones.
 - bylines seem to throw things off because they don't necessarily correspond to authors or users
     - this is fine
