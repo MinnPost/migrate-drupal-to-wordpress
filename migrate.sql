@@ -1208,8 +1208,11 @@
 			f.fid `image_post_file_id_old`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_type_video v USING (nid, vid)
-			INNER JOIN `minnpost.drupal`.files f ON v.field_op_video_thumbnail_fid = f.fid
+			INNER JOIN `minnpost.drupal`.content_type_slideshow s USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON s.field_op_slideshow_thumb_fid = f.fid
+	;
+
+
 	;
 
 
