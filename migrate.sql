@@ -83,7 +83,7 @@
 			ON a.src = CONCAT('node/', n.nid)
 		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 		# Add more Drupal content types below if applicable.
-		WHERE n.type IN ('article', 'article_full', 'audio', 'newsletter', 'page', 'video', 'slideshow') AND n.title != 'Weather'
+		WHERE n.type IN ('article', 'article_full', 'audio', 'newsletter', 'page', 'video', 'slideshow', 'sponsor') AND n.title != 'Weather'
 	;
 
 
@@ -94,6 +94,14 @@
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_type = 'post'
 		WHERE post_type IN ('article', 'article_full', 'audio', 'video', 'slideshow')
+	;
+
+
+	# Fix post type for sponsors
+	# This relies on the cr3ativsponsor WordPress plugin
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_type = 'cr3ativsponsor'
+		WHERE post_type = 'sponsor'
 	;
 
 
