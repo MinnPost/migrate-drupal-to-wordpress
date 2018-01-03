@@ -2049,6 +2049,45 @@
 	ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_newsletter_type;
 
 
+	# sponsor fields
+
+	# url field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				u.nid `post_id`,
+				'cr3ativ_sponsorurl' as meta_key,
+				u.field_url_url `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_url u USING(nid, vid)
+			WHERE u.field_url_url IS NOT NULL AND n.type = 'sponsor'
+	;
+
+
+	# fix on-site sponsor urls
+	UPDATE `minnpost.wordpress`.wp_postmeta
+		SET meta_value = CONCAT('https://www.minnpost.com/', meta_value)
+		WHERE meta_key = 'cr3ativ_sponsorurl' AND meta_value NOT LIKE 'http%'
+	;
+
+
+	# display text field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				d.nid `post_id`,
+				'cr3ativ_sponsortext' as meta_key,
+				d.field_display_title_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_display_title d USING(nid, vid)
+			WHERE d.field_display_title_value IS NOT NULL AND n.type = 'sponsor'
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
