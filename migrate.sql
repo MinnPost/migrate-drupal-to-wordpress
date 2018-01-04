@@ -2138,6 +2138,19 @@
 	;
 
 
+	# we need to put the sections in as departments also, because they show up in the list and are sometimes used that way
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_terms_dept (term_id, name, slug)
+		SELECT nid `term_id`,
+		n.title `name`,
+		substring_index(a.dst, '/', -1) `slug`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+			WHERE n.type='section'
+	;
+
+
 	# Put all Drupal departments into terms; store old term ID from Drupal for tracking relationships
 	INSERT INTO wp_terms (name, slug, term_group, term_id_old)
 		SELECT name, slug, term_group, term_id
@@ -2508,23 +2521,24 @@
 	;
 
 
-	# Put all Drupal sections into terms; store old term ID from Drupal for tracking relationships
-	INSERT INTO wp_terms (name, slug, term_group, term_id_old)
-		SELECT name, slug, term_group, term_id
-		FROM wp_terms_section s
+	# Update the term table with the section node id in the old id field for tracking relationships
+	UPDATE `minnpost.wordpress`.wp_terms t JOIN `minnpost.wordpress`.wp_terms_section s ON t.name = s.name
+		SET t.term_id_old = s.term_id
 	;
 
 
-	# Create taxonomy for each section
-	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
-		SELECT term_id, 'category', '' FROM wp_terms WHERE term_id_old IS NOT NULL
+	# Delete duplicates for section/department in case we added both
+	DELETE t1
+	FROM wp_terms t1, wp_terms t2
+	INNER JOIN wp_term_taxonomy tax USING (term_id)
+	WHERE t1.term_id > t2.term_id AND t1.name = t2.name AND tax.taxonomy = 'category'
 	;
 
 
 	# Create relationships for each story to the section it had in Drupal
 	# Track this relationship by the term_id_old field
 	# this one does take the vid into account
-	INSERT INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
 		SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
 			FROM wp_term_taxonomy tax
 				INNER JOIN wp_terms term ON tax.term_id = term.term_id
