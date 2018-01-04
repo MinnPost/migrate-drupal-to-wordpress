@@ -4003,6 +4003,31 @@
 	;
 
 
+	# submit a letter to the editor
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
+		(id, post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_type, `post_status`)
+		SELECT DISTINCT
+			n.nid `id`,
+			n.uid `post_author`,
+			FROM_UNIXTIME(n.created) `post_date`,
+			CONCAT(r.body, '[gravityform id="4" title="false" description="false"]') `post_content`,
+			n.title `post_title`,
+			t.field_teaser_value `post_excerpt`,
+			substring_index(a.dst, '/', -1) `post_name`,
+			FROM_UNIXTIME(n.changed) `post_modified`,
+			'page' `post_type`,
+			IF(n.status = 1, 'publish', 'draft') `post_status`
+		FROM `minnpost.drupal`.node n
+		LEFT OUTER JOIN `minnpost.drupal`.node_revisions r
+			USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a
+			ON a.src = CONCAT('node/', n.nid)
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
+		WHERE n.nid = 81046
+	;
+
+
 
 # Section 15 - General WordPress settings.
 
