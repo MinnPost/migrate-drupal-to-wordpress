@@ -1227,7 +1227,7 @@
 			f.filename `post_name`,
 			'inherit' `post_status`,
 			n.nid `post_parent`,
-			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/sponsor', '/imagecache/thumbnail/images/thumbnails/sponsor')) `guid`,
+			CONCAT('https://www.minnpost.com/', f.filepath) `guid`,
 			'attachment' `post_type`,
 			f.filemime `post_mime_type`,
 			f.fid `image_post_file_id_old`
