@@ -3774,20 +3774,6 @@
 	# replace content when necessary
 
 
-	# use widgets for news by region
-	# these numbers change if we have to recreate the widgets. ugh.
-	UPDATE `minnpost.wordpress`.wp_posts
-		SET post_content = '<!--break-->
-	[widget_instance id="minnpostspills_widget-10"]
-
-	[widget_instance id="minnpostspills_widget-30"]
-
-	[widget_instance id="minnpostspills_widget-13"]
-
-	[widget_instance id="minnpostspills_widget-24"]'
-		WHERE ID = 30750;
-	;
-
 	# note about widgets: the imported json does not set the target by url field
 	# also, resetting the database with all these queries does not break the widgets, so setting them up really only has to be done once
 
@@ -4015,6 +4001,21 @@
 	DROP TABLE wp_sidebars;
 
 
+	# use widgets for news by region - 1: from greater minnesota, 2: metro area, 3: world/nation, 4: washington bureau
+	# these numbers change if we have to recreate the widgets. ugh.
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = '<!--break-->
+	[widget_instance id="minnpostspills_widget-8"]
+
+	[widget_instance id="minnpostspills_widget-21"]
+
+	[widget_instance id="minnpostspills_widget-11"]
+
+	[widget_instance id="minnpostspills_widget-22"]'
+		WHERE ID = 30750;
+	;
+
+
 
 # Section 14 - manually create any posts/pages that we need. The order doesn't matter but it has to be after section 8.
 
@@ -4026,7 +4027,7 @@
 	;
 
 
-	# submit a letter to the editor
+	# Submit a letter to the editor page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_modified, post_type, `post_status`)
