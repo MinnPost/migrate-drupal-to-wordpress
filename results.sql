@@ -70,6 +70,7 @@ WHERE t.name = 'post-format-gallery'
 
 # count the slideshow and gallery posts between wordpress and drupal
 # 2/8/17: these numbers match
+# 1/4/18: there are 208; this is important for line 524
 SELECT
 	(
 		SELECT COUNT(*)
@@ -235,6 +236,7 @@ SELECT
 
 # drupal
 # 1633, 272, 1, 193, 11
+# 1/4/18: 1746, 291, 1, 213, 29
 SELECT td.name, COUNT(*)
 	FROM `minnpost.drupal`.node n
 	INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -246,6 +248,7 @@ SELECT td.name, COUNT(*)
 
 # wordpress
 # 1633, 272, 1, 193, 11
+# 1/4/18: 1746, 291, 1, 213, 29
 SELECT m.meta_value, count(*)
 	FROM `minnpost.wordpress`.wp_posts p
 	INNER JOIN `minnpost.wordpress`.wp_postmeta m ON p.ID = m.post_id
@@ -277,6 +280,7 @@ SELECT
 # 2/7/17: 107980 with group by title/category
 # 3/23/17: 107987
 # 5/15/17: 108158
+# 1/4/18: 110924
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, n.title as title, d2.title as category_title
 FROM `minnpost.drupal`.node n
 INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
@@ -300,6 +304,7 @@ GROUP BY title, category_title;
 # 2/7/17: 107703 with group by title/category
 # 3/23/17: 107833
 # 5/15/17: 108022
+# 1/4/18: 111107
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
@@ -316,6 +321,7 @@ ORDER BY post_title, name
 # 2/6/17: this is confusing because the above queries result in a difference of 272
 # 5/15/17: still 0 results
 # 5/15/17: still has a difference in the above query counts of 136
+# 1/4/18: still difference of zero
 SELECT DISTINCT d.nid as nid, d.field_department_nid as category, n.title as title, d2.title as category_title
 FROM `minnpost.drupal`.node n
 INNER JOIN `minnpost.drupal`.node_revisions nr USING (nid, vid)
@@ -355,6 +361,7 @@ ORDER BY nid, category_title
 # 2/3/17: 0 results
 # 3/23/17: still has 0 results, even though that maybe shouldn't be accurate now because of the gallery posts?
 # 5/15/17: still has 0 apparently
+# 1/4/18: still has 0 apparently
 SELECT p.ID, t.term_id, p.post_title, t.name
 FROM `minnpost.wordpress`.wp_term_relationships r
 INNER JOIN `minnpost.wordpress`.wp_posts p ON r.object_id = p.ID
@@ -386,6 +393,7 @@ ORDER BY p.ID, name
 # this filters wp into categories only
 # 2/1/17: not working; 108775 for wordpress, 106914 for drupal
 # 5/15/17: 109415 for wp, 109468 for drupal
+# 1/4/18: wp: 112514; drupal: 112311
 SELECT
 	(
 		SELECT COUNT(*)
@@ -423,15 +431,15 @@ SELECT
 
 # Temporary table for the story/category pairs
 CREATE TABLE `drupal_section_department_pairs` (
-	`tid` bigint(20) unsigned NOT NULL,
-	`name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	`count` bigint(20) NOT NULL,
+	`tid` bigint(11) unsigned NOT NULL,
+	`name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`count` bigint(11) NOT NULL,
 	UNIQUE KEY `tid` (`tid`,`name`)
 );
 CREATE TABLE `wordpress_category_pairs` (
-	`tid` bigint(20) unsigned NOT NULL,
-	`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-	`count` bigint(20) COLLATE utf8mb4_unicode_ci NOT NULL
+	`tid` bigint(11) unsigned NOT NULL,
+	`name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+	`count` bigint(11) COLLATE utf8mb4_unicode_ci NOT NULL
 );
 
 # save how many stories exist in each drupal department and section
@@ -513,6 +521,7 @@ WHERE name NOT IN(SELECT name FROM drupal_section_department_pairs)
 # 2/1/17: zero results
 # 3/23/17: still zero results; this should be wrong though i think with the galleries
 # 5/15/17: still zero
+# 1/4/18: now it is 208 gallery posts only. i think that is actually right. reference line 73
 
 
 # get rid of those temporary tables
@@ -645,6 +654,7 @@ WHERE p.comment_count != (SELECT count(cid) FROM `minnpost.drupal`.comments c WH
 # Get count of users
 # as of 5/19/16 there is one less user in WordPress.
 # this is as it should be
+# 1/4/18: now we don't add the verified spam users to wordpress, so it is a bit less in wordpress
 
 SELECT
 	(SELECT COUNT(*) FROM `minnpost.drupal`.users) as drupal_user_count, 
@@ -654,6 +664,7 @@ SELECT
 
 # Get users that are in Drupal but not in WordPress
 # 1 user on 5/19/16; and it is the 0 ID from drupal. we don't need this one.
+# 1/4/18: 9735 spam users now, and the 0 id from drupal.
 
 SELECT DISTINCT `minnpost.drupal`.users.uid
 FROM `minnpost.drupal`.users
@@ -676,6 +687,7 @@ SELECT
 # Count how many users we added as terms and term_taxonomy
 # 2001 users for these queries on 6/29/16; this is correct
 # 2018 users for these queries on 1/12/17; this is correct
+# 1/4/18: 2033 of these now; that is fine.
 SELECT count(*) FROM wp_term_taxonomy WHERE taxonomy='author';
 
 
@@ -738,7 +750,7 @@ GROUP BY au.nid
 # 7/8/16 zero results
 SELECT COUNT(*), r.object_id
 FROM `minnpost.wordpress`.wp_term_relationships r
-INNER JOIN wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
+INNER JOIN `minnpost.wordpress`.wp_term_taxonomy tax ON r.term_taxonomy_id = tax.term_taxonomy_id
 WHERE tax.taxonomy = 'author' AND NOT EXISTS
 (
 	SELECT COUNT(*), au.nid
