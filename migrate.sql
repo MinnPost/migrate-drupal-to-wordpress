@@ -3969,7 +3969,7 @@
 
 	INSERT INTO `wp_sidebars` (`title`, `url`, `content`, `type`, `show_on`, `categories`, `tags`, `batch`)
 		VALUES
-			('Thanks to our major sponsors', NULL, '[mp_sponsors columns="1" image="yes" title="yes" link="yes" orderby="post_date" order="DESC"]', 'custom_html', 'footer', NULL, NULL, 7)
+			('Thanks to our major sponsors', NULL, '[mp_sponsors columns="1" image="yes" title="no" link="yes" orderby="post_date" order="DESC"]', 'custom_html', 'footer', NULL, NULL, 7)
 	;
 
 
