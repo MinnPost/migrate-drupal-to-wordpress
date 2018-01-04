@@ -2944,8 +2944,9 @@
 
 
 	# add a temporary constraint for email addresses so we don't add duplicates
-	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(255))
-	;
+	# this may not be necessary
+	#ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(255))
+	#;
 
 
 	# add the email address for the author if we have one
@@ -3031,7 +3032,8 @@
 	
 
 	# drop that temporary constraint
-	ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
+	# this may not be necessary
+	#ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
 
 
 	# add the excerpt field for the author if we have one
