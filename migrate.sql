@@ -52,6 +52,10 @@
 	;
 
 
+	# clear the menu ran thing
+	DELETE FROM `minnpost.wordpress`.wp_options WHERE option_name = 'menu_check_ran'
+
+
 	# this is where we stop deleting data to start over
 
 
