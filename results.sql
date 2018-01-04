@@ -110,30 +110,31 @@ SELECT
 
 # get the image nodes that are in drupal but not wordpress
 # 2/21/17: there are 33 of these; only 3 of them have a field_main_image_fid
+# 1/4/18: now there are 34, for whatever that's worth.
 # i can't tell if this is a problem or not at this point though. if it is, it's a minor problem.
 # trying to do more joins seems to cause more problems than it solves.
 SELECT nid, title
-FROM node n
+FROM `minnpost.drupal`.node n
 WHERE n.type = 'op_image'
 AND n.nid NOT IN (SELECT ID FROM `minnpost.wordpress`.wp_posts WHERE n.nid = ID)
 
 
 # count thumbnails tied to posts
-# wordpress: 23768
+# wordpress: 29011
 SELECT ID, meta_value
 FROM wp_postmeta m
 LEFT OUTER JOIN wp_posts p ON m.post_id = p.ID
-WHERE meta_key = '_thumbnail_ext_url_thumbnail' AND meta_value IS NOT NULL AND ID IS NOT NULL
+WHERE meta_key = '_mp_post_thumbnail_image_id' AND meta_value IS NOT NULL AND ID IS NOT NULL
 GROUP BY ID
 ORDER BY ID
 ;
 
 
-# drupal: 23134
+# drupal: 25230
 SELECT n.nid as ID, CONCAT('https://www.minnpost.com/', f.filepath) as meta_value
-FROM content_field_thumbnail_image i
-LEFT OUTER JOIN node n USING(nid)
-LEFT OUTER JOIN files f ON i.field_thumbnail_image_fid = f.fid
+FROM `minnpost.drupal`.content_field_thumbnail_image i
+LEFT OUTER JOIN `minnpost.drupal`.node n USING(nid)
+LEFT OUTER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
 WHERE n.type IN ('article', 'article_full', 'audio', 'page', 'video', 'slideshow')
 AND i.field_thumbnail_image_fid IS NOT NULL AND n.nid IS NOT NULL
 GROUP BY n.nid
@@ -144,7 +145,7 @@ ORDER BY ID
 SELECT ID, meta_value
 FROM wp_postmeta m
 LEFT OUTER JOIN wp_posts p ON m.post_id = p.ID
-WHERE meta_key = '_thumbnail_ext_url_thumbnail' AND meta_value IS NOT NULL AND ID IS NOT NULL
+WHERE meta_key = '_mp_post_thumbnail_image_id' AND meta_value IS NOT NULL AND ID IS NOT NULL
 AND NOT EXISTS (
 	SELECT n.nid as ID, CONCAT('https://www.minnpost.com/', f.filepath) as meta_value
 	FROM `minnpost.drupal`.content_field_thumbnail_image i
@@ -165,11 +166,13 @@ SELECT
 	(
 		SELECT COUNT(*)
 		FROM `minnpost.wordpress`.wp_postmeta
-		WHERE meta_key = '_mp_image_settings_homepage_image_size'
+		WHERE meta_key = '_mp_post_homepage_image_size'
 	) as wordpress_homepage_image_count,
 	(
 		SELECT COUNT(DISTINCT nid, field_hp_image_size_value) 
-		FROM `minnpost.drupal`.content_field_hp_image_size
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_hp_image_size d USING(nid, vid)
 		WHERE field_hp_image_size_value IS NOT NULL
 	) as drupal_homepage_image_count
 ;
@@ -181,8 +184,8 @@ SELECT
 	(
 		SELECT COUNT(DISTINCT d.nid, d.field_deck_value)
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
-		INNER JOIN `minnpost.drupal`.content_field_deck d ON n.nid = d.nid
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_deck d USING(nid, vid)
 		WHERE d.field_deck_value IS NOT NULL
 	) as drupal_deck_count,
 	(
@@ -199,8 +202,8 @@ SELECT
 	(
 		SELECT COUNT(DISTINCT b.nid, b.field_byline_value)
 		FROM `minnpost.drupal`.node n
-		INNER JOIN `minnpost.drupal`.node_revisions r USING(vid)
-		INNER JOIN `minnpost.drupal`.content_field_byline b ON n.nid = b.nid
+		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_field_byline b USING(nid, vid)
 		WHERE b.field_byline_value IS NOT NULL
 	) as drupal_byline_count,
 	(
