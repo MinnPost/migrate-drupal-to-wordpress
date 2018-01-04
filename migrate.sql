@@ -4028,6 +4028,15 @@
 	;
 
 
+	# Fix image/file urls in letter to editor content
+	# in our case, we use this to make the urls absolute, at least for now
+	# no need for vid stuff
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '"/sites/default/files/', '"https://www.minnpost.com/sites/default/files/')
+	WHERE ID = 81046
+	;
+
+
 
 # Section 15 - General WordPress settings.
 
