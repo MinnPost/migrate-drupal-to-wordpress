@@ -87,7 +87,7 @@
 			ON a.src = CONCAT('node/', n.nid)
 		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 		# Add more Drupal content types below if applicable.
-		WHERE n.type IN ('article', 'article_full', 'audio', 'newsletter', 'page', 'video', 'slideshow', 'sponsor') AND n.title != 'Weather'
+		WHERE n.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor') AND n.title != 'Weather'
 	;
 
 
@@ -106,6 +106,14 @@
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_type = 'cr3ativsponsor'
 		WHERE post_type = 'sponsor'
+	;
+
+
+	# Fix post type for events
+	# This relies on the The Events Calendar WordPress plugin
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_type = 'tribe_events'
+		WHERE post_type = 'event'
 	;
 
 
