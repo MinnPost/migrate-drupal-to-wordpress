@@ -2289,6 +2289,61 @@
 	;
 
 
+	# event fields
+
+	# start date
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_EventStartDate' as meta_key, e.field_event_date_value as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_event e USING(nid, vid)
+			GROUP BY nid, vid
+	;
+
+	# end date
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_EventEndDate' as meta_key, e.field_event_date_value2 as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_event e USING(nid, vid)
+			GROUP BY nid, vid
+	;
+
+	# event timezone
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_EventTimezone' as meta_key, 'America/Chicago' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_event e USING(nid, vid)
+			GROUP BY nid, vid
+	;
+
+
+	# event timezone abbr
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_EventTimezoneAbbr' as meta_key, 'CST' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_event e USING(nid, vid)
+			GROUP BY nid, vid
+	;
+
+
+	# event origin
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_EventOrigin' as meta_key, 'events-calendar' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_event e USING(nid, vid)
+			GROUP BY nid, vid
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
