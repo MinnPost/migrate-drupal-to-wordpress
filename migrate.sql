@@ -1881,7 +1881,7 @@
 	;
 
 
-	# insert metadata for post thumbnails - this relates to the image post ID
+	# insert metadata for post thumbnails - this relates to the image post ID - this will also get event data
 	# this doesn't really seem to need any vid stuff
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
