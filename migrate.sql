@@ -2774,6 +2774,12 @@
 	;
 
 
+	# Create an event taxonomy for each section
+	INSERT INTO `minnpost.wordpress`.wp_term_taxonomy (term_id, taxonomy, description)
+		SELECT term_id, 'tribe_events_cat', '' FROM wp_terms WHERE term_id_old IS NOT NULL
+	;
+
+
 	# Delete duplicates for section/department in case we added both
 	DELETE t1
 	FROM wp_terms t1, wp_terms t2
@@ -2792,7 +2798,21 @@
 				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
 				INNER JOIN `minnpost.drupal`.node n ON section.nid = n.nid AND section.vid = n.vid
 				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
-				WHERE tax.taxonomy = 'category'
+				WHERE tax.taxonomy = 'category' AND n.type != 'event'
+	;
+
+
+	# Create relationships for each event to the section it had in Drupal
+	# Track this relationship by the term_id_old field
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_term_relationships(object_id, term_taxonomy_id)
+		SELECT DISTINCT section.nid as object_id, tax.term_taxonomy_id as term_taxonomy_id
+			FROM wp_term_taxonomy tax
+				INNER JOIN wp_terms term ON tax.term_id = term.term_id
+				INNER JOIN `minnpost.drupal`.content_field_section section ON term.term_id_old = section.field_section_nid
+				INNER JOIN `minnpost.drupal`.node n ON section.nid = n.nid AND section.vid = n.vid
+				INNER JOIN `minnpost.drupal`.node_revisions nr ON nr.nid = n.nid AND nr.vid = n.vid
+				WHERE tax.taxonomy = 'tribe_events_cat' AND n.type = 'event'
 	;
 
 
