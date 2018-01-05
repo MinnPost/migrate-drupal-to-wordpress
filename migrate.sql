@@ -2097,6 +2097,67 @@
 	;
 
 
+	# related content fields
+
+
+	# if there is multimedia content, turn the show related field on
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT p.ID as post_id, '_mp_show_related_content' as meta_key, 'on' as meta_value
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.node n ON p.ID = n.nid
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_op_related_mmedia m USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = m.field_op_related_mmedia_nid
+			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
+			WHERE field_op_related_mmedia_nid IS NOT NULL
+			GROUP BY p.ID
+	;
+
+
+	# if there is related content, turn the show related field on
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_show_related_content' as meta_key, 'on' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_related_content c USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = c.field_related_content_nid
+			WHERE field_related_content_nid IS NOT NULL
+			GROUP BY n.nid
+	;
+
+
+	# related multimedia field
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_related_multimedia' as meta_key, GROUP_CONCAT(DISTINCT p2.ID ORDER BY m.delta ASC) as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_op_related_mmedia m USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = m.field_op_related_mmedia_nid
+			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
+			WHERE field_op_related_mmedia_nid IS NOT NULL
+			GROUP BY n.nid, n.vid
+	;
+
+
+	# related content field
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_related_content' as meta_key, GROUP_CONCAT(DISTINCT p2.ID ORDER BY c.delta ASC) as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_related_content c USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = c.field_related_content_nid
+			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
+			WHERE c.field_related_content_nid IS NOT NULL
+			GROUP BY n.nid, n.vid
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
@@ -4023,7 +4084,7 @@
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_modified, post_type, `post_status`)
-		VALUES (1, CURRENT_TIMESTAMP(), '<div class="m-form m-form-standalone m-form-newsletter-shortcode m-form-newsletter-shortcode-full">[newsletter_embed newsletter="full"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.</div>', 'Subscribe', '', 'subscribe', CURRENT_TIMESTAMP(), 'page', 'publish')
+		VALUES (1, CURRENT_TIMESTAMP(), '<div class="m-form m-form-standalone m-form-newsletter">[gravityform id="3" title="false" description="false"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.</div>', 'Subscribe', '', 'subscribe', CURRENT_TIMESTAMP(), 'page', 'publish')
 	;
 
 

@@ -94,8 +94,8 @@
     - Main Image Caption :white_check_mark:
     - Inline Images :white_check_mark:
     - Show Author Info? :white_check_mark:
-    - Related Content
-    - Related Multimedia
+    - Related Content :white_check_mark:
+    - Related Multimedia :white_check_mark:
     - File attachments (these get added to the story inline, and we don't need to list them at the end except for a few, which we added via SQL if the url wasn't already in the body) :white_check_mark:
     - DocumentCloud Document :white_check_mark:
     - Sidebar :white_check_mark:
@@ -106,7 +106,7 @@
     - URL redirects :white_check_mark:
     - Content Access Level
     - MinnPost+ Icon Style
-- Menus
+- Menus :white_check_mark:
     - Primary :white_check_mark:
     - Secondary :white_check_mark:
     - Support :white_check_mark:
