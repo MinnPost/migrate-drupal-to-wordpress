@@ -1000,6 +1000,33 @@
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
 			INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+			WHERE n.type != 'event'
+	;
+
+
+	# insert main event images as posts
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
+		SELECT DISTINCT
+			n.uid `post_author`,
+			FROM_UNIXTIME(f.timestamp) `post_date`,
+			'' `post_content`,
+			f.filename `post_title`,
+			'' `post_excerpt`,
+			f.filename `post_name`,
+			'inherit' `post_status`,
+			n.nid `post_parent`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/events', '/imagecache/article_detail/images/events')) `guid`,
+			'attachment' `post_type`,
+			f.filemime `post_mime_type`,
+			f.fid `image_post_file_id_old`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_main_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_main_image_fid = f.fid
+			WHERE n.type = 'event'
 	;
 
 
@@ -1248,6 +1275,32 @@
 			INNER JOIN `minnpost.drupal`.content_field_image_thumbnail i using (nid, vid)
 			INNER JOIN `minnpost.drupal`.files f ON i.field_image_thumbnail_fid = f.fid
 			WHERE n.type = 'sponsor'
+	;
+
+
+	# insert event thumbnails as posts
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
+		SELECT DISTINCT
+			n.uid `post_author`,
+			FROM_UNIXTIME(f.timestamp) `post_date`,
+			'' `post_content`,
+			f.filename `post_title`,
+			'' `post_excerpt`,
+			f.filename `post_name`,
+			'inherit' `post_status`,
+			n.nid `post_parent`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagefield_thumbs/images/thumbnails/events')) `guid`,
+			'attachment' `post_type`,
+			f.filemime `post_mime_type`,
+			f.fid `image_post_file_id_old`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)			
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/events%'
 	;
 
 
@@ -1672,12 +1725,82 @@
 	;
 
 
+	# for events
+
+	# feature thumbnail for event posts
+	# this is the larger thumbnail image that shows on section pages from cache folder
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_feature' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagecache/feature/images/thumbnails/events')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/events%'
+	;
+
+
+	# feature large does not get created for events
+
+
+	# feature middle thumbnail for event posts
+	# this is the middle thumbnail image that shows on the homepage from cache folder
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagecache/feature_middle/images/thumbnails/events')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/events%'
+	;
+
+
+	# newsletter thumbnail
+	# this is the thumbnail image that shows on newsletters
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagecache/newsletter_thumb/images/thumbnails/events')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/events%'
+	;
+
+
+	# author teaser thumbnail for event
+	# this gets used on that recent stories widget, at least
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_post_thumbnail_image_author_teaser' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagecache/author_teaser/images/thumbnails/events')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_thumbnail_image i using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON i.field_thumbnail_image_fid = f.fid
+			WHERE f.filepath LIKE '%images/thumbnails/events%'
+	;
+
+
 	# todo: we need to figure out whether and how to handle duplicate meta_keys for the same post
 	# but with conflicting values
 	# i know that at least sometimes the url is the same; it's being added more than once somehow. this may just not be a problem though.
-
-
-	# todo: we still need images for events but we don't yet have posts for them :(
 
 
 
