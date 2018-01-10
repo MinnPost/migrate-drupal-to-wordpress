@@ -2788,6 +2788,14 @@
 	;
 
 
+	# Delete duplicates for event categories
+	DELETE t1
+	FROM wp_terms t1, wp_terms t2
+	INNER JOIN wp_term_taxonomy tax USING (term_id)
+	WHERE t1.term_id > t2.term_id AND t1.name = t2.name AND tax.taxonomy = 'tribe_events_cat'
+	;
+
+
 	# Create relationships for each story to the section it had in Drupal
 	# Track this relationship by the term_id_old field
 	# this one does take the vid into account
