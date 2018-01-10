@@ -3194,6 +3194,45 @@
 		WHERE pf2.fid = 5
 	;
 
+	# insert user street/city/state/zip/country
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_street_address' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 16 and pv2.value != ''
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_city' as meta_key, pv.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv ON u.uid = pv.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf ON pv.fid = pf.fid
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf.fid = 6
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_state' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 7
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_zip_code' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 14
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_country' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 13
+	;
+
 
 	# use the title as the user's display name
 	# this might be all the info we have about the user
