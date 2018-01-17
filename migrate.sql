@@ -3232,6 +3232,7 @@
 		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
 		WHERE pf2.fid = 13
 	;
+	UPDATE `minnpost.wordpress`.wp_usermeta SET meta_value = '' WHERE meta_value = '0'; # stupid thing from drupal
 
 
 	# use the title as the user's display name
