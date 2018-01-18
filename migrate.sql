@@ -3990,6 +3990,7 @@
 		`menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
 		`menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
 		`menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
+		`menu-item-access` varchar(200) DEFAULT NULL,
 		PRIMARY KEY (`id`)
 	);
 
@@ -4015,8 +4016,15 @@
 	;
 
 
+	# add a menu for user account access links
+	INSERT INTO `minnpost.wordpress`.wp_menu
+		(name, title, placement)
+		VALUES('menu-user-account-access', 'User Account Access', 'user_account_access')
+	;
+
+
 	# add menu items
-	# parameter: line 3715 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 4068 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
@@ -4054,10 +4062,6 @@
 			ORDER BY menu_name, plid, l.weight
 	;
 
-
-	# manually delete the weather one
-	DELETE FROM `minnpost.wordpress`.wp_menu_items WHERE `menu-item-url` = 'weather';
-
 	
 	# insert homepage featured columns
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
@@ -4074,6 +4078,17 @@
 			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
 			WHERE q.title = 'Homepage Columns' AND n.title != 'The Glean'
 			ORDER BY nn.position
+	;
+
+
+	# insert user account access links
+	INSERT INTO `minnpost.wordpress`.wp_menu_items
+		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`, `menu-item-access`)
+		VALUES
+			('menu-user-account-access', 'Log in', 'user/login', NULL, 'out'),
+			('menu-user-account-access', 'Create Account', 'user/register', NULL, 'out'),
+			('menu-user-account-access', 'Your Account', 'user', NULL, 'in'),
+			('menu-user-account-access', 'Log out', 'wp_logout_url()', NULL, 'in')
 	;
 
 
