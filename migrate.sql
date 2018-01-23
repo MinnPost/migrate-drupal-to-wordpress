@@ -2080,8 +2080,9 @@
 	;
 
 
-	#ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_newsletter_type UNIQUE (post_id, meta_key, meta_value(255))
-	#;
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_newsletter_type UNIQUE (post_id, meta_key, meta_value(255))
+	;
+
 
 	# type field - the data is easier if we just do this one separately for the three types
 	# this one does take the vid into account
@@ -2127,9 +2128,9 @@
 	;
 
 
-	# if the transient fails, do this
-	DELETE t1 FROM `wp_postmeta` t1, `wp_postmeta` t2 WHERE t1.meta_id > t2.meta_id AND t1.post_id = t2.post_id AND t1.meta_key = t2.meta_key AND t1.meta_value = t2.meta_value
-	;
+	# if the constraint fails, do this
+	#DELETE t1 FROM `wp_postmeta` t1, `wp_postmeta` t2 WHERE t1.meta_id > t2.meta_id AND t1.post_id = t2.post_id AND t1.meta_key = t2.meta_key AND t1.meta_value = t2.meta_value
+	#;
 
 
 	# newsletter preview text field
@@ -2186,7 +2187,7 @@
 
 
 	# drop that temporary constraint for newsletter type
-	#ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_newsletter_type;
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_newsletter_type;
 
 
 	# sponsor fields
@@ -3283,8 +3284,8 @@
 
 	# add a temporary constraint for email addresses so we don't add duplicates
 	# this may not be necessary
-	#ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(255))
-	#;
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta ADD CONSTRAINT temp_email UNIQUE (post_id, meta_key, meta_value(255))
+	;
 
 
 	# add the email address for the author if we have one
@@ -3371,7 +3372,7 @@
 
 	# drop that temporary constraint
 	# this may not be necessary
-	#ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
+	ALTER TABLE `minnpost.wordpress`.wp_postmeta DROP INDEX temp_email;
 
 
 	# add the excerpt field for the author if we have one
