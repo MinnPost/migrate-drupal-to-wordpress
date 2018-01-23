@@ -3913,6 +3913,38 @@
 	;
 
 
+	# redirects for user profile urls
+	# we may not put this into a menu, but we can still maintain the urls
+	INSERT INTO `minnpost.wordpress`.wp_redirection_items
+		(`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+		SELECT DISTINCT
+			CONCAT(
+				'/users/',
+				REPLACE(REPLACE(TRIM(LOWER(u.name)), ' ', '-'), '---', '-')
+			) `url`,
+			0 `regex`,
+			0 `position`,
+			1 `last_count`,
+			CURRENT_TIMESTAMP() `last_access`,
+			1 `group_id`,
+			'enabled' `status`,
+			'url' `action_type`,
+			301 `action_code`,
+			CONCAT(
+				(
+				SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				),
+				'/users/',
+				u2.ID) `action_data`,
+			'url' `match_type`,
+			'' `title`
+			FROM `minnpost.drupal`.users u
+			INNER JOIN `minnpost.wordpress`.wp_users u2 ON u.uid = u2.ID
+	;
+
+
 	# zoninator zones (like nodequeues)
 
 	# add zoninator terms
