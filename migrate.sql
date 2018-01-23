@@ -4114,6 +4114,131 @@
 	;
 
 
+	# we need to add user pages so the menu can realize they are actual pages
+	# the plugin will skip adding these if they already exist
+
+	# User account page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_type, `post_status`)
+		VALUES (1, CURRENT_TIMESTAMP(), '[account-info]', 'Your MinnPost account', '', 'user', CURRENT_TIMESTAMP(), 'page', 'publish')
+	;
+
+
+	# User login page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_parent, post_type, `post_status`)
+		VALUES (
+			1,
+			CURRENT_TIMESTAMP(),
+			'[custom-login-form]',
+			'Log in to MinnPost',
+			'',
+			'login',
+			CURRENT_TIMESTAMP(),
+			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
+			'page',
+			'publish'
+		)
+	;
+
+
+	# User register page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_parent, post_type, `post_status`)
+		VALUES (
+			1,
+			CURRENT_TIMESTAMP(),
+			'[custom-register-form]',
+			'Create your MinnPost account',
+			'',
+			'register',
+			CURRENT_TIMESTAMP(),
+			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
+			'page',
+			'publish'
+		)
+	;
+
+
+	# lost password page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_parent, post_type, `post_status`)
+		VALUES (
+			1,
+			CURRENT_TIMESTAMP(),
+			'[custom-password-lost-form]',
+			'Forgot Your Password?',
+			'',
+			'password-lost',
+			CURRENT_TIMESTAMP(),
+			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
+			'page',
+			'publish'
+		)
+	;
+
+
+	# reset password page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_parent, post_type, `post_status`)
+		VALUES (
+			1,
+			CURRENT_TIMESTAMP(),
+			'[custom-password-reset-form]',
+			'Set a New Password',
+			'',
+			'password-reset',
+			CURRENT_TIMESTAMP(),
+			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
+			'page',
+			'publish'
+		)
+	;
+
+
+	# change password page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_parent, post_type, `post_status`)
+		VALUES (
+			1,
+			CURRENT_TIMESTAMP(),
+			'[custom-password-change-form]',
+			'Change Your Password',
+			'',
+			'password',
+			CURRENT_TIMESTAMP(),
+			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
+			'page',
+			'publish'
+		)
+	;
+
+
+	# account settings page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_parent, post_type, `post_status`)
+		VALUES (
+			1,
+			CURRENT_TIMESTAMP(),
+			'[custom-account-settings-form]',
+			'Change Your Password',
+			'',
+			'account-settings',
+			CURRENT_TIMESTAMP(),
+			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
+			'page',
+			'publish'
+		)
+	;
+
+
 	# insert user account access links
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`, `menu-item-access`)
