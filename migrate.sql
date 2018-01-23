@@ -4228,7 +4228,7 @@
 			1,
 			CURRENT_TIMESTAMP(),
 			'[custom-account-settings-form]',
-			'Change Your Password',
+			'Account Settings',
 			'',
 			'account-settings',
 			CURRENT_TIMESTAMP(),
