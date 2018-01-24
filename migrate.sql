@@ -4056,6 +4056,13 @@
 	;
 
 
+	# add a menu for user account management links
+	INSERT INTO `minnpost.wordpress`.wp_menu
+		(name, title, placement)
+		VALUES('menu-user-account-management', 'User Account Management', 'user_account_management');
+	;
+
+
 	# add menu items
 	# parameter: line 4068 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
@@ -4247,6 +4254,18 @@
 			('menu-user-account-access', 'Create Account', 'user/register', NULL, 'out'),
 			('menu-user-account-access', 'Your Account', 'user', NULL, 'in'),
 			('menu-user-account-access', 'Log out', 'wp_logout_url()', NULL, 'in')
+	;
+
+
+	# insert user account management links
+	INSERT INTO `minnpost.wordpress`.wp_menu_items
+		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`, `menu-item-access`)
+		VALUES
+			('menu-user-account-management', 'Your MinnPost', 'user', NULL, 'in'),
+			('menu-user-account-management', 'Preferences', 'user/preferences', NULL, 'in'),
+			('menu-user-account-management', 'Public Profile', 'users/[userid]', NULL, 'in'),
+			('menu-user-account-management', 'Account Settings', 'user/account-settings', NULL, 'in'),
+			('menu-user-account-management', 'Change Password', 'user/password', NULL, 'in')
 	;
 
 
