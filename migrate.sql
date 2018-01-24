@@ -4263,7 +4263,7 @@
 		VALUES
 			('menu-user-account-management', 'Your MinnPost', 'user', NULL, 'in'),
 			('menu-user-account-management', 'Preferences', 'user/preferences', NULL, 'in'),
-			('menu-user-account-management', 'Public Profile', 'users/[userid]', NULL, 'in'),
+			('menu-user-account-management', 'Public Profile', 'users/userid', NULL, 'in'),
 			('menu-user-account-management', 'Account Settings', 'user/account-settings', NULL, 'in'),
 			('menu-user-account-management', 'Change Password', 'user/password', NULL, 'in')
 	;
