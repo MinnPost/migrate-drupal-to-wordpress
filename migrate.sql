@@ -4001,125 +4001,7 @@
 
 
 
-# Section 12 - Menus. We can't run this one all at once because we have to wait for cron to finish before deleting. The order doesn't matter though.
-
-
-	# Temporary table for menus
-	CREATE TABLE `wp_menu` (
-		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`placement` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		PRIMARY KEY (`id`)
-	);
-
-
-	# Temporary table for menu items
-	CREATE TABLE `wp_menu_items` (
-		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`menu-name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`menu-item-title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`menu-item-url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
-		`menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
-		`menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
-		`menu-item-access` varchar(200) DEFAULT NULL,
-		PRIMARY KEY (`id`)
-	);
-
-
-	# add menus
-	# parameter: line 3669 contains the menu types in drupal that we don't want to migrate
-	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
-	INSERT INTO `minnpost.wordpress`.wp_menu
-		(name, title, placement)
-		SELECT DISTINCT
-			m.menu_name `name`,
-			m.title `title`,
-			REPLACE(TRIM(LOWER(m.title)), ' ', '_') `placement`
-			FROM `minnpost.drupal`.menu_custom m
-			WHERE m.menu_name NOT IN ('admin', 'devel', 'navigation', 'features', 'menu-top-menu')
-	;
-
-
-	# add a menu for featured columns
-	INSERT INTO `minnpost.wordpress`.wp_menu
-		(name, title, placement)
-		VALUES('menu-featured-columns', 'Featured Columns', 'featured_columns');
-	;
-
-
-	# add a menu for user account access links
-	INSERT INTO `minnpost.wordpress`.wp_menu
-		(name, title, placement)
-		VALUES('menu-user-account-access', 'User Account Access', 'user_account_access')
-	;
-
-
-	# add a menu for user account management links
-	INSERT INTO `minnpost.wordpress`.wp_menu
-		(name, title, placement)
-		VALUES('menu-user-account-management', 'User Account Management', 'user_account_management');
-	;
-
-
-	# add menu items
-	# parameter: line 4068 important parameter to keep out/force some urls because of how they're stored in drupal
-	INSERT INTO `minnpost.wordpress`.wp_menu_items
-		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
-		SELECT DISTINCT
-			m.menu_name `menu-name`,
-			l.link_title `menu-item-title`,
-			REPLACE(REPLACE(IFNULL(a.dst, l.link_path), '<front>', '/'), 'https://www.minnpost.com/', CONCAT((
-			SELECT option_value
-				FROM `minnpost.wordpress`.wp_options
-				WHERE option_name = 'siteurl'
-				), '/')) `menu-item-url`,
-			(
-				SELECT link_title
-				FROM `minnpost.drupal`.menu_links
-				WHERE mlid = l.plid
-			) as `menu-item-parent`
-			FROM `minnpost.drupal`.menu_links l
-			INNER JOIN `minnpost.wordpress`.wp_menu wm ON wm.name = menu_name
-			INNER JOIN `minnpost.drupal`.menu_custom m USING(menu_name)
-			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON l.link_path = a.src
-			LEFT OUTER JOIN `minnpost.drupal`.node n ON a.src = CONCAT('node/', n.nid)
-			LEFT OUTER JOIN `minnpost.drupal`.term_data t ON l.link_path = CONCAT('taxonomy/term/', t.tid)
-			WHERE l.hidden != 1 AND l.module = 'menu' AND (
-				(
-					n.status = 1 OR l.external = 1 OR n.nid IS NULL AND n.status != 0
-				)
-				OR
-				(
-					n.status = 1 AND a.dst IS NOT NULL AND n.status != 0
-				)
-				OR
-				(
-					l.router_path = 'taxonomy/term/%' AND t.tid IS NOT NULL
-				)
-			) OR l.link_path IN ('events', 'support')
-			ORDER BY menu_name, plid, l.weight
-	;
-
-	
-	# insert homepage featured columns
-	INSERT INTO `minnpost.wordpress`.wp_menu_items
-		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
-		SELECT 
-			'menu-featured-columns' `menu-name`,
-			n.title `menu-item-title`,
-			substring_index(a.dst, '/', -1) `menu-item-url`,
-			NULL `menu-item-parent`
-			FROM `minnpost.drupal`.nodequeue_nodes nn
-			INNER JOIN `minnpost.drupal`.nodequeue_queue q USING(qid)
-			INNER JOIN `minnpost.drupal`.node n USING(nid)
-			LEFT OUTER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
-			WHERE q.title = 'Homepage Columns' AND n.title != 'The Glean'
-			ORDER BY nn.position
-	;
-
+# Section 12 - User Account pages. We need to run this after all the other posts have been added, but before the menus
 
 	# we need to add user pages so the menu can realize they are actual pages
 	# the plugin will skip adding these if they already exist
@@ -4246,6 +4128,127 @@
 	;
 
 
+
+# Section 13 - Menus. We can't run this one all at once because we have to wait for cron to finish before deleting. The order doesn't matter though.
+
+
+	# Temporary table for menus
+	CREATE TABLE `wp_menu` (
+		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`placement` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		PRIMARY KEY (`id`)
+	);
+
+
+	# Temporary table for menu items
+	CREATE TABLE `wp_menu_items` (
+		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+		`menu-name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`menu-item-title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`menu-item-url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+		`menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
+		`menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
+		`menu-item-access` varchar(200) DEFAULT NULL,
+		PRIMARY KEY (`id`)
+	);
+
+
+	# add menus
+	# parameter: line 3669 contains the menu types in drupal that we don't want to migrate
+	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
+	INSERT INTO `minnpost.wordpress`.wp_menu
+		(name, title, placement)
+		SELECT DISTINCT
+			m.menu_name `name`,
+			m.title `title`,
+			REPLACE(TRIM(LOWER(m.title)), ' ', '_') `placement`
+			FROM `minnpost.drupal`.menu_custom m
+			WHERE m.menu_name NOT IN ('admin', 'devel', 'navigation', 'features', 'menu-top-menu')
+	;
+
+
+	# add a menu for featured columns
+	INSERT INTO `minnpost.wordpress`.wp_menu
+		(name, title, placement)
+		VALUES('menu-featured-columns', 'Featured Columns', 'featured_columns');
+	;
+
+
+	# add a menu for user account access links
+	INSERT INTO `minnpost.wordpress`.wp_menu
+		(name, title, placement)
+		VALUES('menu-user-account-access', 'User Account Access', 'user_account_access')
+	;
+
+
+	# add a menu for user account management links
+	INSERT INTO `minnpost.wordpress`.wp_menu
+		(name, title, placement)
+		VALUES('menu-user-account-management', 'User Account Management', 'user_account_management');
+	;
+
+
+	# add menu items
+	# parameter: line 4068 important parameter to keep out/force some urls because of how they're stored in drupal
+	INSERT INTO `minnpost.wordpress`.wp_menu_items
+		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
+		SELECT DISTINCT
+			m.menu_name `menu-name`,
+			l.link_title `menu-item-title`,
+			REPLACE(REPLACE(IFNULL(a.dst, l.link_path), '<front>', '/'), 'https://www.minnpost.com/', CONCAT((
+			SELECT option_value
+				FROM `minnpost.wordpress`.wp_options
+				WHERE option_name = 'siteurl'
+				), '/')) `menu-item-url`,
+			(
+				SELECT link_title
+				FROM `minnpost.drupal`.menu_links
+				WHERE mlid = l.plid
+			) as `menu-item-parent`
+			FROM `minnpost.drupal`.menu_links l
+			INNER JOIN `minnpost.wordpress`.wp_menu wm ON wm.name = menu_name
+			INNER JOIN `minnpost.drupal`.menu_custom m USING(menu_name)
+			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON l.link_path = a.src
+			LEFT OUTER JOIN `minnpost.drupal`.node n ON a.src = CONCAT('node/', n.nid)
+			LEFT OUTER JOIN `minnpost.drupal`.term_data t ON l.link_path = CONCAT('taxonomy/term/', t.tid)
+			WHERE l.hidden != 1 AND l.module = 'menu' AND (
+				(
+					n.status = 1 OR l.external = 1 OR n.nid IS NULL AND n.status != 0
+				)
+				OR
+				(
+					n.status = 1 AND a.dst IS NOT NULL AND n.status != 0
+				)
+				OR
+				(
+					l.router_path = 'taxonomy/term/%' AND t.tid IS NOT NULL
+				)
+			) OR l.link_path IN ('events', 'support')
+			ORDER BY menu_name, plid, l.weight
+	;
+
+	
+	# insert homepage featured columns
+	INSERT INTO `minnpost.wordpress`.wp_menu_items
+		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
+		SELECT 
+			'menu-featured-columns' `menu-name`,
+			n.title `menu-item-title`,
+			substring_index(a.dst, '/', -1) `menu-item-url`,
+			NULL `menu-item-parent`
+			FROM `minnpost.drupal`.nodequeue_nodes nn
+			INNER JOIN `minnpost.drupal`.nodequeue_queue q USING(qid)
+			INNER JOIN `minnpost.drupal`.node n USING(nid)
+			LEFT OUTER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			LEFT OUTER JOIN `minnpost.drupal`.url_alias a ON a.src = CONCAT('node/', n.nid)
+			WHERE q.title = 'Homepage Columns' AND n.title != 'The Glean'
+			ORDER BY nn.position
+	;
+
+
 	# insert user account access links
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`, `menu-item-access`)
@@ -4276,7 +4279,7 @@
 
 
 
-# Section 13 - widgets and ads and sidebar such stuff. This depends on cron. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff or if we didn't clear all of the relevant items.
+# Section 14 - widgets and ads and sidebar such stuff. This depends on cron. The order has to be after posts since that table gets updated. We can skip this section if we're testing other stuff or if we didn't clear all of the relevant items.
 
 	# replace content when necessary
 
@@ -4524,7 +4527,7 @@
 
 
 
-# Section 14 - manually create any posts/pages that we need. The order doesn't matter but it has to be after section 8.
+# Section 15 - manually create any posts/pages that we need. The order doesn't matter but it has to be after section 8.
 
 	# Subscribe page
 	INSERT INTO `minnpost.wordpress`.wp_posts
@@ -4569,7 +4572,7 @@
 
 
 
-# Section 15 - General WordPress settings.
+# Section 16 - General WordPress settings.
 
 	
 
