@@ -4128,6 +4128,25 @@
 	;
 
 
+	# preferences page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_parent, post_type, `post_status`)
+		VALUES (
+			1,
+			CURRENT_TIMESTAMP(),
+			'[custom-account-preferences-form]',
+			'Website & Communication Preferences',
+			'',
+			'preferences',
+			CURRENT_TIMESTAMP(),
+			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
+			'page',
+			'publish'
+		)
+	;
+
+
 
 # Section 13 - Menus. We can't run this one all at once because we have to wait for cron to finish before deleting. The order doesn't matter though.
 
