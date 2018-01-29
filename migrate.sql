@@ -2996,7 +2996,7 @@
 		JOIN `minnpost.drupal`.comments
 		ON `minnpost.wordpress`.wp_comments.comment_ID = `minnpost.drupal`.comments.cid
 		SET `minnpost.wordpress`.wp_comments.comment_content = CONCAT('<p class="a-comment-drupal-subject">', `minnpost.drupal`.comments.subject, '</p>', `minnpost.wordpress`.wp_comments.comment_content)
-		WHERE `minnpost.drupal`.comments.subject != '' AND `minnpost.wordpress`.wp_comments.comment_content NOT LIKE CONCAT(`minnpost.drupal`.comments.subject, '%')
+		WHERE `minnpost.drupal`.comments.subject != '' AND REPLACE(`minnpost.wordpress`.wp_comments.comment_content, '<p>', '') NOT LIKE CONCAT(`minnpost.drupal`.comments.subject, '%')
 	;
 
 
