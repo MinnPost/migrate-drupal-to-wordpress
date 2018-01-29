@@ -3113,7 +3113,21 @@
 	;
 
 
-	# we need a comment moderator role but doing this is a trainwreck
+	# Assign comment moderator permissions.
+	# Sets all comment moderator users to "comment moderator" by default; next section can selectively promote individual authors
+	# parameter: line 3128 contains the Drupal permission roles that we want to migrate
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:17:"comment_moderator";s:1:"1";}' as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+		WHERE (1
+			# Uncomment and enter any email addresses you want to exclude below.
+			# AND u.mail NOT IN ('test@example.com')
+			AND role.name IN ('comment moderator') AND u.status != 0
+		)
+	;
 
 
 	# Assign contributor permissions.
