@@ -3113,9 +3113,29 @@
 	;
 
 
+	# we need a comment moderator role but doing this is a trainwreck
+
+
+	# Assign contributor permissions.
+	# Sets all author twos to "contributor" by default; next section can selectively promote individual authors
+	# parameter: line 3131 contains the Drupal permission roles that we want to migrate
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:11:"contributor";s:1:"1";}' as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+		WHERE (1
+			# Uncomment and enter any email addresses you want to exclude below.
+			# AND u.mail NOT IN ('test@example.com')
+			AND role.name IN ('author two') AND u.status != 0
+		)
+	;
+
+
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 2829 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3148 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -3125,13 +3145,48 @@
 		WHERE (1
 			# Uncomment and enter any email addresses you want to exclude below.
 			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('author', 'author two', 'editor', 'user admin', 'administrator')
+			AND role.name IN ('author') AND u.status != 0
+		)
+	;
+
+
+	# Assign editor permissions.
+	# Sets all editors and administrators to "editor" by default
+	# parameter: line 3165 contains the Drupal permission roles that we want to migrate
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"editor";s:1:"1";}' as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+		WHERE (1
+			# Uncomment and enter any email addresses you want to exclude below.
+			# AND u.mail NOT IN ('test@example.com')
+			AND role.name IN ('editor', 'administrator') AND u.status != 0
+		)
+	;
+
+
+	# Assign "business" permissions. This is for business staff.
+	# Sets all "user admin" users to "business" by default
+	# parameter: line 3182 contains the Drupal permission roles that we want to migrate
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:8:"business";s:1:"1";}' as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+		WHERE (1
+			# Uncomment and enter any email addresses you want to exclude below.
+			# AND u.mail NOT IN ('test@example.com')
+			AND role.name IN ('user admin') AND u.status != 0
 		)
 	;
 
 
 	# Assign administrator permissions
 	# Set all Drupal super admins to "administrator"
+	# parameter: line 3199 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
@@ -3141,7 +3196,7 @@
 		WHERE (1
 			# Uncomment and enter any email addresses you want to exclude below.
 			# AND u.mail NOT IN ('test@example.com')
-			AND role.name = 'super admin'
+			AND role.name = 'super admin' AND u.status != 0
 		)
 	;
 
