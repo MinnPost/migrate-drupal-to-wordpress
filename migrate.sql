@@ -44,6 +44,12 @@
 		WHERE option_name = 'deserialize_metadata_last_post_checked'
 	;
 
+	# reset the merge value so it can start over with deserializing
+	UPDATE `minnpost.wordpress`.wp_options
+		SET option_value = 1
+		WHERE option_name = 'merge_serialized_fields_last_row_checked'
+	;
+
 
 	# set the current migrate time to right now
 	UPDATE `minnpost.wordpress`.wp_options
