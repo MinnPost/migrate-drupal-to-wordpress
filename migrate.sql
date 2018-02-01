@@ -3270,6 +3270,26 @@
 		WHERE pf2.fid = 5
 	;
 
+
+	# update user display name to "first last"
+	UPDATE `minnpost.wordpress`.wp_users u
+		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
+		SET u.display_name = CONCAT(u.display_name, ' ', m.meta_value)
+		WHERE m.meta_key = 'first_name' AND m.meta_value IS NOT NULL
+	;
+
+	UPDATE `minnpost.wordpress`.wp_users u
+		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
+		SET u.display_name = CONCAT(u.display_name, ' ', m.meta_value)
+		WHERE m.meta_key = 'last_name' AND m.meta_value IS NOT NULL
+	;
+
+	UPDATE `minnpost.wordpress`.wp_users u
+		SET u.display_name = u.user_nicename
+		WHERE u.display_name IS NULL OR u.display_name = ''
+	;
+
+
 	# insert user street/city/state/zip/country
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT u.uid as user_id, '_street_address' as meta_key, pv2.`value` as meta_value
