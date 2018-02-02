@@ -4369,8 +4369,10 @@
 		VALUES
 			('menu-user-account-access', 'Log in', 'user/login', NULL, 'out'),
 			('menu-user-account-access', 'Create Account', 'user/register', NULL, 'out'),
-			('menu-user-account-access', 'Your Account', 'user', NULL, 'in'),
-			('menu-user-account-access', 'Log out', 'wp_logout_url()', NULL, 'in')
+			('menu-user-account-access', 'Welcome', 'user', NULL, 'in'),
+			('menu-user-account-access', 'Your Account', 'user', 'Welcome', 'in'),
+			('menu-user-account-access', 'Account Settings', 'user/account-settings', 'Welcome', 'in'),
+			('menu-user-account-access', 'Log out', 'wp_logout_url()', 'Welcome', 'in')
 	;
 
 
