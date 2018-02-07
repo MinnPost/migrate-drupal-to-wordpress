@@ -2786,6 +2786,13 @@
 		SELECT term_id, 'tribe_events_cat', '' FROM wp_terms WHERE term_id_old IS NOT NULL
 	;
 
+	# Delete duplicates for tags
+	DELETE t1
+	FROM wp_terms t1, wp_terms t2
+	INNER JOIN wp_term_taxonomy tax USING (term_id)
+	WHERE t1.term_id > t2.term_id AND t1.name = t2.name AND tax.taxonomy = 'post_tag'
+	;
+
 
 	# Delete duplicates for section/department in case we added both
 	DELETE t1
@@ -2969,14 +2976,14 @@
 	# Keeps unapproved comments hidden.
 	# Incorporates change noted here: http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-32169
 	# mp change: uses the pid field from Drupal for the comment_parent field
-	# mp change: keep the value 200 characters or less
+	# mp change: keep the value for homepage 200 characters or less
 	# this doesn't really seem to need any vid stuff
 	INSERT INTO `minnpost.wordpress`.wp_comments
 		(comment_ID, comment_post_ID, comment_date, comment_content, comment_parent, comment_author,
 		comment_author_email, comment_author_url, comment_approved, user_id)
 		SELECT DISTINCT
 			cid, nid, FROM_UNIXTIME(timestamp), comment, pid, name,
-			mail, SUBSTRING(homepage, 1, 200), IF(status=1, 0, 1), uid
+			mail, SUBSTRING(homepage, 1, 200), IF(status=1, 'trash', 1), uid
 			FROM `minnpost.drupal`.comments
 	;
 
