@@ -3138,6 +3138,7 @@
 		WHERE (1
 			# Uncomment and enter any email addresses you want to exclude below.
 			# AND u.mail NOT IN ('test@example.com')
+			AND u.uid IN ( 8338,8358,8370,8372,8380,8381,8924,65623,65631 )
 			AND role.name IN ('comment moderator') AND u.status != 0
 		)
 	;
