@@ -3014,10 +3014,25 @@
 
 	# when we add multiple permissions per user, it is fixed by the Merge Serialized Fields plugin.
 
+	# add banned users who cannot comment
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"banned";s:1:"1";}' as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+		WHERE (1
+			# Uncomment and enter any email addresses you want to exclude below.
+			# AND u.mail NOT IN ('test@example.com')
+			AND role.name IN ('authenticated noncommenting user')
+		)
+	;
+
+
 	# Sets bronze member level capabilities for members
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_bronze";s:1:"1";}' as meta_value
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"member_bronze";s:1:"1";}' as meta_value
 		FROM `minnpost.drupal`.users u
 		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
 		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
@@ -3045,7 +3060,7 @@
 	# Sets silver member level capabilities for members
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_silver";s:1:"1";}' as meta_value
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"member_silver";s:1:"1";}' as meta_value
 		FROM `minnpost.drupal`.users u
 		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
 		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
@@ -3073,7 +3088,7 @@
 	# Sets gold member level capabilities for members
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_gold";s:1:"1";}' as meta_value
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:11:"member_gold";s:1:"1";}' as meta_value
 		FROM `minnpost.drupal`.users u
 		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
 		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
@@ -3101,7 +3116,7 @@
 	# Sets platinum member level capabilities for members
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"member_platinum";s:1:"1";}' as meta_value
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:15:"member_platinum";s:1:"1";}' as meta_value
 		FROM `minnpost.drupal`.users u
 		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
 		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
@@ -3128,7 +3143,7 @@
 
 	# Assign comment moderator permissions.
 	# Sets all comment moderator users to "comment moderator" by default; next section can selectively promote individual authors
-	# parameter: line 3141 and 3142 contain the users and make sure they have the roles we want to migrate
+	# parameter: line 3156 and 3157 contain the users and make sure they have the roles we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:17:"comment_moderator";s:1:"1";}' as meta_value
@@ -3146,7 +3161,7 @@
 
 	# Assign contributor permissions.
 	# Sets all author twos to "contributor" by default; next section can selectively promote individual authors
-	# parameter: line 3159 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3174 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:11:"contributor";s:1:"1";}' as meta_value
@@ -3163,7 +3178,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 3176 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3191 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -3180,7 +3195,7 @@
 
 	# Assign editor permissions.
 	# Sets all editors and administrators to "editor" by default
-	# parameter: line 3193 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3208 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"editor";s:1:"1";}' as meta_value
@@ -3197,7 +3212,7 @@
 
 	# Assign "business" permissions. This is for business staff.
 	# Sets all "user admin" users to "business" by default
-	# parameter: line 3210 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3225 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:8:"business";s:1:"1";}' as meta_value
@@ -3214,7 +3229,7 @@
 
 	# Assign administrator permissions
 	# Set all Drupal super admins to "administrator"
-	# parameter: line 3227 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3242 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
@@ -3514,7 +3529,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 3543 to exclude things if we find out they break when used in wordpress
+	# use line 3558 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -4279,7 +4294,7 @@
 
 
 	# add menus
-	# parameter: line 4291 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 4306 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -4314,7 +4329,7 @@
 
 
 	# add menu items
-	# parameter: line 4351 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 4366 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
