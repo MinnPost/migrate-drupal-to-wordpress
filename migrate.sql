@@ -4676,6 +4676,27 @@
 	;
 
 
+	# Subscribe DC Memo page
+	INSERT INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_type, `post_status`)
+		VALUES (1, CURRENT_TIMESTAMP(), '[newsletter_embed newsletter="full-dc"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.', 'Subscribe to D.C. Memo', '', 'subscribe-dc-memo', CURRENT_TIMESTAMP(), 'page', 'publish')
+	;
+
+
+	# Remove title from DC Memo subscribe page display
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(`post_id`, `meta_key`, `meta_value`)
+		SELECT
+			p.ID `post_id`,
+			'_mp_remove_title_from_display' `meta_key`,
+			'on' `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			WHERE p.post_title = 'Subscribe to D.C. Memo'
+	;
+
+
+
 	# Submit a letter to the editor page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_content, post_title, post_excerpt,
