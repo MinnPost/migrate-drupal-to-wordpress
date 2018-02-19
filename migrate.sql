@@ -4672,7 +4672,7 @@
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
 		post_name, post_modified, post_type, `post_status`)
-		VALUES (1, CURRENT_TIMESTAMP(), '<div class="m-form m-form-standalone m-form-newsletter">[gravityform id="3" title="false" description="false"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.</div>', 'Subscribe', '', 'subscribe', CURRENT_TIMESTAMP(), 'page', 'publish')
+		VALUES (1, CURRENT_TIMESTAMP(), '[newsletter_embed newsletter="full"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.', 'Subscribe', '', 'subscribe', CURRENT_TIMESTAMP(), 'page', 'publish')
 	;
 
 
