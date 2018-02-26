@@ -2351,6 +2351,62 @@
 	;
 
 
+	# member level for bronze content
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				a.nid `post_id`,
+				'_access_level' as meta_key,
+				1 as `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
+			WHERE a.field_minnpost_access_value = 'Bronze'
+	;
+
+
+	# member level for silver content
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				a.nid `post_id`,
+				'_access_level' as meta_key,
+				2 as `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
+			WHERE a.field_minnpost_access_value = 'Silver'
+	;
+
+
+	# member level for gold content
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				a.nid `post_id`,
+				'_access_level' as meta_key,
+				3 as `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
+			WHERE a.field_minnpost_access_value = 'Gold'
+	;
+
+
+	# member level for platinum content
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				a.nid `post_id`,
+				'_access_level' as meta_key,
+				4 as `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
+			WHERE a.field_minnpost_access_value = 'Platinum'
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
