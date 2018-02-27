@@ -2407,6 +2407,20 @@
 	;
 
 
+	# mp+ icon style
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				a.nid `post_id`,
+				'_mp_plus_icon_style' as meta_key,
+				a.field_minnpost_plus_icon_style_value as `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_article a USING(nid, vid)
+			WHERE a.field_minnpost_plus_icon_style_value IS NOT NULL
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
