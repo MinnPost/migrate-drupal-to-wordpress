@@ -3213,7 +3213,7 @@
 
 	# Assign comment moderator permissions.
 	# Sets all comment moderator users to "comment moderator" by default; next section can selectively promote individual authors
-	# parameter: line 3156 and 3157 contain the users and make sure they have the roles we want to migrate
+	# parameter: line 3226 and 3227 contain the users and make sure they have the roles we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:17:"comment_moderator";s:1:"1";}' as meta_value
@@ -3231,7 +3231,7 @@
 
 	# Assign contributor permissions.
 	# Sets all author twos to "contributor" by default; next section can selectively promote individual authors
-	# parameter: line 3174 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3244 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:11:"contributor";s:1:"1";}' as meta_value
@@ -3248,7 +3248,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 3191 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3261 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -3265,7 +3265,7 @@
 
 	# Assign editor permissions.
 	# Sets all editors and administrators to "editor" by default
-	# parameter: line 3208 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3278 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"editor";s:1:"1";}' as meta_value
@@ -3282,7 +3282,7 @@
 
 	# Assign "business" permissions. This is for business staff.
 	# Sets all "user admin" users to "business" by default
-	# parameter: line 3225 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3295 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:8:"business";s:1:"1";}' as meta_value
@@ -3299,7 +3299,7 @@
 
 	# Assign administrator permissions
 	# Set all Drupal super admins to "administrator"
-	# parameter: line 3242 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3312 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
@@ -3599,7 +3599,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 3558 to exclude things if we find out they break when used in wordpress
+	# use line 3628 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -4364,7 +4364,7 @@
 
 
 	# add menus
-	# parameter: line 4306 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 4376 contains the menu types in drupal that we don't want to migrate
 	# todo: we need to figure out what to do with the user menu (login, logout, etc.) in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
@@ -4399,7 +4399,7 @@
 
 
 	# add menu items
-	# parameter: line 4366 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 4436 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
