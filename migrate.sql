@@ -4197,15 +4197,15 @@
 	# User account page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_type, `post_status`)
-		VALUES (1, CURRENT_TIMESTAMP(), '[account-info]', 'Your MinnPost account', '', 'user', CURRENT_TIMESTAMP(), 'page', 'publish')
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_type, `post_status`)
+		VALUES (1, CURRENT_TIMESTAMP(), '[account-info]', 'Your MinnPost account', '', 'user', '', '', CURRENT_TIMESTAMP(), '', 'page', 'publish')
 	;
 
 
 	# User login page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_parent, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_parent, post_type, `post_status`)
 		VALUES (
 			1,
 			CURRENT_TIMESTAMP(),
@@ -4213,7 +4213,10 @@
 			'Log in to MinnPost',
 			'',
 			'login',
+			'',
+			'',
 			CURRENT_TIMESTAMP(),
+			'',
 			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
 			'page',
 			'publish'
@@ -4224,7 +4227,7 @@
 	# User register page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_parent, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_parent, post_type, `post_status`)
 		VALUES (
 			1,
 			CURRENT_TIMESTAMP(),
@@ -4232,7 +4235,10 @@
 			'Create your MinnPost account',
 			'',
 			'register',
+			'',
+			'',
 			CURRENT_TIMESTAMP(),
+			'',
 			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
 			'page',
 			'publish'
@@ -4243,7 +4249,7 @@
 	# lost password page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_parent, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_parent, post_type, `post_status`)
 		VALUES (
 			1,
 			CURRENT_TIMESTAMP(),
@@ -4251,7 +4257,10 @@
 			'Forgot Your Password?',
 			'',
 			'password-lost',
+			'',
+			'',
 			CURRENT_TIMESTAMP(),
+			'',
 			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
 			'page',
 			'publish'
@@ -4262,7 +4271,7 @@
 	# reset password page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_parent, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_parent, post_type, `post_status`)
 		VALUES (
 			1,
 			CURRENT_TIMESTAMP(),
@@ -4270,7 +4279,10 @@
 			'Set a New Password',
 			'',
 			'password-reset',
+			'',
+			'',
 			CURRENT_TIMESTAMP(),
+			'',
 			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
 			'page',
 			'publish'
@@ -4281,7 +4293,7 @@
 	# change password page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_parent, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_parent, post_type, `post_status`)
 		VALUES (
 			1,
 			CURRENT_TIMESTAMP(),
@@ -4289,7 +4301,10 @@
 			'Change Your Password',
 			'',
 			'password',
+			'',
+			'',
 			CURRENT_TIMESTAMP(),
+			'',
 			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
 			'page',
 			'publish'
@@ -4300,7 +4315,7 @@
 	# account settings page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_parent, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_parent, post_type, `post_status`)
 		VALUES (
 			1,
 			CURRENT_TIMESTAMP(),
@@ -4308,7 +4323,10 @@
 			'Account Settings',
 			'',
 			'account-settings',
+			'',
+			'',
 			CURRENT_TIMESTAMP(),
+			'',
 			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
 			'page',
 			'publish'
@@ -4319,7 +4337,7 @@
 	# preferences page
 	INSERT INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_parent, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_content_filtered, post_parent, post_type, `post_status`)
 		VALUES (
 			1,
 			CURRENT_TIMESTAMP(),
@@ -4327,7 +4345,10 @@
 			'Website & Communication Preferences',
 			'',
 			'preferences',
+			'',
+			'',
 			CURRENT_TIMESTAMP(),
+			'',
 			(SELECT ID FROM wp_posts p2 WHERE p2.post_name = 'user'),
 			'page',
 			'publish'
