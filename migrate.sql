@@ -2856,28 +2856,21 @@
 		SELECT term_id, 'tribe_events_cat', '' FROM wp_terms WHERE term_id_old IS NOT NULL
 	;
 
-	# Delete duplicates for tags
-	DELETE t1
-	FROM wp_terms t1, wp_terms t2
-	INNER JOIN wp_term_taxonomy tax USING (term_id)
-	WHERE t1.term_id > t2.term_id AND t1.name = t2.name AND tax.taxonomy = 'post_tag'
-	;
+
+	# cleanup term duplicates
 
 
-	# Delete duplicates for section/department in case we added both
-	DELETE t1
-	FROM wp_terms t1, wp_terms t2
-	INNER JOIN wp_term_taxonomy tax USING (term_id)
-	WHERE t1.term_id > t2.term_id AND t1.name = t2.name AND tax.taxonomy = 'category'
-	;
-
-
-	# Delete duplicates for event categories
-	DELETE t1
-	FROM wp_terms t1, wp_terms t2
-	INNER JOIN wp_term_taxonomy tax USING (term_id)
-	WHERE t1.term_id > t2.term_id AND t1.name = t2.name AND tax.taxonomy = 'tribe_events_cat'
-	;
+	# Delete duplicates for terms that share the same taxonomy
+	DELETE FROM `minnpost.wordpress`.wp_terms
+  		WHERE term_id NOT IN (
+    		SELECT * FROM (
+      			SELECT MAX(t.term_id)
+      			FROM `minnpost.wordpress`.wp_terms t
+      			INNER JOIN wp_term_taxonomy tax ON t.term_id = tax.term_id
+        		GROUP BY slug, taxonomy
+    		) 
+  		x)
+  	;
 
 
 	# Create relationships for each story to the section it had in Drupal
