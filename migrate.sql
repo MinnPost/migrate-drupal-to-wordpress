@@ -4759,19 +4759,11 @@
 
 # Section 15 - manually create any posts/pages that we need. The order doesn't matter but it has to be after section 8.
 
-	# Subscribe page
-	INSERT INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_type, `post_status`)
-		VALUES (1, CURRENT_TIMESTAMP(), '[newsletter_embed newsletter="full"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.', 'Subscribe', '', 'subscribe', CURRENT_TIMESTAMP(), 'page', 'publish')
-	;
-
-
 	# Subscribe DC Memo page
-	INSERT INTO `minnpost.wordpress`.wp_posts
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_type, `post_status`)
-		VALUES (1, CURRENT_TIMESTAMP(), '[newsletter_embed newsletter="full-dc"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.', 'Subscribe to D.C. Memo', '', 'subscribe-dc-memo', CURRENT_TIMESTAMP(), 'page', 'publish')
+		post_name, to_ping, pinged, post_modified, post_type, `post_status`)
+		VALUES (1, CURRENT_TIMESTAMP(), '[newsletter_embed newsletter="full-dc"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.', 'Subscribe to D.C. Memo', '', 'subscribe-dc-memo', '', '', CURRENT_TIMESTAMP(), 'page', 'publish')
 	;
 
 
@@ -4791,7 +4783,7 @@
 	# Submit a letter to the editor page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_type, `post_status`)
+		post_name, to_ping, pinged, post_modified, post_type, `post_status`)
 		SELECT DISTINCT
 			n.nid `id`,
 			n.uid `post_author`,
@@ -4800,6 +4792,8 @@
 			n.title `post_title`,
 			t.field_teaser_value `post_excerpt`,
 			substring_index(a.dst, '/', -1) `post_name`,
+			'',
+			'',
 			FROM_UNIXTIME(n.changed) `post_modified`,
 			'page' `post_type`,
 			IF(n.status = 1, 'publish', 'draft') `post_status`
