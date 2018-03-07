@@ -2142,17 +2142,17 @@
 	# newsletter preview text field
 	# this one does take the vid into account
 	# note: this field currently does not exist in any newsletters, so it will error unless someone uses it
-	INSERT INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT DISTINCT
-				p.nid `post_id`,
-				'_mp_newsletter_preview_text' as meta_key,
-				p.field_preview_value `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_preview_text p USING(nid, vid)
-			WHERE p.field_preview_value IS NOT NULL
-	;
+	#INSERT INTO `minnpost.wordpress`.wp_postmeta
+	#	(post_id, meta_key, meta_value)
+	#	SELECT DISTINCT
+	#			p.nid `post_id`,
+	#			'_mp_newsletter_preview_text' as meta_key,
+	#			p.field_preview_value `meta_value`
+	#		FROM `minnpost.drupal`.node n
+	#		INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+	#		INNER JOIN `minnpost.drupal`.content_field_preview_text p USING(nid, vid)
+	#		WHERE p.field_preview_value IS NOT NULL
+	#;
 
 
 	# add top stories for all newsletter posts
