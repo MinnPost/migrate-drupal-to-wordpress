@@ -454,6 +454,20 @@
 	;
 
 
+	# let's fix the subscribe page so we don't have to recreate it
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET
+			post_author = 1,
+			post_content = '[newsletter_embed newsletter="full"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.',
+			post_excerpt = '',
+			post_name = 'subscribe',
+			post_modified = CURRENT_TIMESTAMP(),
+			post_status = 'publish'
+		WHERE post_title = 'Subscribe' and post_type = 'page'
+	;
+
+
+
 	# these items we don't currently use
 
 	# Fix post_name to remove paths.
