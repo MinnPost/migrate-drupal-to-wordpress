@@ -1,0 +1,1 @@
+{"fieldmaps":[{"id":"15","label":"user","wordpress_object":"user","salesforce_object":"Contact","salesforce_record_types_allowed":{"default":"default"},"salesforce_record_type_default":"default","fields":"","pull_trigger_field":"LastModifiedDate","sync_triggers":["1","2","4","8","16"],"push_async":"1","push_drafts":"0","weight":"0","version":"1.2.8"}]}
