@@ -131,7 +131,7 @@
 	# create temporary table for raw html content
 	CREATE TABLE `wp_posts_raw` (
 		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`post_content_raw` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		`post_content_raw` longtext NOT NULL,
 		PRIMARY KEY (`ID`)
 	);
 
@@ -169,7 +169,7 @@
 	# create temporary table for audio content
 	CREATE TABLE `wp_posts_audio` (
 		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`post_content_audio` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		`post_content_audio` longtext NOT NULL,
 		PRIMARY KEY (`ID`)
 	);
 
@@ -210,7 +210,7 @@
 	# create temporary table for video content
 	CREATE TABLE `wp_posts_video` (
 		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`post_content_video` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		`post_content_video` longtext NOT NULL,
 		PRIMARY KEY (`ID`)
 	);
 
@@ -275,7 +275,7 @@
 	# create temporary table for gallery content
 	CREATE TABLE `wp_posts_gallery` (
 		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`post_content_gallery` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		`post_content_gallery` longtext NOT NULL,
 		PRIMARY KEY (`ID`)
 	);
 
@@ -314,7 +314,7 @@
 	# create temporary table for documentcloud content
 	CREATE TABLE `wp_posts_documentcloud` (
 		`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`post_content_documentcloud` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+		`post_content_documentcloud` longtext NOT NULL,
 		PRIMARY KEY (`ID`)
 	);
 
@@ -348,10 +348,10 @@
 	# create temporary table for file attachments that need to be listed because they aren't already in the node body
 	CREATE TABLE `wp_posts_attachments` (
 	  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-	  `post_content_attachment_url` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+	  `post_content_attachment_url` longtext NOT NULL,
 	  `post_content_attachment_filename` varchar(256) NOT NULL DEFAULT '',
 	  `post_content_attachment_extension` varchar(256) NOT NULL DEFAULT '',
-	  `link` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+	  `link` longtext NOT NULL,
 	  PRIMARY KEY (`ID`)
 	);
 
@@ -378,7 +378,7 @@
 	# create temporary table for attachment content
 	CREATE TABLE `wp_posts_attachments_content` (
 	  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-	  `post_content_attachments` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+	  `post_content_attachments` longtext NOT NULL,
 	  PRIMARY KEY (`ID`)
 	);
 
@@ -749,8 +749,8 @@
 	# Temporary table for user terms
 	CREATE TABLE `wp_terms_users` (
 		`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`name` varchar(200) NOT NULL DEFAULT '',
+		`slug` varchar(200) NOT NULL DEFAULT '',
 		`term_group` bigint(10) NOT NULL DEFAULT '0',
 		PRIMARY KEY (`term_id`),
 		KEY `slug` (`slug`(191)),
@@ -2262,7 +2262,7 @@
 			INNER JOIN `minnpost.drupal`.content_field_op_related_mmedia m USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = m.field_op_related_mmedia_nid
 			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
-			WHERE field_op_related_mmedia_nid IS NOT NULL
+			WHERE field_op_related_mmedia_nid IS NOT NULL AND p2.post_type = 'post'
 			GROUP BY p.ID
 	;
 
@@ -2305,7 +2305,7 @@
 			INNER JOIN `minnpost.drupal`.content_field_related_content c USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = c.field_related_content_nid
 			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
-			WHERE c.field_related_content_nid IS NOT NULL
+			WHERE c.field_related_content_nid IS NOT NULL AND p2.post_type = 'post'
 			GROUP BY n.nid, n.vid
 	;
 
@@ -2448,14 +2448,14 @@
 
 
 	# add the term_id_old field for tracking Drupal term IDs
-	ALTER TABLE wp_terms ADD term_id_old BIGINT(20);
+	ALTER TABLE `minnpost.wordpress`.wp_terms ADD term_id_old BIGINT(20);
 
 
 	# Temporary table for department terms
-	CREATE TABLE `wp_terms_dept` (
+	CREATE TABLE `minnpost.wordpress`.`wp_terms_dept` (
 		`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`name` varchar(200) NOT NULL DEFAULT '',
+		`slug` varchar(200) NOT NULL DEFAULT '',
 		`term_group` bigint(10) NOT NULL DEFAULT '0',
 		PRIMARY KEY (`term_id`),
 		KEY `slug` (`slug`(191)),
@@ -2582,7 +2582,7 @@
 	# temporary table for featured departments with their section id
 	CREATE TABLE `wp_featured_terms` (
 		`section_id` bigint(20) unsigned NOT NULL,
-		`featured_terms` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''
+		`featured_terms` varchar(200) NOT NULL DEFAULT ''
 	);
 
 
@@ -2837,8 +2837,8 @@
 	# Temporary table for section terms
 	CREATE TABLE `wp_terms_section` (
 		`term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`slug` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`name` varchar(200) NOT NULL DEFAULT '',
+		`slug` varchar(200) NOT NULL DEFAULT '',
 		`term_group` bigint(10) NOT NULL DEFAULT '0',
 		PRIMARY KEY (`term_id`),
 		KEY `slug` (`slug`(191)),
@@ -4370,9 +4370,9 @@
 	# Temporary table for menus
 	CREATE TABLE `wp_menu` (
 		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`placement` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+		`name` varchar(200) NOT NULL DEFAULT '',
+		`title` varchar(200) NOT NULL DEFAULT '',
+		`placement` varchar(200) NOT NULL DEFAULT '',
 		PRIMARY KEY (`id`)
 	);
 
@@ -4380,12 +4380,12 @@
 	# Temporary table for menu items
 	CREATE TABLE `wp_menu_items` (
 		`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-		`menu-name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`menu-item-title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`menu-item-url` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`menu-item-parent` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '',
+		`menu-name` varchar(200) NOT NULL DEFAULT '',
+		`menu-item-title` varchar(200) NOT NULL DEFAULT '',
+		`menu-item-url` varchar(200) NOT NULL DEFAULT '',
+		`menu-item-parent` varchar(200) DEFAULT '',
 		`menu-item-parent-id` bigint(20) unsigned DEFAULT NULL,
-		`menu-item-status` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'publish',
+		`menu-item-status` varchar(200) NOT NULL DEFAULT 'publish',
 		`menu-item-access` varchar(200) DEFAULT NULL,
 		PRIMARY KEY (`id`)
 	);
@@ -4592,16 +4592,16 @@
 	# temporary table for basic html sidebar items and their placement
 	CREATE TABLE `wp_sidebars` (
 		`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-		`title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-		`url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-		`content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-		`type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'custom_html',
-		`show_on` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT '',
-		`categories` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  		`tags` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+		`title` varchar(255) NOT NULL DEFAULT '',
+		`url` varchar(255) DEFAULT NULL,
+		`content` text NOT NULL,
+		`type` varchar(255) NOT NULL DEFAULT 'custom_html',
+		`show_on` varchar(255) DEFAULT '',
+		`categories` varchar(255) DEFAULT NULL,
+  		`tags` varchar(255) DEFAULT NULL,
   		`batch` int(11) DEFAULT NULL,
 		PRIMARY KEY (`id`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+	); # i think we don't need the collation stuff anymore
 
 
 	# put the active sidebar items into that temporary table
@@ -4629,7 +4629,7 @@
 
 
 	# fix the table
-	ALTER TABLE `minnpost.wordpress`.wp_sidebars CONVERT TO CHARACTER SET utf8mb4 collate utf8mb4_unicode_ci;
+	#ALTER TABLE `minnpost.wordpress`.wp_sidebars CONVERT TO CHARACTER SET utf8mb4 collate utf8mb4_unicode_ci;
 
 
 	# update urls
