@@ -3428,6 +3428,82 @@
 		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
 		WHERE pf2.fid = 13
 	;
+
+
+	# bunch of donation/membership status fields on the user
+
+	# stripe customer id
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_stripe_customer_id' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 20
+	;
+
+	# annual recurring amount
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_annual_recurring_amount' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 19
+	;
+
+	# coming year contributions
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_coming_year_contributions' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 18
+	;
+
+	# prior year contributions
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_prior_year_contributions' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 17
+	;
+
+	# active sustainer
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_sustaining_member' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 9
+	;
+
+	# next partner claim date
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_next_partner_claim_date' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 22
+	;
+
+	# exclude from current campaign
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_exclude_from_current_campaign' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 21
+	;
+
+	# user's reading topics
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, '_reading_topics' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 10 AND pv2.value != ''
+	;
+
 	UPDATE `minnpost.wordpress`.wp_usermeta SET meta_value = '' WHERE meta_value = '0'; # stupid thing from drupal
 
 
