@@ -3374,7 +3374,7 @@
 	# update user display name to "first last"
 	UPDATE `minnpost.wordpress`.wp_users u
 		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
-		SET u.display_name = CONCAT(u.display_name, ' ', m.meta_value)
+		SET u.display_name = CONCAT(m.meta_value)
 		WHERE m.meta_key = 'first_name' AND m.meta_value IS NOT NULL
 	;
 
