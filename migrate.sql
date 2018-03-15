@@ -4871,7 +4871,7 @@
 			n.nid `id`,
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
-			CONCAT(r.body, '[gravityform id="4" title="false" description="false"]') `post_content`,
+			CONCAT(r.body, '[gravityform id="1" title="false" description="false"]') `post_content`,
 			n.title `post_title`,
 			t.field_teaser_value `post_excerpt`,
 			substring_index(a.dst, '/', -1) `post_name`,
