@@ -1405,7 +1405,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature-large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_large/images/thumbnails/articles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1422,7 +1422,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature-medium' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/feature_middle/images/thumbnails/articles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1492,7 +1492,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature-large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/feature_large/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1509,7 +1509,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature-medium' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/feature_middle/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1526,7 +1526,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			'_mp_post_thumbnail_image_newsletter-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/newsletter_thumb/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1543,7 +1543,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_author_teaser' `meta_key`,
+			'_mp_post_thumbnail_image_author-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/fullpagearticles', '/imagecache/author_teaser/images/thumbnails/fullpagearticles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1579,7 +1579,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature-large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_large/images/thumbnails/audio')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1596,7 +1596,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature-medium' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/feature_middle/images/thumbnails/audio')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1613,7 +1613,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			'_mp_post_thumbnail_image_newsletter-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/newsletter_thumb/images/thumbnails/audio')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1630,7 +1630,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_author_teaser' `meta_key`,
+			'_mp_post_thumbnail_image_author-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/audio', '/imagecache/author_teaser/images/thumbnails/audio')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1666,7 +1666,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_large' `meta_key`,
+			'_mp_post_thumbnail_image_feature-large' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_large/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1683,7 +1683,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature-medium' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/feature_middle/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1700,7 +1700,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			'_mp_post_thumbnail_image_newsletter-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/newsletter_thumb/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1717,7 +1717,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_author_teaser' `meta_key`,
+			'_mp_post_thumbnail_image_author-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/video', '/imagecache/author_teaser/images/thumbnails/video')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1775,7 +1775,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_feature_middle' `meta_key`,
+			'_mp_post_thumbnail_image_feature-medium' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagecache/feature_middle/images/thumbnails/events')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1792,7 +1792,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			'_mp_post_thumbnail_image_newsletter-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagecache/newsletter_thumb/images/thumbnails/events')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1809,7 +1809,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_author_teaser' `meta_key`,
+			'_mp_post_thumbnail_image_author-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/events', '/imagecache/author_teaser/images/thumbnails/events')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
