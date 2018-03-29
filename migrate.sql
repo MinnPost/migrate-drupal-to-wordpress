@@ -1439,7 +1439,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_post_thumbnail_image_newsletter' `meta_key`,
+			'_mp_post_thumbnail_image_newsletter-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/thumbnails/articles', '/imagecache/newsletter_thumb/images/thumbnails/articles')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
