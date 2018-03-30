@@ -1982,13 +1982,13 @@
 
 	# medium
 	UPDATE `minnpost.wordpress`.wp_postmeta
-		SET meta_value = 'feature_middle'
+		SET meta_value = 'feature-medium'
 		WHERE meta_value = 'medium' AND meta_key = '_mp_post_homepage_image_size'
 	;
 
 	# large
 	UPDATE `minnpost.wordpress`.wp_postmeta
-		SET meta_value = 'feature_large'
+		SET meta_value = 'feature-large'
 		WHERE meta_value = 'large' AND meta_key = '_mp_post_homepage_image_size'
 	;
 
