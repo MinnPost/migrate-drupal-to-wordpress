@@ -2262,8 +2262,7 @@
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_op_related_mmedia m USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = m.field_op_related_mmedia_nid
-			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
-			WHERE field_op_related_mmedia_nid IS NOT NULL AND p2.post_type = 'post'
+			WHERE field_op_related_mmedia_nid IS NOT NULL AND n2.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
 			GROUP BY p.ID
 	;
 
@@ -2276,7 +2275,7 @@
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_related_content c USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = c.field_related_content_nid
-			WHERE field_related_content_nid IS NOT NULL
+			WHERE field_related_content_nid IS NOT NULL AND n2.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
 			GROUP BY n.nid
 	;
 
@@ -2285,13 +2284,12 @@
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
-		SELECT n.nid as post_id, '_mp_related_multimedia' as meta_key, GROUP_CONCAT(DISTINCT p2.ID ORDER BY m.delta ASC) as meta_value
+		SELECT n.nid as post_id, '_mp_related_multimedia' as meta_key, GROUP_CONCAT(DISTINCT n2.nid ORDER BY m.delta ASC) as meta_value
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_op_related_mmedia m USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = m.field_op_related_mmedia_nid
-			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
-			WHERE field_op_related_mmedia_nid IS NOT NULL
+			WHERE field_op_related_mmedia_nid IS NOT NULL AND n2.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
 			GROUP BY n.nid, n.vid
 	;
 
@@ -2300,14 +2298,13 @@
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
-		SELECT n.nid as post_id, '_mp_related_content' as meta_key, GROUP_CONCAT(DISTINCT p2.ID ORDER BY c.delta ASC) as meta_value
+		SELECT n.nid as post_id, '_mp_related_content' as meta_key, GROUP_CONCAT(DISTINCT n2.nid ORDER BY c.delta ASC) as meta_value
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_related_content c USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = c.field_related_content_nid
-			INNER JOIN `minnpost.wordpress`.wp_posts p2 ON n2.title = p2.post_title
-			WHERE c.field_related_content_nid IS NOT NULL AND p2.post_type = 'post'
-			GROUP BY n.nid, n.vid
+			WHERE c.field_related_content_nid IS NOT NULL AND n2.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
+			GROUP BY n.nid, n.vid 
 	;
 
 
