@@ -3389,6 +3389,16 @@
 	;
 
 
+	# update comment author name to display name as long as it doesn't have an @ in it because it could be an email address
+	UPDATE `minnpost.wordpress`.wp_comments c
+		SET comment_author = (
+			SELECT display_name
+			FROM `minnpost.wordpress`.wp_users u
+			WHERE c.user_id = u.ID AND u.display_name NOT LIKE '%@%' AND c.comment_author != u.display_name
+		)
+	;
+
+
 	# insert user street/city/state/zip/country
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT u.uid as user_id, '_street_address' as meta_key, pv2.`value` as meta_value
