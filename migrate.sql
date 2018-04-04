@@ -4280,6 +4280,17 @@
 	;
 
 
+	# fix broken page hierarchies
+	UPDATE wp_posts p
+		SET post_parent = (
+			SELECT nid
+			FROM `minnpost.drupal`.node n
+			WHERE n.title = 'MinnPost Advertising Information' AND n.type = 'page'
+		)
+		WHERE p.post_title = 'Politics Advertising Policy'
+	;
+
+
 
 # Section 12 - User Account pages. We need to run this after all the other posts have been added, but before the menus
 
