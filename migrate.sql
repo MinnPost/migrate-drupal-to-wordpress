@@ -4897,6 +4897,13 @@
 	;
 
 
+	# fix the category that links to "submit a letter" because its url is broken
+	UPDATE `minnpost.wordpress`.wp_termmeta
+		SET meta_value = '<p>MinnPost welcomes original letters from readers on current topics of general interest. Interested in joining the conversation? <strong><a href="/submit-letter">Submit your letter to the editor.&nbsp;</a></strong></p><p>The choice of letters for publication is at the discretion of MinnPost editors; they will not be able to respond to individual inquiries about letters.</p>'
+		WHERE meta_key = '_mp_category_body' AND term_id = 19054
+	;
+
+
 
 # Section 16 - General WordPress settings.
 
