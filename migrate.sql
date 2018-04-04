@@ -52,9 +52,10 @@
 
 
 	# set the current migrate time to right now
-	UPDATE `minnpost.wordpress`.wp_options
-		SET option_value = UNIX_TIMESTAMP(NOW())
-		WHERE option_name = 'wp_migrate_timestamp'
+	INSERT INTO `minnpost.wordpress`.wp_options
+		(option_name, option_value)
+		VALUES('wp_migrate_timestamp', UNIX_TIMESTAMP(NOW()))
+		ON DUPLICATE KEY UPDATE option_value = UNIX_TIMESTAMP(NOW())
 	;
 
 
