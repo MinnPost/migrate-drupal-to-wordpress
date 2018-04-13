@@ -1747,14 +1747,30 @@
 	# there is no /feature/images/thumbnails/slideshow
 
 
-	# thumbnail for authors themselves
+	# teaser image for authors themselves
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'_mp_author_image_teaser' `meta_key`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/author', '/imagecache/author_teaser/images/author')) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author a USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON a.field_author_photo_fid = f.fid
+			WHERE f.filepath LIKE '%images/author%'
+	;
+
+
+	# thumbnail image for authors themselves
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
 			'_mp_author_image_thumbnail' `meta_key`,
-			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/author', '/imagecache/author_teaser/images/author')) `meta_value`
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/author', '/imagecache/thumbnail/images/author')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_type_author a USING (nid, vid)
