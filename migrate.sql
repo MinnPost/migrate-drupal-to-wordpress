@@ -1753,7 +1753,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_author_image_teaser' `meta_key`,
+			'_mp_author_image_author-teaser' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/author', '/imagecache/author_teaser/images/author')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
@@ -1769,7 +1769,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			n.nid `post_id`,
-			'_mp_author_image_thumbnail' `meta_key`,
+			'_mp_author_image_author-thumbnail' `meta_key`,
 			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/images/author', '/imagecache/thumbnail/images/author')) `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
