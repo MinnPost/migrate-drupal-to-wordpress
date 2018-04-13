@@ -484,6 +484,15 @@
 	;
 
 
+	# let's fix the staff page so it uses that widget
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET
+			post_content = CONCAT(post_content, '[mp_staff]'),
+			post_modified = CURRENT_TIMESTAMP(),
+		WHERE post_name = 'staff' and post_type = 'page'
+	;
+
+
 
 	# these items we don't currently use
 
