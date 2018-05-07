@@ -460,6 +460,12 @@
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_content = REPLACE(post_content,'<p class="bold">&nbsp;</p>','')
 	;
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content,'<sup></sup>','')
+	;
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content,'<sub></sub>','')
+	;
 
 
 	# replace classes when needed
