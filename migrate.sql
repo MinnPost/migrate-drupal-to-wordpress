@@ -481,7 +481,7 @@
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET
 			post_author = 1,
-			post_content = '[newsletter_embed newsletter="full"]By subscribing, you are agreeing to MinnPost\'s <a href="https://www.minnpost.com/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="privacy">privacy policy</a>.',
+			post_content = '[newsletter_embed newsletter="full"]By subscribing, you are agreeing to MinnPost\'s <a href="/terms-of-use">Terms of Use</a>. MinnPost promises not to share your information without your consent. For more information, please see our <a href="/privacy">privacy policy</a>.',
 			post_excerpt = '',
 			post_name = 'subscribe',
 			post_modified = CURRENT_TIMESTAMP(),
@@ -494,7 +494,7 @@
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET
 			post_content = CONCAT(post_content, '[mp_staff]'),
-			post_modified = CURRENT_TIMESTAMP(),
+			post_modified = CURRENT_TIMESTAMP()
 		WHERE post_name = 'staff' and post_type = 'page'
 	;
 
