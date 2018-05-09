@@ -94,7 +94,7 @@
 			ON a.src = CONCAT('node/', n.nid)
 		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 		# Add more Drupal content types below if applicable.
-		WHERE n.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
+		WHERE n.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'partner', 'slideshow', 'sponsor', 'video')
 	;
 
 
@@ -1174,6 +1174,64 @@
 	;
 
 
+	# insert partner logo images as posts
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
+		(post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
+		SELECT DISTINCT
+			n.uid `post_author`,
+			FROM_UNIXTIME(f.timestamp) `post_date`,
+			'' `post_content`,
+			f.filename `post_title`,
+			'' `post_excerpt`,
+			f.filename `post_name`,
+			'inherit' `post_status`,
+			n.nid `post_parent`,
+			CONCAT('https://www.minnpost.com/', REPLACE(f.filepath, '/partner-logos', '/imagecache/article_inset/partner-logos')) `guid`,
+			'attachment' `post_type`,
+			f.filemime `post_mime_type`,
+			f.fid `image_post_file_id_old`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner p using (nid, vid)
+			INNER JOIN `minnpost.drupal`.files f ON p.field_logo_fid = f.fid
+			WHERE n.type = 'partner'
+	;
+
+
+	# post id for partner offer image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+			p.post_parent `post_id`,
+			'_mp_partner_logo_image_id' `meta_key`,
+			p.ID `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			INNER JOIN `minnpost.wordpress`.wp_posts parent ON p.post_parent = parent.ID
+			WHERE p.post_type = 'attachment' and parent.post_type = 'partner'
+	;
+
+
+	# url for partner offer image
+	# have to use that temp file id field
+	# this doesn't need vid because it joins with the wordpress image post already
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+			p.post_parent `post_id`,
+			'_mp_partner_logo_image' `meta_key`,
+			p.guid `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			INNER JOIN `minnpost.drupal`.files f ON p.image_post_file_id_old = f.fid
+			INNER JOIN `minnpost.wordpress`.wp_posts parent ON p.post_parent = parent.ID
+			WHERE p.post_type = 'attachment' and parent.post_type = 'partner'
+	;
+
+
 	# we shouldn't need to null the temp value because it all comes from drupal's files table
 
 
@@ -2010,6 +2068,21 @@
 	;
 
 
+	# insert metadata for partner offer images - related to image post id
+	# this doesn't really seem to need any vid stuff
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+		ID `post_id`,
+		'_wp_imported_metadata' `meta_key`,
+		p.field_logo_data `meta_value`
+		FROM `minnpost.wordpress`.wp_posts p
+		LEFT OUTER JOIN `minnpost.drupal`.content_type_partner p ON p.post_parent = p.nid
+		WHERE post_type = 'attachment' AND p.field_logo_fid IS NOT NULL
+		GROUP BY post_id
+	;
+
+
 	# custom field for homepage image size for posts
 	# this is homepage size metadata, field homepage_image_size, for posts
 	# this one does take the vid into account
@@ -2479,6 +2552,22 @@
 			INNER JOIN `minnpost.drupal`.content_type_article a USING(nid, vid)
 			WHERE a.field_minnpost_plus_icon_style_value IS NOT NULL
 	;
+
+
+	# fields for partners, partner offers, partner offer instances
+
+	# partner link url
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				p.nid `post_id`,
+				'_mp_partner_link_url' as meta_key,
+				p.field_link_url_url as `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner p USING(nid, vid)
+			WHERE p.field_link_url_url IS NOT NULL
+	;	
 
 
 
