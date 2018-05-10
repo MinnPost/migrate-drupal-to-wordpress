@@ -4999,6 +4999,12 @@
 			ORDER BY delta
 	;
 
+	# Prevent easy lazy load images for newsletters
+	UPDATE `minnpost.wordpress`.wp_sidebars
+		SET content = REPLACE(content, '<img src="', '<img class="no-lazy" src="')
+		WHERE show_on = 'newsletter' OR show_on = 'newsletter-footer'
+	;
+
 
 	# add the migrated field
 	ALTER TABLE `minnpost.wordpress`.wp_sidebars ADD migrated TINYINT(1) DEFAULT 0;
