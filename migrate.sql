@@ -2484,59 +2484,56 @@
 	;
 
 
-	# member level for bronze content
+	# add concatenated member levels
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
 		SELECT DISTINCT
-				a.nid `post_id`,
+				n.nid `post_id`,
 				'_access_level' as meta_key,
-				1 as `meta_value`
+				GROUP_CONCAT(a.field_minnpost_access_value) as meta_value
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
-			WHERE a.field_minnpost_access_value = 'Bronze'
+			WHERE a.field_minnpost_access_value IS NOT NULL
+			GROUP BY nid, vid
+	;
+
+
+	# member level for bronze content
+	UPDATE wp_postmeta
+		SET meta_value = 1
+		WHERE meta_key = '_access_level' AND meta_value = 'Bronze,Silver,Gold,Platinum'
 	;
 
 
 	# member level for silver content
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT DISTINCT
-				a.nid `post_id`,
-				'_access_level' as meta_key,
-				2 as `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
-			WHERE a.field_minnpost_access_value = 'Silver'
+	UPDATE wp_postmeta
+		SET meta_value = 2
+		WHERE meta_key = '_access_level' AND meta_value = 'Silver,Gold,Platinum'
+	;
+
+	UPDATE wp_postmeta
+		SET meta_value = 2
+		WHERE meta_key = '_access_level' AND meta_value = 'Silver,Platinum'
+	;
+
+	UPDATE wp_postmeta
+		SET meta_value = 2
+		WHERE meta_key = '_access_level' AND meta_value = 'Silver'
 	;
 
 
 	# member level for gold content
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT DISTINCT
-				a.nid `post_id`,
-				'_access_level' as meta_key,
-				3 as `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
-			WHERE a.field_minnpost_access_value = 'Gold'
+	UPDATE wp_postmeta
+		SET meta_value = 3
+		WHERE meta_key = '_access_level' AND meta_value = 'Gold,Platinum'
 	;
 
 
 	# member level for platinum content
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT DISTINCT
-				a.nid `post_id`,
-				'_access_level' as meta_key,
-				4 as `meta_value`
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_minnpost_access a USING(nid, vid)
-			WHERE a.field_minnpost_access_value = 'Platinum'
+	UPDATE wp_postmeta
+		SET meta_value = 4
+		WHERE meta_key = '_access_level' AND meta_value = 'Platinum'
 	;
 
 
