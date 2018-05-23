@@ -140,6 +140,15 @@
 	;
 
 
+	# update comment status where it is disabled
+	UPDATE `minnpost.wordpress`.wp_posts p
+		JOIN `minnpost.drupal`.node n
+		ON p.ID = n.nid
+		SET comment_status = 'closed'
+		WHERE n.comment = 0 OR n.comment = 1
+	;
+
+
 	## Get Raw HTML content from article_full posts
 	# requires the Raw HTML plugin in WP to be enabled
 	# wrap it in [raw][/raw]
@@ -2652,6 +2661,20 @@
 		(`post_id`, `meta_key`, `meta_value`)
 		SELECT n.nid `post_id`,
 			'_mp_prevent_automatic_ads' `meta_key`,
+			'on' `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
+			WHERE n.type = 'article_full'
+			GROUP BY nid, vid
+	;
+
+
+	# by default, we should hide newsletter signup on full_page_articles
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(`post_id`, `meta_key`, `meta_value`)
+		SELECT n.nid `post_id`,
+			'_mp_remove_newsletter_signup_from_display' `meta_key`,
 			'on' `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
