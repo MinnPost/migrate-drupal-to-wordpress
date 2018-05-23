@@ -430,6 +430,24 @@
 	;
 
 
+	# Fix css urls from Drupal theme in post content
+	# these files need to exist in WordPress
+	# no need for vid stuff
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '"/sites/default/themes/siteskin/inc/css', '"/wp-content/themes/minnpost-largo/assets/css')
+	;
+	# relevant files: minnroast.css, sponsor.css
+
+
+	# Fix js urls from Drupal theme in post content
+	# these files need to exist in WordPress
+	# no need for vid stuff
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '"/sites/default/themes/siteskin/inc/js', '"/wp-content/themes/minnpost-largo/assets/js')
+	;
+	# relevant files: tabs.js
+
+
 	# Fix ad shortcodes in post content
 	# no need for vid stuff
 	# replace strings: [ad], [ ad ], [ad:Right1], [ ad:Right1 ]
