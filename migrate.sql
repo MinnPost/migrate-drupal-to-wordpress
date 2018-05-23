@@ -438,6 +438,11 @@
 	;
 	# relevant files: minnroast.css, sponsor.css
 
+	# except we don't need sponsor.css; it doesn't do anything right now
+	UPDATE `minnpost.wordpress`.wp_posts
+	SET post_content = REPLACE(post_content, '<p><link rel="stylesheet" href="/wp-content/themes/minnpost-largo/assets/css/sponsor.css" /></p>', '')
+	;
+
 
 	# Fix js urls from Drupal theme in post content
 	# these files need to exist in WordPress
@@ -2627,6 +2632,18 @@
 			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
 			WHERE a.`field_op_author_nid` IS NULL
 			GROUP BY n.nid
+	;
+
+
+	# Text to replace the category display
+	# for sure, we at least need the sponsor pages with their "Why We Care" thing
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(`post_id`, `meta_key`, `meta_value`)
+		SELECT p.ID `post_id`,
+			'_mp_replace_category_text' `meta_key`,
+			'Why We Care' `meta_value`
+			FROM `minnpost.wordpress`.wp_posts p
+			WHERE post_content LIKE '%<div class="mp_classification clear-block"><div class="breadcrumb">Why We Care</div></div>%'
 	;
 
 
