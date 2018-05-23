@@ -2140,7 +2140,7 @@
 
 
 
-# Section 7 - Core Post Metadata. The order doesn't matter here. We can skip this section if we're testing other stuff.
+# Section 7 - Core Post Metadata. Now the order needs to come after authors, at least.
 
 	# core post text/wysiwyg/etc fields
 
@@ -2564,7 +2564,52 @@
 			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_type_partner p USING(nid, vid)
 			WHERE p.field_link_url_url IS NOT NULL
-	;	
+	;
+
+
+	# Remove author display from posts with no specified author. co-authors plus will set the user to the author by default, but we don't want this to display if we haven't told it to
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(`post_id`, `meta_key`, `meta_value`)
+		SELECT n.nid `post_id`,
+			'_mp_remove_author_from_display' `meta_key`,
+			'on' `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
+			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
+			WHERE a.`field_op_author_nid` IS NULL
+			GROUP BY n.nid
+	;
+
+
+	# Remove date display from posts with no specified author because if there's no author on old posts, i think we probably don't want to show the date either
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(`post_id`, `meta_key`, `meta_value`)
+		SELECT n.nid `post_id`,
+			'_mp_remove_date_from_display' `meta_key`,
+			'on' `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
+			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
+			WHERE a.`field_op_author_nid` IS NULL
+			GROUP BY n.nid
+	;
+
+
+	# Remove category display from posts with no specified author because if there's no author on old posts, i think we probably don't want to show the date either
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(`post_id`, `meta_key`, `meta_value`)
+		SELECT n.nid `post_id`,
+			'_mp_remove_category_from_display' `meta_key`,
+			'on' `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
+			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
+			WHERE a.`field_op_author_nid` IS NULL
+			GROUP BY n.nid
+	;
 
 
 
