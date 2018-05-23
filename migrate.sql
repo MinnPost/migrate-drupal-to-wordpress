@@ -2647,6 +2647,20 @@
 	;
 
 
+	# by default, we should have no automatic ads on full_page_articles from drupal
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(`post_id`, `meta_key`, `meta_value`)
+		SELECT n.nid `post_id`,
+			'_mp_prevent_automatic_ads' `meta_key`,
+			'on' `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
+			WHERE n.type = 'article_full'
+			GROUP BY nid, vid
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
