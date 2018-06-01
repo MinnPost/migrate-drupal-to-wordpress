@@ -140,6 +140,43 @@
 	;
 
 
+	# insert popups
+	# this is a separate query because we only want the bottom popups
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
+		(id, post_author, post_date, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_type, `post_status`)
+		SELECT DISTINCT
+			n.nid `id`,
+			n.uid `post_author`,
+			FROM_UNIXTIME(n.created) `post_date`,
+			r.body `post_content`,
+			n.title `post_title`,
+			t.field_teaser_value `post_excerpt`,
+			substring_index(a.dst, '/', -1) `post_name`,
+			FROM_UNIXTIME(n.changed) `post_modified`,
+			n.type `post_type`,
+			IF(n.status = 1, 'publish', 'draft') `post_status`
+		FROM `minnpost.drupal`.node n
+		LEFT OUTER JOIN `minnpost.drupal`.node_revisions r
+			USING(nid, vid)
+		LEFT OUTER JOIN `minnpost.drupal`.url_alias a
+			ON a.src = CONCAT('node/', n.nid)
+		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_mpdm_message m USING(nid, vid)
+		# Add more Drupal content types below if applicable.
+		WHERE n.type = 'mpdm_message' AND m.field_mpdm_type_value = 'bottom'
+	;
+
+
+	# Fix post type for popups
+	# This relies on the Popup Maker WordPress plugin
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_type = 'popup'
+		WHERE post_type = 'mpdm_message'
+	;
+
+
 	# update comment status where it is disabled
 	UPDATE `minnpost.wordpress`.wp_posts p
 		JOIN `minnpost.drupal`.node n
