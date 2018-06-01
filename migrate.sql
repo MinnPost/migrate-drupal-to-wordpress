@@ -2721,6 +2721,45 @@
 	;
 
 
+	# popup settings field
+	# add concatenated member levels
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'popup_settings' as meta_key,
+			CONCAT('a:32:{s:19:"disable_form_reopen";b:0;s:17:"disable_on_mobile";b:0;s:17:"disable_on_tablet";b:0;s:18:"custom_height_auto";s:1:"1";s:18:"scrollable_content";b:0;s:21:"position_from_trigger";b:0;s:14:"position_fixed";s:1:"1";s:16:"overlay_disabled";s:1:"1";s:9:"stackable";b:0;s:18:"disable_reposition";b:0;s:22:"close_on_overlay_click";s:1:"1";s:18:"close_on_esc_press";s:1:"1";s:17:"close_on_f4_press";s:1:"1";s:8:"triggers";a:1:{i:0;a:2:{s:4:"type";s:9:"auto_open";s:8:"settings";a:2:{s:11:"cookie_name";s:25:"minnpost-popup-last-shown";s:5:"delay";s:3:"500";}}}s:7:"cookies";a:1:{i:0;a:2:{s:5:"event";s:13:"on_popup_open";s:8:"settings";a:5:{s:4:"name";s:25:"minnpost-popup-last-shown";s:3:"key";s:0:"";s:7:"session";s:0:"";s:4:"time";s:',
+				char_length(CONCAT(m.field_mpdm_timeout_value, ' hours')),
+				':"',
+				m.field_mpdm_timeout_value,
+				' hours";s:4:"path";s:1:"1";}}}s:8:"theme_id";s:6:"157583";s:4:"size";s:6:"custom";s:20:"responsive_min_width";s:2:"0%";s:20:"responsive_max_width";s:4:"100%";s:12:"custom_width";s:3:"95%";s:13:"custom_height";s:5:"380px";s:14:"animation_type";s:4:"fade";s:15:"animation_speed";s:3:"350";s:16:"animation_origin";s:10:"center top";s:8:"location";s:13:"center bottom";s:12:"position_top";s:3:"100";s:15:"position_bottom";s:1:"0";s:13:"position_left";s:1:"0";s:14:"position_right";s:1:"0";s:6:"zindex";s:10:"1999999999";s:10:"close_text";s:1:"x";s:18:"close_button_delay";s:1:"0";}'
+			) as meta_value 
+		FROM
+			`minnpost.drupal`.node n 
+			INNER JOIN
+				`minnpost.drupal`.node_revisions r USING(nid, vid) 
+			INNER JOIN
+				`minnpost.drupal`.content_type_mpdm_message m 
+				ON n.nid = m.nid 
+			INNER JOIN
+				`minnpost.drupal`.content_field_mpdm_hide h 
+				ON n.nid = h.nid 
+			INNER JOIN
+				`minnpost.drupal`.content_field_mpdm_visibility v 
+				ON n.nid = v.nid 
+		WHERE
+			m.field_mpdm_type_value = 'bottom' 
+		GROUP BY
+			n.nid,
+			n.vid
+	;
+
+
+/*
+a:33:{s:19:"disable_form_reopen";b:0;s:17:"disable_on_mobile";b:0;s:17:"disable_on_tablet";b:0;s:18:"custom_height_auto";s:1:"1";s:18:"scrollable_content";b:0;s:21:"position_from_trigger";b:0;s:14:"position_fixed";s:1:"1";s:16:"overlay_disabled";s:1:"1";s:9:"stackable";b:0;s:18:"disable_reposition";b:0;s:22:"close_on_overlay_click";s:1:"1";s:18:"close_on_esc_press";s:1:"1";s:17:"close_on_f4_press";s:1:"1";s:8:"triggers";a:1:{i:0;a:2:{s:4:"type";s:9:"auto_open";s:8:"settings";a:2:{s:5:"delay";i:500;s:11:"cookie_name";s:25:"minnpost-popup-last-shown";}}}s:7:"cookies";a:1:{i:0;a:2:{s:5:"event";s:13:"on_popup_open";s:8:"settings";a:3:{s:4:"name";s:25:"minnpost-popup-last-shown";s:4:"time";s:8:"24 hours";s:4:"path";b:1;}}}s:10:"conditions";a:4:{i:0;a:1:{i:0;a:1:{s:6:"target";s:14:"is_in_campaign";}}i:1;a:1:{i:0;a:1:{s:6:"target";s:12:"is_logged_in";}}i:2;a:1:{i:0;a:2:{s:11:"not_operand";s:1:"1";s:6:"target";s:9:"is_member";}}i:3;a:1:{i:0;a:2:{s:11:"not_operand";s:1:"1";s:6:"target";s:20:"is_sustaining_member";}}}s:8:"theme_id";s:6:"157583";s:4:"size";s:6:"custom";s:20:"responsive_min_width";s:2:"0%";s:20:"responsive_max_width";s:4:"100%";s:12:"custom_width";s:3:"95%";s:13:"custom_height";s:5:"380px";s:14:"animation_type";s:4:"fade";s:15:"animation_speed";s:3:"350";s:16:"animation_origin";s:10:"center top";s:8:"location";s:13:"center bottom";s:12:"position_top";s:3:"100";s:15:"position_bottom";s:1:"0";s:13:"position_left";s:1:"0";s:14:"position_right";s:1:"0";s:6:"zindex";s:10:"1999999999";s:10:"close_text";s:1:"x";s:18:"close_button_delay";s:1:"0";}
+*/
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
