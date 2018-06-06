@@ -177,6 +177,44 @@
 	;
 
 
+	# create temporary table for popup css
+	CREATE TABLE `wp_posts_css` (
+	  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	  `post_content_css` longtext NOT NULL,
+	  PRIMARY KEY (`ID`)
+	);
+
+
+	# store css in temp table
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts_css
+		(id, post_content_css)
+		SELECT n.nid as ID, REPLACE(REPLACE(m.field_mpdm_css_value, '.node-type-mpdm_message', '.pum-container'), '.wrapper', '.pum-content') as post_content_css
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_mpdm_message m USING(nid,vid)
+			WHERE n.type = 'mpdm_message' and field_mpdm_type_value = 'bottom' AND field_mpdm_css_value IS NOT NULL
+	;
+
+
+	# fix the temp css class hierarchy
+	UPDATE wp_posts_css
+		SET post_content_css = REPLACE(post_content_css, '.pum-container', '.pum .pum-container')
+	;
+
+
+	# prepend css to the popup body
+	UPDATE `minnpost.wordpress`.wp_posts
+		JOIN `minnpost.wordpress`.wp_posts_css
+		ON wp_posts.ID = wp_posts_css.ID
+		SET wp_posts.post_content = CONCAT('<style>', wp_posts_css.post_content_css, '</style>', wp_posts.post_content)
+	;
+
+
+	# get rid of that temporary css table
+	DROP TABLE wp_posts_css;
+
+
 	# update comment status where it is disabled
 	UPDATE `minnpost.wordpress`.wp_posts p
 		JOIN `minnpost.drupal`.node n
@@ -2753,11 +2791,6 @@
 			n.nid,
 			n.vid
 	;
-
-
-/*
-a:33:{s:19:"disable_form_reopen";b:0;s:17:"disable_on_mobile";b:0;s:17:"disable_on_tablet";b:0;s:18:"custom_height_auto";s:1:"1";s:18:"scrollable_content";b:0;s:21:"position_from_trigger";b:0;s:14:"position_fixed";s:1:"1";s:16:"overlay_disabled";s:1:"1";s:9:"stackable";b:0;s:18:"disable_reposition";b:0;s:22:"close_on_overlay_click";s:1:"1";s:18:"close_on_esc_press";s:1:"1";s:17:"close_on_f4_press";s:1:"1";s:8:"triggers";a:1:{i:0;a:2:{s:4:"type";s:9:"auto_open";s:8:"settings";a:2:{s:5:"delay";i:500;s:11:"cookie_name";s:25:"minnpost-popup-last-shown";}}}s:7:"cookies";a:1:{i:0;a:2:{s:5:"event";s:13:"on_popup_open";s:8:"settings";a:3:{s:4:"name";s:25:"minnpost-popup-last-shown";s:4:"time";s:8:"24 hours";s:4:"path";b:1;}}}s:10:"conditions";a:4:{i:0;a:1:{i:0;a:1:{s:6:"target";s:14:"is_in_campaign";}}i:1;a:1:{i:0;a:1:{s:6:"target";s:12:"is_logged_in";}}i:2;a:1:{i:0;a:2:{s:11:"not_operand";s:1:"1";s:6:"target";s:9:"is_member";}}i:3;a:1:{i:0;a:2:{s:11:"not_operand";s:1:"1";s:6:"target";s:20:"is_sustaining_member";}}}s:8:"theme_id";s:6:"157583";s:4:"size";s:6:"custom";s:20:"responsive_min_width";s:2:"0%";s:20:"responsive_max_width";s:4:"100%";s:12:"custom_width";s:3:"95%";s:13:"custom_height";s:5:"380px";s:14:"animation_type";s:4:"fade";s:15:"animation_speed";s:3:"350";s:16:"animation_origin";s:10:"center top";s:8:"location";s:13:"center bottom";s:12:"position_top";s:3:"100";s:15:"position_bottom";s:1:"0";s:13:"position_left";s:1:"0";s:14:"position_right";s:1:"0";s:6:"zindex";s:10:"1999999999";s:10:"close_text";s:1:"x";s:18:"close_button_delay";s:1:"0";}
-*/
 
 
 
