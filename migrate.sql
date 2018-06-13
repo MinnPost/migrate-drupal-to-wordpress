@@ -2823,6 +2823,80 @@
 	;
 
 
+	# partner offer quantity field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_partner_offer_quantity' as meta_key,
+				offer.field_quantity_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_quantity_value IS NOT NULL
+	;
+
+
+	# partner offer type field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_partner_offer_type' as meta_key,
+				offer.field_type_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_type_value IS NOT NULL
+	;
+
+
+	# partner offer restriction field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_partner_offer_restriction' as meta_key,
+				offer.field_restriction_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_restriction_value IS NOT NULL
+	;
+
+	# partner offer more info text field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_partner_offer_more_info_text' as meta_key,
+				offer.field_more_info_text_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_more_info_text_value IS NOT NULL
+	;
+
+
+	# partner offer more info url field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_partner_offer_more_info_url' as meta_key,
+				offer.field_more_info_url_url `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_more_info_url_url IS NOT NULL
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
