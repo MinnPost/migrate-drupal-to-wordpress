@@ -94,7 +94,7 @@
 			ON a.src = CONCAT('node/', n.nid)
 		LEFT OUTER JOIN `minnpost.drupal`.content_field_teaser t USING(nid, vid)
 		# Add more Drupal content types below if applicable.
-		WHERE n.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'partner', 'slideshow', 'sponsor', 'video')
+		WHERE n.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'partner', 'partner_offer', 'slideshow', 'sponsor', 'video')
 	;
 
 
@@ -2790,6 +2790,36 @@
 		GROUP BY
 			n.nid,
 			n.vid
+	;
+
+
+	# partner offer title
+	UPDATE `minnpost.wordpress`.wp_posts p
+		INNER JOIN (
+			SELECT
+				n.nid as id,
+				offer.field_event_value as post_title
+				FROM `minnpost.drupal`.node n
+				INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+				INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+				WHERE n.type = 'partner_offer'
+			) as event_value on p.ID = event_value.id
+		SET p.post_title = event_value.post_title
+	;
+
+
+	# partner offer partner field
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'partner_id' as meta_key,
+				offer.field_partner_nid `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_partner_nid IS NOT NULL
 	;
 
 
