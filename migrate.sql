@@ -2935,6 +2935,36 @@
 	;
 
 
+	# partner offer claimable start date
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_partner_offer_claimable_start_date' as meta_key,
+				UNIX_TIMESTAMP(offer.field_offer_claimable_dates_value) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_offer_claimable_dates_value IS NOT NULL
+	;
+
+
+	# partner offer claimable end date
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				n.nid `post_id`,
+				'_mp_partner_offer_claimable_end_date' as meta_key,
+				UNIX_TIMESTAMP(offer.field_offer_claimable_dates_value2) `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_partner_offer offer USING(nid, vid)
+			WHERE offer.field_offer_claimable_dates_value2 IS NOT NULL
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
