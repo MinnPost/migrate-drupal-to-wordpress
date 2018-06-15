@@ -855,6 +855,44 @@
 	;
 
 
+	# save user first and last name, if we have them as users in Drupal
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, 'first_name' as meta_key, pv.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv ON u.uid = pv.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf ON pv.fid = pf.fid
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf.fid = 4
+	;
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, 'last_name' as meta_key, pv2.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf2.fid = 5
+	;
+
+
+	# update user display name to "first last"
+	UPDATE `minnpost.wordpress`.wp_users u
+		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
+		SET u.display_name = CONCAT(m.meta_value)
+		WHERE m.meta_key = 'first_name' AND m.meta_value IS NOT NULL
+	;
+
+	UPDATE `minnpost.wordpress`.wp_users u
+		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
+		SET u.display_name = CONCAT(u.display_name, ' ', m.meta_value)
+		WHERE m.meta_key = 'last_name' AND m.meta_value IS NOT NULL
+	;
+
+	UPDATE `minnpost.wordpress`.wp_users u
+		SET u.display_name = u.user_nicename
+		WHERE u.display_name IS NULL OR u.display_name = ''
+	;
+
+
 	# Drupal authors who may or may not be users
 	# these get inserted as posts with a type of guest-author, for the plugin
 	# this one does take the vid into account (we do track revisions)
@@ -3827,43 +3865,6 @@
 
 
 	# user and author text fields
-
-	# save user first and last name, if we have them as users in Drupal
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT u.uid as user_id, 'first_name' as meta_key, pv.`value` as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.profile_values pv ON u.uid = pv.uid 
-		INNER JOIN `minnpost.drupal`.profile_fields pf ON pv.fid = pf.fid
-		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
-		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
-		WHERE pf.fid = 4
-	;
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT u.uid as user_id, 'last_name' as meta_key, pv2.`value` as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
-		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
-		WHERE pf2.fid = 5
-	;
-
-
-	# update user display name to "first last"
-	UPDATE `minnpost.wordpress`.wp_users u
-		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
-		SET u.display_name = CONCAT(m.meta_value)
-		WHERE m.meta_key = 'first_name' AND m.meta_value IS NOT NULL
-	;
-
-	UPDATE `minnpost.wordpress`.wp_users u
-		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
-		SET u.display_name = CONCAT(u.display_name, ' ', m.meta_value)
-		WHERE m.meta_key = 'last_name' AND m.meta_value IS NOT NULL
-	;
-
-	UPDATE `minnpost.wordpress`.wp_users u
-		SET u.display_name = u.user_nicename
-		WHERE u.display_name IS NULL OR u.display_name = ''
-	;
 
 
 	# update comment author name to display name as long as it doesn't have an @ in it because it could be an email address
