@@ -4051,7 +4051,7 @@
 		SELECT
 			field_user_uid as user_id,
 			'_last_partner_claim_date' as meta_key,
-			field_claimed_value as meta_value
+			FROM_UNIXTIME(field_claimed_value, 'F j, Y') as meta_value
 			FROM `minnpost.drupal`.content_type_partner_offer_instance main
 			WHERE field_claimed_value = (
 				SELECT MAX(field_claimed_value)
