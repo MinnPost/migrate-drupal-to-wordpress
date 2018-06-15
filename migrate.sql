@@ -2965,6 +2965,28 @@
 	;
 
 
+	# partner offer instances field
+	# this one does take the vid into account
+	SET SESSION group_concat_max_len = 10000000000;
+	SET @x:=0;
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT
+			instance.field_partner_offer_nid as post_id, '_mp_partner_offer_instance' as meta_key, CONCAT('a:',totals.count,':{',value,'}') as meta_value
+		FROM `minnpost.drupal`.node n
+		INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+		INNER JOIN `minnpost.drupal`.content_type_partner_offer_instance instance USING (nid, vid),
+		(
+			SELECT nid, COUNT(*) as count, GROUP_CONCAT('i:', (@x:=@x+1) - 1,';a:4:{s:34:"_mp_partner_offer_instance_enabled";s:2:"on";s:31:"_mp_partner_offer_instance_date";', IF(LENGTH(field_redeem_dates_value)>0, CONCAT('i:', REPLACE(UNIX_TIMESTAMP(field_redeem_dates_value), '.000000', '')), 's:0:""'), ';s:30:"_mp_partner_offer_claimed_date";', IF(LENGTH(field_claimed_value)>0, CONCAT('i:', field_claimed_value), 's:0:""'), ';s:28:"_mp_partner_offer_claim_user";a:2:{s:4:"name";s:', IF(LENGTH(users.display_name)>0, char_length(users.display_name), 0), ':"', IF(LENGTH(users.display_name)>0, users.display_name, ''), '";s:2:"id";s:', IF(LENGTH(users.ID)>0, char_length(users.ID), 0), ':"', IF(LENGTH(users.ID)>0, users.ID, ''), '";}}' SEPARATOR '') as value,@x:=0
+			FROM `minnpost.drupal`.content_type_partner_offer_instance
+			LEFT OUTER JOIN `minnpost.wordpress`.wp_users users ON content_type_partner_offer_instance.field_user_uid = users.ID
+			GROUP BY nid
+		) AS totals
+		WHERE n.nid = totals.nid
+		GROUP BY post_id
+	;
+
+
 
 # Section 8 - Categories, their images, text fields, taxonomies, and their relationships to posts. The order doesn't matter here. We can skip this section if we're testing other stuff (we use the old id field to keep stuff together)
 
