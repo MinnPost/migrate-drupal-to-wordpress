@@ -5427,13 +5427,8 @@
 # Section 16 - General WordPress settings.
 
 	
+# Section 17 - Things that have to be manually imported
 
-
-
-
-
-
-
-
-
-
+	# popup-settings.csv (replace rather than insert)
+	# popup-themes.xml
+	# object-sync-for-salesforce-data-export.json
