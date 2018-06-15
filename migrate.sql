@@ -4046,6 +4046,22 @@
 	UPDATE `minnpost.wordpress`.wp_usermeta SET meta_value = '' WHERE meta_value = '0'; # stupid thing from drupal
 
 
+	# last timestamp when user claimed a partner offer
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT
+			field_user_uid as user_id,
+			'_last_partner_claim_date' as meta_key,
+			field_claimed_value as meta_value
+			FROM `minnpost.drupal`.content_type_partner_offer_instance main
+			WHERE field_claimed_value = (
+				SELECT MAX(field_claimed_value)
+					FROM `minnpost.drupal`.content_type_partner_offer_instance
+					WHERE field_user_uid = main.field_user_uid
+				)
+			ORDER BY field_user_uid
+	;
+
+
 	# use the title as the user's display name
 	# this might be all the info we have about the user
 	# this one does take the vid into account
