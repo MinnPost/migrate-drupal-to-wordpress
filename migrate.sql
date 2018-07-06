@@ -3886,6 +3886,12 @@
 		)
 	;
 
+	# reset the merge value so it can start over with fixing the user roles
+	UPDATE `minnpost.wordpress`.wp_options
+		SET option_value = 1
+		WHERE option_name = 'merge_serialized_fields_last_row_checked'
+	;
+
 
 	# Change permissions for admins.
 	# Add any specific user IDs to IN list to make them administrators.
