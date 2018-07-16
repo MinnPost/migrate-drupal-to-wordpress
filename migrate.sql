@@ -2520,29 +2520,30 @@
 
 
 	# if there is multimedia content, turn the show related field on
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
-		(post_id, meta_key, meta_value)
-		SELECT p.ID as post_id, '_mp_show_related_content' as meta_key, 'on' as meta_value
-			FROM `minnpost.wordpress`.wp_posts p
-			INNER JOIN `minnpost.drupal`.node n ON p.ID = n.nid
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_op_related_mmedia m USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = m.field_op_related_mmedia_nid
-			WHERE field_op_related_mmedia_nid IS NOT NULL AND n2.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
-			GROUP BY p.ID
-	;
-
-
-	# if there is related content, turn the show related field on
+	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
 		(post_id, meta_key, meta_value)
 		SELECT n.nid as post_id, '_mp_show_related_content' as meta_key, 'on' as meta_value
 			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_op_related_mmedia m USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = m.field_op_related_mmedia_nid
+			WHERE field_op_related_mmedia_nid IS NOT NULL AND n2.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
+			GROUP BY n.nid, n.vid
+	;
+
+
+	# if there is related content, turn the show related field on
+	# this one does take the vid into account
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT n.nid as post_id, '_mp_show_related_content' as meta_key, 'on' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.content_field_related_content c USING(nid, vid)
 			INNER JOIN `minnpost.drupal`.node n2 ON n2.nid = c.field_related_content_nid
 			WHERE field_related_content_nid IS NOT NULL AND n2.type IN ('article', 'article_full', 'audio', 'event', 'newsletter', 'page', 'video', 'slideshow', 'sponsor')
-			GROUP BY n.nid
+			GROUP BY n.nid, n.vid
 	;
 
 
@@ -2713,6 +2714,7 @@
 
 
 	# Remove author display from posts with no specified author. co-authors plus will set the user to the author by default, but we don't want this to display if we haven't told it to
+	# this one does take the vid into account
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
 		(`post_id`, `meta_key`, `meta_value`)
 		SELECT n.nid `post_id`,
@@ -2720,14 +2722,14 @@
 			'on' `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
-			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
-			WHERE a.`field_op_author_nid` IS NULL
-			GROUP BY n.nid
+			INNER JOIN `minnpost.drupal`.content_field_op_author a USING(nid, vid)
+			WHERE a.field_op_author_nid IS NULL
+			GROUP BY n.nid, n.vid
 	;
 
 
 	# Remove date display from posts with no specified author because if there's no author on old posts, i think we probably don't want to show the date either
+	# this one does take the vid into account
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
 		(`post_id`, `meta_key`, `meta_value`)
 		SELECT n.nid `post_id`,
@@ -2735,14 +2737,14 @@
 			'on' `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
-			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
-			WHERE a.`field_op_author_nid` IS NULL
-			GROUP BY n.nid
+			INNER JOIN `minnpost.drupal`.content_field_op_author a USING(nid, vid)
+			WHERE a.field_op_author_nid IS NULL
+			GROUP BY n.nid, n.vid
 	;
 
 
 	# Remove category display from posts with no specified author because if there's no author on old posts, i think we probably don't want to show the date either
+	# this one does take the vid into account
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
 		(`post_id`, `meta_key`, `meta_value`)
 		SELECT n.nid `post_id`,
@@ -2750,10 +2752,9 @@
 			'on' `meta_value`
 			FROM `minnpost.drupal`.node n
 			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.wordpress`.wp_posts p ON p.ID = n.nid
-			INNER JOIN `minnpost.drupal`.content_field_op_author a ON n.nid = a.nid
-			WHERE a.`field_op_author_nid` IS NULL
-			GROUP BY n.nid
+			INNER JOIN `minnpost.drupal`.content_field_op_author a USING(nid, vid)
+			WHERE a.field_op_author_nid IS NULL
+			GROUP BY n.nid, n.vid
 	;
 
 
