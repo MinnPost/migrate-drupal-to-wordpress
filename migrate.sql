@@ -2743,7 +2743,7 @@
 	;
 
 
-	# Remove category display from posts with no specified author because if there's no author on old posts, i think we probably don't want to show the date either
+	# Remove category display from posts with no specified author because if there's no author on old posts, i think we probably don't want to show the category either
 	# this one does take the vid into account
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
 		(`post_id`, `meta_key`, `meta_value`)
@@ -2756,6 +2756,21 @@
 			WHERE a.field_op_author_nid IS NULL
 			GROUP BY n.nid, n.vid
 	;
+
+
+	# remove all three of those meta values from posts that have a byline field
+	# this one does take the vid into account
+	DELETE FROM `minnpost.wordpress`.wp_postmeta
+  		WHERE meta_key IN ('_mp_remove_author_from_display', '_mp_remove_date_from_display', '_mp_remove_category_from_display') AND post_id IN (
+    		SELECT DISTINCT
+				b.nid `post_id`
+				FROM `minnpost.drupal`.node n
+				INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+				INNER JOIN `minnpost.drupal`.content_field_byline b USING(nid, vid)
+				WHERE b.field_byline_value IS NOT NULL
+				GROUP BY n.nid, n.vid
+  		)
+  	;
 
 
 	# Text to replace the category display
