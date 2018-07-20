@@ -98,6 +98,20 @@
 	;
 
 
+	# use [raw shortcodes=1] on post_content where drupal has the raw html format
+	UPDATE `minnpost.wordpress`.wp_posts p
+		INNER JOIN (
+			SELECT DISTINCT
+				n.nid as id
+				FROM `minnpost.drupal`.node n
+				LEFT OUTER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+				WHERE r.format = 5
+			) as format on p.ID = format.id
+		SET p.post_content = CONCAT('[raw shortcodes=1]', p.post_content, '[/raw]')
+	;
+
+
+
 	# Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 	# Add more Drupal content types below if applicable
 	# parameter: line 107 must contain the content types from parameter in line 97 that should be imported as 'posts'
@@ -226,7 +240,7 @@
 
 	## Get Raw HTML content from article_full posts
 	# requires the Raw HTML plugin in WP to be enabled
-	# wrap it in [raw][/raw]
+	# wrap it in [raw shortcodes=1][/raw]
 
 
 	# create temporary table for raw html content
@@ -255,7 +269,7 @@
 	UPDATE `minnpost.wordpress`.wp_posts
 		JOIN `minnpost.wordpress`.wp_posts_raw
 		ON wp_posts.ID = wp_posts_raw.ID
-		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '[raw]', wp_posts_raw.post_content_raw, '[/raw]')
+		SET wp_posts.post_content = CONCAT(wp_posts.post_content, '[raw shortcodes=1]', wp_posts_raw.post_content_raw, '[/raw]')
 	;
 
 
@@ -605,6 +619,33 @@
 		WHERE post_name = 'staff' and post_type = 'page'
 	;
 
+
+	# update javascript in posts
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content, '<script>', '<script>(function($) {'
+	);
+
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content, '<script type="text/javascript">', '<script>(function($) {'
+	);
+
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content, '</script>', '}(jQuery));</script>'
+	);
+
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content, '>}(jQuery));</script>', '></script>'
+	);
+
+
+	# make sure there are no duplicate raw things
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content, '[/raw][/raw]', '[/raw]'
+	);
+
+	UPDATE `minnpost.wordpress`.wp_posts
+		SET post_content = REPLACE(post_content, '[raw shortcodes=1][raw shortcodes=1]', '[raw shortcodes=1]'
+	);
 
 
 	# these items we don't currently use
@@ -2288,6 +2329,18 @@
 # Section 7 - Core Post Metadata. Now the order needs to come after authors, at least.
 
 	# core post text/wysiwyg/etc fields
+
+	# whether to use html editor
+	# this one does not need vid because it's just wordpress
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+				p.ID `post_id`,
+				'_mp_post_use_html_editor' as meta_key,
+				'on' as meta_value
+			FROM `minnpost.wordpress`.wp_posts p
+			WHERE post_content LIKE '%[raw shortcodes=1]%'
+	;
 
 	# get all kinds of post teasers if we have them
 	# this one does take the vid into account
