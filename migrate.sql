@@ -74,17 +74,19 @@
 	# parameter: line 97 contains the Drupal content types that we want to migrate
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(id, post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_type, `post_status`)
+		(id, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_modified_gmt, post_type, `post_status`)
 		SELECT DISTINCT
 			n.nid `id`,
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			r.body `post_content`,
 			n.title `post_title`,
 			t.field_teaser_value `post_excerpt`,
 			substring_index(a.dst, '/', -1) `post_name`,
 			FROM_UNIXTIME(n.changed) `post_modified`,
+			CONVERT_TZ(FROM_UNIXTIME(n.changed), 'America/Chicago', 'UTC') `post_modified_gmt`,
 			n.type `post_type`,
 			IF(n.status = 1, 'publish', 'draft') `post_status`
 		FROM `minnpost.drupal`.node n
@@ -158,17 +160,19 @@
 	# this is a separate query because we only want the bottom popups
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(id, post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, post_modified, post_type, `post_status`)
+		(id, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
+		post_name, post_modified, post_modified_gmt, post_type, `post_status`)
 		SELECT DISTINCT
 			n.nid `id`,
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			r.body `post_content`,
 			n.title `post_title`,
 			t.field_teaser_value `post_excerpt`,
 			substring_index(a.dst, '/', -1) `post_name`,
 			FROM_UNIXTIME(n.changed) `post_modified`,
+			CONVERT_TZ(FROM_UNIXTIME(n.changed), 'America/Chicago', 'UTC') `post_modified_gmt`,
 			n.type `post_type`,
 			IF(n.status = 1, 'publish', 'draft') `post_status`
 		FROM `minnpost.drupal`.node n
@@ -938,12 +942,13 @@
 	# these get inserted as posts with a type of guest-author, for the plugin
 	# this one does take the vid into account (we do track revisions)
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(id, post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, to_ping, pinged, post_modified, post_type, `post_status`)
+		(id, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
+		post_name, to_ping, pinged, post_modified, post_modified_gmt, post_type, `post_status`)
 		SELECT DISTINCT
 			n.nid `id`,
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			n.title `post_title`,
 			'' `post_excerpt`,
@@ -951,6 +956,7 @@
 			'' `to_ping`,
 			'' `pinged`,
 			FROM_UNIXTIME(n.changed) `post_modified`,
+			CONVERT_TZ(FROM_UNIXTIME(n.changed), 'America/Chicago', 'UTC') `post_modified_gmt`,
 			'guest-author' `post_type`,
 			'publish' `post_status`
 		FROM `minnpost.drupal`.node n
@@ -1103,12 +1109,13 @@
 	# 4/12/17: i don't know when this was fixed but it seems to be fine
 	# 5/15/17: started using the vid to track revisions. need to see if it changes anything.
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(id, post_author, post_date, post_content, post_title, post_excerpt,
+		(id, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
 			n2.nid `id`,
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1131,11 +1138,12 @@
 	# insert gallery thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1158,11 +1166,12 @@
 	# insert local audio files as posts so they show in media library
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1185,11 +1194,12 @@
 	# this one does take the vid into account
 	# 8/3/17: this is currently empty; we don't seem to need it anymore
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1219,11 +1229,12 @@
 	# insert main images as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1245,11 +1256,12 @@
 	# insert main event images as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1306,11 +1318,12 @@
 	# insert author photos as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1363,11 +1376,12 @@
 	# insert partner logo images as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1424,11 +1438,12 @@
 	# insert post thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1450,11 +1465,12 @@
 	# insert full page article thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1476,11 +1492,12 @@
 	# insert audio thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1501,11 +1518,12 @@
 	# insert video thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1526,11 +1544,12 @@
 	# insert slideshow thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1551,11 +1570,12 @@
 	# insert sponsor thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -1577,11 +1597,12 @@
 	# insert event thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -3233,11 +3254,12 @@
 	# insert main category images as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old, term_id)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -3296,11 +3318,12 @@
 	# insert category thumbnails as posts
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(post_author, post_date, post_content, post_title, post_excerpt,
+		(post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
 		post_name, post_status, post_parent, guid, post_type, post_mime_type, image_post_file_id_old, term_id)
 		SELECT DISTINCT
 			n.uid `post_author`,
 			FROM_UNIXTIME(f.timestamp) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			'' `post_content`,
 			f.filename `post_title`,
 			'' `post_excerpt`,
@@ -5525,12 +5548,13 @@
 
 	# Submit a letter to the editor page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
-		(id, post_author, post_date, post_content, post_title, post_excerpt,
-		post_name, to_ping, pinged, post_modified, post_type, `post_status`)
+		(id, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
+		post_name, to_ping, pinged, post_modified, post_modified_gmt, post_type, `post_status`)
 		SELECT DISTINCT
 			n.nid `id`,
 			n.uid `post_author`,
 			FROM_UNIXTIME(n.created) `post_date`,
+			CONVERT_TZ(FROM_UNIXTIME(n.created), 'America/Chicago', 'UTC') `post_date_gmt`,
 			CONCAT(r.body, '[gravityform id="1" title="false" description="false"]') `post_content`,
 			n.title `post_title`,
 			t.field_teaser_value `post_excerpt`,
@@ -5538,6 +5562,7 @@
 			'',
 			'',
 			FROM_UNIXTIME(n.changed) `post_modified`,
+			CONVERT_TZ(FROM_UNIXTIME(n.changed), 'America/Chicago', 'UTC') `post_modified_gmt`,
 			'page' `post_type`,
 			IF(n.status = 1, 'publish', 'draft') `post_status`
 		FROM `minnpost.drupal`.node n
@@ -5572,6 +5597,6 @@
 	
 # Section 17 - Things that have to be manually imported
 
-	# popup-settings.csv (replace rather than insert)
-	# popup-themes.xml
+	# popup-settings.csv (import into database table wp_postmeta, use replace rather than insert)
+	# popup-themes.xml (import into core WordPress Importer)
 	# object-sync-for-salesforce-data-export.json
