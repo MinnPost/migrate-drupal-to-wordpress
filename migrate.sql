@@ -919,6 +919,18 @@
 	;
 
 
+	# save user first name as nickname, if we have them as users in Drupal
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT u.uid as user_id, 'nickname' as meta_key, pv.`value` as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.profile_values pv ON u.uid = pv.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf ON pv.fid = pf.fid
+		INNER JOIN `minnpost.drupal`.profile_values pv2 ON u.uid = pv2.uid 
+		INNER JOIN `minnpost.drupal`.profile_fields pf2 ON pv2.fid = pf2.fid
+		WHERE pf.fid = 4
+	;
+
+
 	# update user display name to "first last"
 	UPDATE `minnpost.wordpress`.wp_users u
 		JOIN `minnpost.wordpress`.wp_usermeta m ON u.ID = m.user_id
@@ -3977,6 +3989,39 @@
 			AND role.name = 'super admin' AND u.status != 0
 		)
 	;
+
+
+	# Assign visual editor setting by default
+	# parameter: line 4005 contains the Drupal permission roles that we want to migrate
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'rich_editing' as meta_key, 'true' as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+		WHERE (1
+			# Uncomment and enter any email addresses you want to exclude below.
+			# AND u.mail NOT IN ('test@example.com')
+			AND role.name IN ('super admin', 'user admin', 'author', 'author two', 'editor', 'administrator') AND u.status != 0
+		)
+	;
+
+
+	# Assign dismissed stuff by default
+	# parameter: line 4005 contains the Drupal permission roles that we want to migrate
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'dismissed_wp_pointers' as meta_key, 'wp496_privacy' as meta_value
+		FROM `minnpost.drupal`.users u
+		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+		WHERE (1
+			# Uncomment and enter any email addresses you want to exclude below.
+			# AND u.mail NOT IN ('test@example.com')
+			AND role.name IN ('super admin', 'user admin', 'comment moderator', 'author', 'author two', 'editor', 'administrator') AND u.status != 0
+		)
+	;
+
 
 	# reset the merge value so it can start over with fixing the user roles
 	UPDATE `minnpost.wordpress`.wp_options
