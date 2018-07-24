@@ -2349,7 +2349,7 @@
 		(post_id, meta_key, meta_value)
 		SELECT
 			ID `post_id`,
-			'_media_credit' `meta_key`,
+			'media_credit' `meta_key`,
 			c.field_main_image_credit_value `meta_value`
 			FROM `minnpost.wordpress`.wp_posts p
 			LEFT OUTER JOIN `minnpost.drupal`.content_field_main_image_credit c ON p.post_parent = c.nid
