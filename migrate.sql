@@ -71,7 +71,7 @@
 
 	# Posts from Drupal stories
 	# Keeps private posts hidden.
-	# parameter: line 97 contains the Drupal content types that we want to migrate
+	# parameter: line 99 contains the Drupal content types that we want to migrate
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
@@ -116,7 +116,7 @@
 
 	# Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 	# Add more Drupal content types below if applicable
-	# parameter: line 107 must contain the content types from parameter in line 97 that should be imported as 'posts'
+	# parameter: line 123 must contain the content types from parameter in line 99 that should be imported as 'posts'
 	# newsletter and page should stay as they are
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_type = 'post'
@@ -3876,7 +3876,7 @@
 
 	# Assign comment moderator permissions.
 	# Sets all comment moderator users to "comment moderator" by default; next section can selectively promote individual authors
-	# parameter: line 3591 and 3592 contain the users and make sure they have the roles we want to migrate
+	# parameter: line 3889 and 3890 contain the users and make sure they have the roles we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:17:"comment_moderator";s:1:"1";}' as meta_value
@@ -3893,7 +3893,7 @@
 
 
 	# Assign staff roles to staff member users
-	# line 3607 contains the post id for the staff page
+	# line 3905 contains the post id for the staff page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:5:"staff";s:1:"1";}' as meta_value
@@ -3908,7 +3908,7 @@
 
 	# Assign contributor permissions.
 	# Sets all author twos to "contributor" by default; next section can selectively promote individual authors
-	# parameter: line 3623 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3921 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:11:"contributor";s:1:"1";}' as meta_value
@@ -3925,7 +3925,7 @@
 
 	# Assign author permissions.
 	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 3640 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3938 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
@@ -3942,7 +3942,7 @@
 
 	# Assign editor permissions.
 	# Sets all editors and administrators to "editor" by default
-	# parameter: line 3657 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3955 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"editor";s:1:"1";}' as meta_value
@@ -3959,7 +3959,7 @@
 
 	# Assign "business" permissions. This is for business staff.
 	# Sets all "user admin" users to "business" by default
-	# parameter: line 3674 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3972 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:8:"business";s:1:"1";}' as meta_value
@@ -3976,7 +3976,7 @@
 
 	# Assign administrator permissions
 	# Set all Drupal super admins to "administrator"
-	# parameter: line 3691 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3989 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
@@ -4008,7 +4008,7 @@
 
 
 	# Assign dismissed stuff by default
-	# parameter: line 4005 contains the Drupal permission roles that we want to migrate
+	# parameter: line 4021 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'dismissed_wp_pointers' as meta_key, 'wp496_privacy' as meta_value
@@ -4377,7 +4377,7 @@
 
 	# Assign staff member value to author
 	# this one does take the vid into account
-	# line 4072 contains the post id for the staff page
+	# line 4388 contains the post id for the staff page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta (post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			a.nid as post_id, '_staff_member' as meta_key, 'on' as meta_value
@@ -4394,7 +4394,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 4107 to exclude things if we find out they break when used in wordpress
+	# use line 4423 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -5191,7 +5191,7 @@
 
 
 	# add menus
-	# parameter: line 4887 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5202 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5225,7 +5225,7 @@
 
 
 	# add menu items
-	# parameter: line 4946 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5262 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
