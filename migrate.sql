@@ -4392,9 +4392,32 @@
 
 # Section 11 - Zones and redirect items. The order doesn't matter here.
 
+	# create the redirect table if it does not exist
+	CREATE TABLE IF NOT EXISTS `wp_redirection_items` (
+	  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `url` mediumtext COLLATE utf8mb4_unicode_520_ci NOT NULL,
+	  `regex` int(11) unsigned NOT NULL DEFAULT '0',
+	  `position` int(11) unsigned NOT NULL DEFAULT '0',
+	  `last_count` int(10) unsigned NOT NULL DEFAULT '0',
+	  `last_access` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+	  `group_id` int(11) NOT NULL DEFAULT '0',
+	  `status` enum('enabled','disabled') COLLATE utf8mb4_unicode_520_ci NOT NULL DEFAULT 'enabled',
+	  `action_type` varchar(20) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+	  `action_code` int(11) unsigned NOT NULL,
+	  `action_data` mediumtext COLLATE utf8mb4_unicode_520_ci,
+	  `match_type` varchar(20) COLLATE utf8mb4_unicode_520_ci NOT NULL,
+	  `title` text COLLATE utf8mb4_unicode_520_ci,
+	  PRIMARY KEY (`id`),
+	  KEY `url` (`url`(191)),
+	  KEY `status` (`status`),
+	  KEY `regex` (`regex`),
+	  KEY `group_idpos` (`group_id`,`position`),
+	  KEY `group` (`group_id`)
+	) ENGINE=InnoDB;
+
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 4423 to exclude things if we find out they break when used in wordpress
+	# use line 4446 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -5190,8 +5213,11 @@
 	);
 
 
+	# when this runs, the minnpost-largo theme needs to be activated to put the menus in the right menu locations 
+
+
 	# add menus
-	# parameter: line 5202 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5228 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5225,7 +5251,7 @@
 
 
 	# add menu items
-	# parameter: line 5262 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5288 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
