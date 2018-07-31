@@ -5671,3 +5671,4 @@
 	# popup-settings.csv (import into database table wp_postmeta, use replace rather than insert)
 	# popup-themes.xml (import into core WordPress Importer)
 	# object-sync-for-salesforce-data-export.json
+	# gravityforms-submit-to-editor.json (can be imported to previously empty wordpress through GF UI)
