@@ -5672,3 +5672,22 @@
 	# popup-themes.xml (import into core WordPress Importer)
 	# object-sync-for-salesforce-data-export.json
 	# gravityforms-submit-to-editor.json (can be imported to previously empty wordpress through GF UI)
+
+
+# Section 18 - Production only things
+
+	# Salesforce to contact map
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_object_sync_sf_object_map (wordpress_id, salesforce_id, wordpress_object, created, object_updated, last_sync, last_sync_action, last_sync_status, last_sync_message)
+		SELECT DISTINCT
+			m.oid as wordpress_id,
+			m.sfid as salesforce_id,
+			m.drupal_type as wordpress_object,
+			FROM_UNIXTIME(m.created) as created,
+			FROM_UNIXTIME(m.last_export) as object_updated,
+			IF( m.last_import > m.last_export, FROM_UNIXTIME( m.last_import ), FROM_UNIXTIME( m.last_export ) ) as last_sync,
+			IF( m.last_import > m.last_export, 'pull', 'push') as last_sync_action,
+			'1' as last_sync_status,
+			'Migrate object map from drupal' as last_sync_message
+		FROM `minnpost.drupal`.salesforce_object_map m
+		INNER JOIN `minnpost.wordpress`.wp_users u ON u.ID = m.oid
+	;
