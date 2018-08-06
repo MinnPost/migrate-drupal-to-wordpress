@@ -3745,36 +3745,8 @@
 
 	# user permissions
 
-	# when we add multiple permissions per user, it is fixed by the Merge Serialized Fields plugin.
 
-	# add banned users who cannot comment
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"banned";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('authenticated noncommenting user')
-		)
-	;
-
-
-	# Sets bronze member level capabilities for members
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"member_bronze";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('member - bronze')
-		)
-	;
+	# Sets bronze member level
 	# custom member level field
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
@@ -3790,19 +3762,7 @@
 	;
 
 
-	# Sets silver member level capabilities for members
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"member_silver";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('member - silver')
-		)
-	;
+	# Sets silver member level
 	# custom member level field
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
@@ -3818,19 +3778,7 @@
 	;
 
 
-	# Sets gold member level capabilities for members
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:11:"member_gold";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('member - gold')
-		)
-	;
+	# Sets gold member level
 	# custom member level field
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
@@ -3846,19 +3794,7 @@
 	;
 
 
-	# Sets platinum member level capabilities for members
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:15:"member_platinum";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('member - platinum')
-		)
-	;
+	# Sets platinum member level
 	# custom member level field
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
@@ -3870,123 +3806,6 @@
 			# Uncomment and enter any email addresses you want to exclude below.
 			# AND u.mail NOT IN ('test@example.com')
 			AND role.name IN ('member - platinum')
-		)
-	;
-
-
-	# Assign comment moderator permissions.
-	# Sets all comment moderator users to "comment moderator" by default; next section can selectively promote individual authors
-	# parameter: line 3889 and 3890 contain the users and make sure they have the roles we want to migrate
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:17:"comment_moderator";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND u.uid IN ( 8338,8358,8370,8372,8380,8381,8924,65631 )
-			AND role.name IN ('comment moderator') AND u.status != 0
-		)
-	;
-
-
-	# Assign staff roles to staff member users
-	# line 3905 contains the post id for the staff page
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:5:"staff";s:1:"1";}' as meta_value
-			FROM `minnpost.drupal`.node n
-			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_field_rel_feature f USING(nid, vid)
-			INNER JOIN `minnpost.drupal`.content_type_author a ON a.nid = f.field_rel_feature_nid
-			INNER JOIN `minnpost.drupal`.users u ON a.field_author_user_uid = u.uid
-			WHERE f.field_rel_feature_nid IS NOT NULL AND n.nid = 68105
-	;
-
-
-	# Assign contributor permissions.
-	# Sets all author twos to "contributor" by default; next section can selectively promote individual authors
-	# parameter: line 3921 contains the Drupal permission roles that we want to migrate
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:11:"contributor";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('author two') AND u.status != 0
-		)
-	;
-
-
-	# Assign author permissions.
-	# Sets all authors to "author" by default; next section can selectively promote individual authors
-	# parameter: line 3938 contains the Drupal permission roles that we want to migrate
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"author";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('author') AND u.status != 0
-		)
-	;
-
-
-	# Assign editor permissions.
-	# Sets all editors and administrators to "editor" by default
-	# parameter: line 3955 contains the Drupal permission roles that we want to migrate
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:6:"editor";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('editor', 'administrator') AND u.status != 0
-		)
-	;
-
-
-	# Assign "business" permissions. This is for business staff.
-	# Sets all "user admin" users to "business" by default
-	# parameter: line 3972 contains the Drupal permission roles that we want to migrate
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:8:"business";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name IN ('user admin') AND u.status != 0
-		)
-	;
-
-
-	# Assign administrator permissions
-	# Set all Drupal super admins to "administrator"
-	# parameter: line 3989 contains the Drupal permission roles that we want to migrate
-	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
-		SELECT DISTINCT
-			u.uid as user_id, 'wp_capabilities' as meta_key, 'a:1:{s:13:"administrator";s:1:"1";}' as meta_value
-		FROM `minnpost.drupal`.users u
-		INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
-		INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
-		WHERE (1
-			# Uncomment and enter any email addresses you want to exclude below.
-			# AND u.mail NOT IN ('test@example.com')
-			AND role.name = 'super admin' AND u.status != 0
 		)
 	;
 
@@ -4023,10 +3842,181 @@
 	;
 
 
-	# reset the merge value so it can start over with fixing the user roles
-	UPDATE `minnpost.wordpress`.wp_options
-		SET option_value = 1
-		WHERE option_name = 'merge_serialized_fields_last_row_checked'
+	# handle user capabilities
+
+	CREATE TABLE `user_roles` (
+	  `user_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `meta_key` varchar(255) DEFAULT NULL,
+	  `meta_value` text,
+	  PRIMARY KEY (`user_id`)
+	);
+
+
+	# get all user capabilities for non banned users from drupal that aren't 'member'
+	INSERT IGNORE INTO `minnpost.wordpress`.user_roles (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+				u.uid as user_id, 'wp_capabilities' as meta_key, role.name as meta_value
+			FROM `minnpost.drupal`.users u
+			INNER JOIN `minnpost.drupal`.users_roles r USING (uid)
+			INNER JOIN `minnpost.drupal`.role role ON r.rid = role.rid
+			INNER JOIN `minnpost.wordpress`.wp_users u2 ON u.uid = u2.ID
+			WHERE (1
+				AND role.name NOT IN ( 'member' ) AND u.status != 0
+			)
+			GROUP BY user_id, role.name
+			ORDER BY user_id
+	;
+
+	# sanitize capability names
+	UPDATE user_roles
+		SET meta_value = REPLACE( meta_value, ' ', '_' )
+	;
+	UPDATE user_roles
+		SET meta_value = REPLACE( meta_value, '_-_', '_' )
+	;
+
+
+	# rename banned
+	UPDATE user_roles
+		SET meta_value = REPLACE( meta_value, 'authenticated_noncommenting_user', 'banned' )
+	;
+
+	# line 3886 contains comment moderator IDs
+	DELETE FROM user_roles
+		WHERE meta_value = 'comment_moderator' AND user_id NOT IN ( 8338,8358,8370,8372,8380,8381,8924,65631 )
+	;
+
+	# Assign staff roles to staff member users
+	# line 3899 contains the post id for the staff page
+	INSERT IGNORE INTO `minnpost.wordpress`.user_roles (user_id, meta_key, meta_value)
+		SELECT DISTINCT
+			u.uid as user_id, 'wp_capabilities' as meta_key, 'staff' as meta_value
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions r USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_rel_feature f USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author a ON a.nid = f.field_rel_feature_nid
+			INNER JOIN `minnpost.drupal`.users u ON a.field_author_user_uid = u.uid
+			WHERE f.field_rel_feature_nid IS NOT NULL AND n.nid = 68105
+	;
+
+
+	# rename contributor
+	UPDATE user_roles
+		SET meta_value = REPLACE( meta_value, 'author_two', 'contributor' )
+	;
+
+
+	# rename editor
+	UPDATE user_roles
+		SET meta_value = REPLACE( meta_value, 'administrator', 'editor' )
+	;
+
+	UPDATE user_roles
+		SET meta_value = REPLACE( meta_value, 'user_admin', 'business' )
+	;
+
+	# rename administrator
+	UPDATE user_roles
+		SET meta_value = REPLACE( meta_value, 'super_admin', 'administrator' )
+	;
+
+
+	# create temporary level field to remove too many levels for same person
+	ALTER TABLE user_roles ADD meta_level TINYINT(1);
+
+
+	# set admin level
+	UPDATE user_roles
+		SET meta_level = 1 WHERE meta_value = 'administrator'
+	;
+
+	# set business/editor level
+	UPDATE user_roles
+		SET meta_level = 2 WHERE meta_value = 'business' OR meta_value = 'editor'
+	;
+
+	# set author level
+	UPDATE user_roles
+		SET meta_level = 3 WHERE meta_value = 'author'
+	;
+
+	# set contributor level
+	UPDATE user_roles
+		SET meta_level = 4 WHERE meta_value = 'contributor'
+	;
+
+	# set moderator level
+	UPDATE user_roles
+		SET meta_level = 5 WHERE meta_value = 'comment_moderator'
+	;
+
+
+	# if a user has a level greater than their other levels, only keep the highest one
+	DELETE r2
+		FROM user_roles AS r1
+		INNER JOIN user_roles AS r2
+		ON ( r1.user_id, r1.meta_key ) = ( r2.user_id, r2.meta_key )
+		AND r1.meta_level < r2.meta_level
+	;
+
+
+	# delete and re-add that temporary level field
+	ALTER TABLE user_roles DROP COLUMN meta_level;
+	ALTER TABLE user_roles ADD meta_level TINYINT(1);
+
+
+	# set platinum level
+	UPDATE user_roles
+		SET meta_level = 1 WHERE meta_value = 'member_platinum'
+	;
+
+	# set gold level
+	UPDATE user_roles
+		SET meta_level = 2 WHERE meta_value = 'member_gold'
+	;
+
+	# set silver level
+	UPDATE user_roles
+		SET meta_level = 3 WHERE meta_value = 'member_silver'
+	;
+
+	# set bronze level
+	UPDATE user_roles
+		SET meta_level = 4 WHERE meta_value = 'member_bronze'
+	;
+
+
+	# if a user has a level greater than their other levels, only keep the highest one
+	DELETE r2
+		FROM user_roles AS r1
+		INNER JOIN user_roles AS r2
+		ON ( r1.user_id, r1.meta_key ) = ( r2.user_id, r2.meta_key )
+		AND r1.meta_level < r2.meta_level
+	;
+
+
+	# remove that temp field
+	ALTER TABLE user_roles DROP COLUMN meta_level;
+
+
+	# serialize each row as wordpress will expect it
+	UPDATE user_roles
+		SET meta_value = CONCAT( 'a:1:{s:', CHAR_LENGTH( meta_value ), ':"', meta_value, '";s:1:"1";}' )
+	;
+
+
+	# concatenate all the user's capabilities and add them to the user meta table
+	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
+		SELECT user_id, meta_key, 
+	       GROUP_CONCAT(
+	       	'a:', cnt, REPLACE( REPLACE( REPLACE( meta_value, 'a:1', '' ), ';s:1:"1";', ';b:1;' ), '},:{', '' ) ) as meta_value
+			FROM (
+				SELECT user_id, meta_key, GROUP_CONCAT( meta_value ) as meta_value,
+				COUNT(*) as cnt
+				FROM user_roles
+				GROUP BY user_id
+			) a
+			GROUP BY user_id
 	;
 
 
@@ -4377,7 +4367,7 @@
 
 	# Assign staff member value to author
 	# this one does take the vid into account
-	# line 4388 contains the post id for the staff page
+	# line 4378 contains the post id for the staff page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta (post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			a.nid as post_id, '_staff_member' as meta_key, 'on' as meta_value
@@ -4417,7 +4407,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 4446 to exclude things if we find out they break when used in wordpress
+	# use line 4436 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -5217,7 +5207,7 @@
 
 
 	# add menus
-	# parameter: line 5228 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5218 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5251,7 +5241,7 @@
 
 
 	# add menu items
-	# parameter: line 5288 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5278 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
