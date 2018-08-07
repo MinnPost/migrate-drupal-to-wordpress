@@ -4371,7 +4371,7 @@
 
 	# Assign staff member value to author
 	# this one does take the vid into account
-	# line 4378 contains the post id for the staff page
+	# line 4382 contains the post id for the staff page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta (post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			a.nid as post_id, '_staff_member' as meta_key, 'on' as meta_value
@@ -4411,7 +4411,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 4436 to exclude things if we find out they break when used in wordpress
+	# use line 4440 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -5211,7 +5211,7 @@
 
 
 	# add menus
-	# parameter: line 5218 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5222 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5245,7 +5245,7 @@
 
 
 	# add menu items
-	# parameter: line 5278 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5282 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
@@ -5685,3 +5685,4 @@
 		FROM `minnpost.drupal`.salesforce_object_map m
 		INNER JOIN `minnpost.wordpress`.wp_users u ON u.ID = m.oid
 	;
+
