@@ -4020,6 +4020,10 @@
 	;
 
 
+	# remove temporary role table
+	DROP TABLE user_roles;
+
+
 	# Change permissions for admins.
 	# Add any specific user IDs to IN list to make them administrators.
 	# User ID values are carried over from `minnpost.drupal`.
