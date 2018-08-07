@@ -3845,10 +3845,9 @@
 	# handle user capabilities
 
 	CREATE TABLE `user_roles` (
-	  `user_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `user_id` int(11) unsigned NOT NULL,
 	  `meta_key` varchar(255) DEFAULT NULL,
-	  `meta_value` text,
-	  PRIMARY KEY (`user_id`)
+	  `meta_value` text
 	);
 
 
@@ -3888,7 +3887,7 @@
 
 	# Assign staff roles to staff member users
 	# line 3899 contains the post id for the staff page
-	INSERT IGNORE INTO `minnpost.wordpress`.user_roles (user_id, meta_key, meta_value)
+	INSERT INTO `minnpost.wordpress`.user_roles (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'staff' as meta_value
 			FROM `minnpost.drupal`.node n
