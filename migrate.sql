@@ -44,12 +44,6 @@
 		WHERE option_name = 'deserialize_metadata_last_post_checked'
 	;
 
-	# reset the merge value so it can start over with deserializing
-	UPDATE `minnpost.wordpress`.wp_options
-		SET option_value = 1
-		WHERE option_name = 'merge_serialized_fields_last_row_checked'
-	;
-
 
 	# set the current migrate time to right now
 	INSERT INTO `minnpost.wordpress`.wp_options
@@ -71,7 +65,7 @@
 
 	# Posts from Drupal stories
 	# Keeps private posts hidden.
-	# parameter: line 99 contains the Drupal content types that we want to migrate
+	# parameter: line 93 contains the Drupal content types that we want to migrate
 	# this one does take the vid into account
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_posts
 		(id, post_author, post_date, post_date_gmt, post_content, post_title, post_excerpt,
@@ -116,7 +110,7 @@
 
 	# Fix post type; http://www.mikesmullin.com/development/migrate-convert-import-drupal-5-to-wordpress-27/#comment-17826
 	# Add more Drupal content types below if applicable
-	# parameter: line 123 must contain the content types from parameter in line 99 that should be imported as 'posts'
+	# parameter: line 117 must contain the content types from parameter in line 93 that should be imported as 'posts'
 	# newsletter and page should stay as they are
 	UPDATE `minnpost.wordpress`.wp_posts
 		SET post_type = 'post'
@@ -884,7 +878,7 @@
 		(ID, user_login, user_pass, user_nicename, user_email,
 		user_registered, user_activation_key, user_status, display_name)
 		SELECT DISTINCT
-			u.uid as ID, u.mail as user_login, pass as user_pass, u.name as user_nicename, u.mail as user_email,
+			u.uid as ID, u.mail as user_login, pass as user_pass, CONCAT( SUBSTRING( u.mail, 1, LOCATE('@', u.mail ) - 1 ),  REPLACE( SUBSTRING( u.mail, LOCATE( '@', u.mail ) + 1 ), '.', '-' ) ) as user_nicename, u.mail as user_email,
 			FROM_UNIXTIME(created) as user_registered, '' as user_activation_key, 0 as user_status, u.name as display_name
 		FROM `minnpost.drupal`.users u
 		WHERE (1
@@ -3811,7 +3805,7 @@
 
 
 	# Assign visual editor setting by default
-	# parameter: line 3824 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3818 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'rich_editing' as meta_key, 'true' as meta_value
@@ -3827,7 +3821,7 @@
 
 
 	# Assign dismissed stuff by default
-	# parameter: line 3840 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3834 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'dismissed_wp_pointers' as meta_key, 'wp496_privacy' as meta_value
@@ -3880,13 +3874,13 @@
 		SET meta_value = REPLACE( meta_value, 'authenticated_noncommenting_user', 'banned' )
 	;
 
-	# line 3885 contains comment moderator IDs
+	# line 3879 contains comment moderator IDs
 	DELETE FROM user_roles
 		WHERE meta_value = 'comment_moderator' AND user_id NOT IN ( 8338,8358,8370,8372,8380,8381,8924,65631 )
 	;
 
 	# Assign staff roles to staff member users
-	# line 3898 contains the post id for the staff page
+	# line 3892 contains the post id for the staff page
 	INSERT INTO `minnpost.wordpress`.user_roles (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'staff' as meta_value
@@ -4313,6 +4307,36 @@
 	;
 
 
+	# add the first/last name for authors linked to users
+	# this one does take the vid into account
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'cap-first_name' `meta_key`,
+			meta.meta_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_users user ON author.field_author_user_uid = user.ID
+			INNER JOIN `minnpost.wordpress`.wp_usermeta meta ON meta.user_id = user.ID
+			WHERE meta.meta_key = 'first_name'
+	;
+	INSERT INTO `minnpost.wordpress`.wp_postmeta
+		(post_id, meta_key, meta_value)
+		SELECT DISTINCT
+			n.nid `post_id`,
+			'cap-last_name' `meta_key`,
+			meta.meta_value `meta_value`
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_users user ON author.field_author_user_uid = user.ID
+			INNER JOIN `minnpost.wordpress`.wp_usermeta meta ON meta.user_id = user.ID
+			WHERE meta.meta_key = 'last_name'
+	;
+
+
 	# in wordpress, the author has a first name/last name and some other fields
 	# but we don't store those on the author object in drupal so we don't need to migrate it
 
@@ -4370,7 +4394,7 @@
 
 	# Assign staff member value to author
 	# this one does take the vid into account
-	# line 4381 contains the post id for the staff page
+	# line 4405 contains the post id for the staff page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta (post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			a.nid as post_id, '_staff_member' as meta_key, 'on' as meta_value
@@ -4410,7 +4434,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 4439 to exclude things if we find out they break when used in wordpress
+	# use line 4463 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -5210,7 +5234,7 @@
 
 
 	# add menus
-	# parameter: line 5221 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5245 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5244,7 +5268,7 @@
 
 
 	# add menu items
-	# parameter: line 5281 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5305 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
