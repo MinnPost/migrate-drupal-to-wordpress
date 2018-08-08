@@ -3734,6 +3734,24 @@
 	;
 
 
+	# update comment author name
+	UPDATE `minnpost.wordpress`.wp_comments
+		JOIN `minnpost.wordpress`.wp_users users
+		ON `minnpost.wordpress`.wp_comments.user_id = `minnpost.wordpress`.users.ID
+		SET `minnpost.wordpress`.wp_comments.comment_author = `minnpost.wordpress`.users.display_name
+		WHERE `minnpost.wordpress`.wp_comments.comment_author = ''
+	;
+
+
+	# update comment author email
+	UPDATE `minnpost.wordpress`.wp_comments
+		JOIN `minnpost.wordpress`.wp_users users
+		ON `minnpost.wordpress`.wp_comments.user_id = `minnpost.wordpress`.users.ID
+		SET `minnpost.wordpress`.wp_comments.comment_author_email = `minnpost.wordpress`.users.user_email
+		WHERE `minnpost.wordpress`.wp_comments.comment_author_email = ''
+	;
+
+
 
 # Section 10 - User and Author Metadata. Order needs to be after users/authors (#4). We can skip this section if we're testing other stuff.
 
