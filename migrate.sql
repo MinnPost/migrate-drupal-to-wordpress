@@ -3823,7 +3823,7 @@
 
 
 	# Assign visual editor setting by default
-	# parameter: line 3818 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3836 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'rich_editing' as meta_key, 'true' as meta_value
@@ -3839,7 +3839,7 @@
 
 
 	# Assign dismissed stuff by default
-	# parameter: line 3834 contains the Drupal permission roles that we want to migrate
+	# parameter: line 3852 contains the Drupal permission roles that we want to migrate
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_usermeta (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'dismissed_wp_pointers' as meta_key, 'wp496_privacy' as meta_value
@@ -3892,13 +3892,13 @@
 		SET meta_value = REPLACE( meta_value, 'authenticated_noncommenting_user', 'banned' )
 	;
 
-	# line 3879 contains comment moderator IDs
+	# line 3897 contains comment moderator IDs
 	DELETE FROM user_roles
 		WHERE meta_value = 'comment_moderator' AND user_id NOT IN ( 8338,8358,8370,8372,8380,8381,8924,65631 )
 	;
 
 	# Assign staff roles to staff member users
-	# line 3892 contains the post id for the staff page
+	# line 3910 contains the post id for the staff page
 	INSERT INTO `minnpost.wordpress`.user_roles (user_id, meta_key, meta_value)
 		SELECT DISTINCT
 			u.uid as user_id, 'wp_capabilities' as meta_key, 'staff' as meta_value
@@ -4455,7 +4455,7 @@
 
 	# Assign staff member value to author
 	# this one does take the vid into account
-	# line 4405 contains the post id for the staff page
+	# line 4466 contains the post id for the staff page
 	INSERT IGNORE INTO `minnpost.wordpress`.wp_postmeta (post_id, meta_key, meta_value)
 		SELECT DISTINCT
 			a.nid as post_id, '_staff_member' as meta_key, 'on' as meta_value
@@ -4495,7 +4495,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 4463 to exclude things if we find out they break when used in wordpress
+	# use line 4524 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -5295,7 +5295,7 @@
 
 
 	# add menus
-	# parameter: line 5245 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5306 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5329,7 +5329,7 @@
 
 
 	# add menu items
-	# parameter: line 5305 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5366 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
