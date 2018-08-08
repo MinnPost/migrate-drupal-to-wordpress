@@ -4260,6 +4260,49 @@
 	;
 
 
+	# use the nicename as the author slug
+	# this one does take the vid into account
+	REPLACE INTO `minnpost.wordpress`.wp_terms
+		(name, slug)
+		SELECT DISTINCT
+			REPLACE(link.field_link_multiple_url, 'mailto:', '') as name,
+			CONCAT( 'cap-', SUBSTRING( REPLACE(link.field_link_multiple_url, 'mailto:', ''), 1, LOCATE('@', REPLACE(link.field_link_multiple_url, 'mailto:', '') ) - 1 ),  REPLACE( SUBSTRING( REPLACE(link.field_link_multiple_url, 'mailto:', ''), LOCATE( '@', REPLACE(link.field_link_multiple_url, 'mailto:', '') ) + 1 ), '.', '-' ) ) as slug
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.content_field_link_multiple link USING (nid, vid)
+			WHERE field_link_multiple_title = 'Email the author'
+	;
+
+
+	# use the nicename as the author slug
+	# this one does take the vid into account
+	REPLACE INTO `minnpost.wordpress`.wp_terms
+		(name, slug)
+		SELECT DISTINCT
+			user.mail as name,
+			CONCAT( 'cap-', SUBSTRING( user.mail, 1, LOCATE('@', user.mail ) - 1 ),  REPLACE( SUBSTRING( user.mail, LOCATE( '@', user.mail ) + 1 ), '.', '-' ) ) as slug
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+			INNER JOIN `minnpost.drupal`.users user ON author.field_author_user_uid = user.uid
+	;
+
+
+	# use the display-name as the author slug
+	# this one does take the vid into account
+	REPLACE INTO `minnpost.wordpress`.wp_terms
+		(name, slug)
+		SELECT DISTINCT
+			user.user_email as name,
+			CONCAT( 'cap-', LOWER( REPLACE( user.display_name, ' ', '-' ) ) ) as slug
+			FROM `minnpost.drupal`.node n
+			INNER JOIN `minnpost.drupal`.node_revisions nr USING(nid, vid)
+			INNER JOIN `minnpost.drupal`.content_type_author author USING (nid, vid)
+			INNER JOIN `minnpost.wordpress`.wp_users user ON author.field_author_user_uid = user.ID
+	;
+
+
 	# add the author's twitter account if we have it
 	# this one does take the vid into account
 	INSERT INTO `minnpost.wordpress`.wp_postmeta
