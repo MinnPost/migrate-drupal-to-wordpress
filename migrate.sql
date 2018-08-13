@@ -5030,6 +5030,13 @@
 	;
 
 
+	# admin area redirects
+	INSERT INTO `minnpost.wordpress`.wp_redirection_items (`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+		VALUES ('/admin/content/comment', 0, 0, 1, CURRENT_TIMESTAMP(), 1, 'enabled', 'url', 301, CONCAT( ( SELECT option_value FROM `minnpost.wordpress`.wp_options WHERE option_name = 'siteurl' ), '/wp-admin/edit-comments.php' ), 'url', '')
+	;
+
+
+
 	# zoninator zones (like nodequeues)
 
 	# add zoninator terms
@@ -5295,7 +5302,7 @@
 
 
 	# add menus
-	# parameter: line 5306 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5313 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5329,7 +5336,7 @@
 
 
 	# add menu items
-	# parameter: line 5366 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5373 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
