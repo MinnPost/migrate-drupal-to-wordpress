@@ -5757,6 +5757,7 @@
 	# popup-themes.xml (import into core WordPress Importer)
 	# object-sync-for-salesforce-data-export.json
 	# gravityforms-submit-to-editor.json (can be imported to previously empty wordpress through GF UI)
+	# messages.xml (import into core WordPress Importer)
 
 
 # Section 18 - Production only things
