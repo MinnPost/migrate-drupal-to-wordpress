@@ -4510,11 +4510,6 @@
 			'url' `action_type`,
 			301 `action_code`,
 			CONCAT(
-				(
-				SELECT option_value
-				FROM `minnpost.wordpress`.wp_options
-				WHERE option_name = 'siteurl'
-				),
 				'/',
 				IFNULL(a.dst, p.redirect)) `action_data`,
 			'url' `match_type`,
@@ -4540,11 +4535,6 @@
 			'url' `action_type`,
 			301 `action_code`,
 			CONCAT(
-				(
-				SELECT option_value
-				FROM `minnpost.wordpress`.wp_options
-				WHERE option_name = 'siteurl'
-				),
 				'/',
 				CONCAT('tag/', substring_index(REPLACE(REPLACE(a.dst, 'category/keywords/', 'tag/'), 'category/minnpost-topic/', 'tag/'), '/', -1))) `action_data`,
 			'url' `match_type`,
@@ -4569,11 +4559,6 @@
 			'url' `action_type`,
 			301 `action_code`,
 			CONCAT(
-				(
-				SELECT option_value
-				FROM `minnpost.wordpress`.wp_options
-				WHERE option_name = 'siteurl'
-				),
 				'/',
 				CONCAT('?p=', p.ID)) `action_data`,
 			'url' `match_type`,
@@ -4597,11 +4582,6 @@
 			'url',
 			301,
 			CONCAT(
-				(
-				SELECT option_value
-				FROM `minnpost.wordpress`.wp_options
-				WHERE option_name = 'siteurl'
-				),
 				'/',
 				'politics-policy'
 			),
@@ -4626,11 +4606,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'feed'
 				),
@@ -4647,11 +4622,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'politics-policy/feed'
 				),
@@ -4668,11 +4638,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'health/feed'
 				),
@@ -4689,11 +4654,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'education/feed'
 				),
@@ -4710,11 +4670,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'environment/feed'
 				),
@@ -4731,11 +4686,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'arts-culture/feed'
 				),
@@ -4752,11 +4702,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'business/feed'
 				),
@@ -4773,11 +4718,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'sports/feed'
 				),
@@ -4794,11 +4734,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'perspectives/feed'
 				),
@@ -4815,11 +4750,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'artscape/feed'
 				),
@@ -4836,11 +4766,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'community-sketchbook/feed'
 				),
@@ -4857,11 +4782,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'community-voices/feed'
 				),
@@ -4878,11 +4798,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'earth-journal/feed'
 				),
@@ -4899,11 +4814,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'eric-black-ink/feed'
 				),
@@ -4920,11 +4830,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'glean/feed'
 				),
@@ -4941,11 +4846,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'inside-minnpost/feed'
 				),
@@ -4962,11 +4862,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'macro-micro-minnesota/feed'
 				),
@@ -4984,11 +4879,6 @@
 				'url',
 				301,
 				CONCAT(
-					(
-					SELECT option_value
-					FROM `minnpost.wordpress`.wp_options
-					WHERE option_name = 'siteurl'
-					),
 					'/',
 					'second-opinion/feed'
 				),
@@ -5016,11 +4906,6 @@
 			'url' `action_type`,
 			301 `action_code`,
 			CONCAT(
-				(
-				SELECT option_value
-				FROM `minnpost.wordpress`.wp_options
-				WHERE option_name = 'siteurl'
-				),
 				'/users/',
 				u2.ID) `action_data`,
 			'url' `match_type`,
@@ -5032,7 +4917,7 @@
 
 	# admin area redirects
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items (`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
-		VALUES ('/admin/content/comment', 0, 0, 1, CURRENT_TIMESTAMP(), 1, 'enabled', 'url', 301, CONCAT( ( SELECT option_value FROM `minnpost.wordpress`.wp_options WHERE option_name = 'siteurl' ), '/wp-admin/edit-comments.php' ), 'url', '')
+		VALUES ('/admin/content/comment', 0, 0, 1, CURRENT_TIMESTAMP(), 1, 'enabled', 'url', 301, '/wp-admin/edit-comments.php', 'url', '')
 	;
 
 
