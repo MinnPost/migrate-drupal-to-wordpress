@@ -5036,6 +5036,11 @@
 	;
 
 
+	# economy category redirect
+	INSERT INTO `wp_redirection_items` (`url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
+		VALUES ('/economy-0/.*', 1, 115748, 0, '0000-00-00 00:00:00', 1, 'enabled', 'url', 301, '/economy/.*', 'url', '')
+	;
+
 
 	# zoninator zones (like nodequeues)
 
