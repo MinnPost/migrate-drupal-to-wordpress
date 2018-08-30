@@ -4495,7 +4495,7 @@
 
 	# Redirects for the Redirection plugin - https://wordpress.org/plugins/redirection/
 	# these are from the path_redirect table
-	# use line 4524 to exclude things if we find out they break when used in wordpress
+	# use line 4519 to exclude things if we find out they break when used in wordpress
 	INSERT INTO `minnpost.wordpress`.wp_redirection_items
 		(`id`, `url`, `regex`, `position`, `last_count`, `last_access`, `group_id`, `status`, `action_type`, `action_code`, `action_data`, `match_type`, `title`)
 		SELECT DISTINCT
@@ -5192,7 +5192,7 @@
 
 
 	# add menus
-	# parameter: line 5313 contains the menu types in drupal that we don't want to migrate
+	# parameter: line 5203 contains the menu types in drupal that we don't want to migrate
 	INSERT INTO `minnpost.wordpress`.wp_menu
 		(name, title, placement)
 		SELECT DISTINCT
@@ -5226,7 +5226,7 @@
 
 
 	# add menu items
-	# parameter: line 5373 important parameter to keep out/force some urls because of how they're stored in drupal
+	# parameter: line 5263 important parameter to keep out/force some urls because of how they're stored in drupal
 	INSERT INTO `minnpost.wordpress`.wp_menu_items
 		(`menu-name`, `menu-item-title`, `menu-item-url`, `menu-item-parent`)
 		SELECT DISTINCT
@@ -5639,6 +5639,9 @@
 
 
 # Section 16 - General WordPress settings.
+
+	# turn off all pings
+	UPDATE `minnpost.wordpress`.wp_posts SET ping_status = 'closed';
 
 	
 # Section 17 - Things that have to be manually imported
